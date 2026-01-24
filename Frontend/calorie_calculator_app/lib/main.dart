@@ -8,6 +8,7 @@ import "package:food_files_app/utilities/utilities.dart";
 import "package:provider/provider.dart"; // A state management package. It allows data (like the list of favorites) to be shared across different screens without manually passing it through every constructor.
 // import 'package:google_fonts/google_fonts.dart';
 
+// TODO: Add try catches, better error handling, comments explaining everything, test cases / test units
 void main()
 {
 	runApp
@@ -17,7 +18,7 @@ void main()
 			providers:
 			[
 				ChangeNotifierProvider(create: (context) => CalculationFields()),
-				ChangeNotifierProvider(create: (context) => AllCalculations())
+				ChangeNotifierProvider(create: (context) => AllCalculations()..init()) // The ..init() triggers the load
 			],
 
 			child: const MyApp(), // The entire app now has access to a list of providers, rather than just creating and listening to 1

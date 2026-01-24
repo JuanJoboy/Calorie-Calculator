@@ -7,12 +7,27 @@ class InformationPage extends StatelessWidget
 	@override
 	Widget build(BuildContext context)
 	{
-		return const Column
+		return Column
 		(
 			children:
 			[
-
+				info(". Basal Metabolic Rate (BMR)", "a"),
 			],
 		);
   	}
+
+	Widget info(String header, String text)
+	{
+		return Card
+		(
+			child: Column
+			(
+				children:
+				[
+					Text(header),
+					Text(text),
+				],
+			),
+		);
+	}
 }

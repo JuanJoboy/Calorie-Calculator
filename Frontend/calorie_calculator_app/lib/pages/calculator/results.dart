@@ -5,12 +5,13 @@ import 'package:provider/provider.dart';
 
 class ResultsPage extends StatefulWidget
 {
+	final double personWeight;
 	final double bmr;
 	final double weightLiftingBurn;
 	final double cardioBurn;
 	final double epoc;
 
-	const ResultsPage({super.key, required this.bmr, required this.weightLiftingBurn, required this.cardioBurn, required this.epoc});
+	const ResultsPage({super.key, required this.personWeight, required this.bmr, required this.weightLiftingBurn, required this.cardioBurn, required this.epoc});
 
 	@override
 	State<ResultsPage> createState() => _ResultsPageState();
@@ -32,8 +33,8 @@ class _ResultsPageState extends State<ResultsPage>
 	@override
 	Widget build(BuildContext context)
 	{
-		final double tdee = widget.bmr * 1.2;
-		final double total = widget.bmr + tdee + widget.weightLiftingBurn + widget.cardioBurn + widget.epoc;
+		final double tdee = (widget.bmr * 1.2);
+		final double total = tdee + widget.weightLiftingBurn + widget.cardioBurn + widget.epoc;
 
 		return Scaffold
 		(
@@ -43,12 +44,12 @@ class _ResultsPageState extends State<ResultsPage>
 			(
 				children:
 				[
-					displayInfo("Basal Metabolic Rate (BMR)", "${widget.bmr} kcal"),
-					displayInfo("Total Daily Energy Expenditure (TDEE)", "$tdee kcal"),
-					displayInfo("Weightlifting Burn (MET Method)", "${widget.weightLiftingBurn} kcal"),
-					displayInfo("Running Burn (Distance Method)", "${widget.cardioBurn} kcal"),
-					displayInfo("Recovery Burn (EPOC)", "${widget.epoc} kcal"),
-					displayInfo("Total Caloric Intake Required", "$total"),
+					displayInfo("Basal Metabolic Rate (BMR)", "${widget.bmr.truncate()} kcal"),
+					displayInfo("Total Daily Energy Expenditure (TDEE)", "${tdee.truncate()} kcal"),
+					displayInfo("Weightlifting Burn (MET Method)", "${widget.weightLiftingBurn.truncate()} kcal"),
+					displayInfo("Running Burn (Distance Method)", "${widget.cardioBurn.truncate()} kcal"),
+					displayInfo("Recovery Burn (EPOC)", "${widget.epoc.truncate()} kcal"),
+					displayInfo("Total Caloric Intake Required", "${total.truncate()}"),
 
 					button(context, tdee, total)
 				],
@@ -79,8 +80,8 @@ class _ResultsPageState extends State<ResultsPage>
 			(
 				onPressed: ()
 				{
-					newCalculation(widget.bmr, tdee, widget.weightLiftingBurn, widget.cardioBurn, widget.epoc, total);
-
+					newCalculation(widget.personWeight, widget.bmr, tdee, widget.weightLiftingBurn, widget.cardioBurn, widget.epoc, total);
+					
 					Navigator.popUntil
 					(
 						context,
@@ -90,15 +91,15 @@ class _ResultsPageState extends State<ResultsPage>
 				child: const Padding
 				(
 					padding: EdgeInsets.all(16.0),
-					child: Text("Upload to timeline", textAlign: TextAlign.center,),
+					child: Text("Upload To Timeline", textAlign: TextAlign.center,),
 				),
 			)
 		);
 	}
 
-	void newCalculation(double bmr, double tdee, double weightLiftingBurn, double cardioBurn, double epoc, double total)
+	void newCalculation(double weight, double bmr, double tdee, double weightLiftingBurn, double cardioBurn, double epoc, double total)
 	{
-		Calculation calc = Calculation(bmr: bmr, tdee: tdee, weightLiftingBurn: weightLiftingBurn, cardioBurn: cardioBurn, epoc: epoc, totalBurn: total);
+		Calculation calc = Calculation(id: null, date: DateTime.now().toIso8601String(), personWeight: weight, bmr: bmr, tdee: tdee, weightLiftingBurn: weightLiftingBurn, cardioBurn: cardioBurn, epoc: epoc, totalBurn: total);
 
 		_list.uploadCalc(calc);
 	}

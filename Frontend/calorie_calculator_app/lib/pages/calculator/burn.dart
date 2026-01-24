@@ -8,9 +8,9 @@ import 'package:provider/provider.dart';
 class BurnPage extends StatefulWidget
 {
 	final double bmr;
-	final double weight;
+	final double personWeight;
 	
-	const BurnPage({super.key, required this.bmr, required this.weight});
+	const BurnPage({super.key, required this.bmr, required this.personWeight});
 
 	@override
 	State<BurnPage> createState() => _BurnPageState();
@@ -67,44 +67,71 @@ class _BurnPageState extends State<BurnPage>
 
 	Widget met()
 	{
-		return GridView.count
+		return Expanded
 		(
-			shrinkWrap: true, // Takes up only the required space instead of being infinite
-			crossAxisCount: 2, // Number of columns
-			crossAxisSpacing: 10, // Horizontal space between items
-			mainAxisSpacing: 10, // Vertical space between items
-			children:
-			[
-				const Row
-				(
-					children:
-					[
-						Expanded(child: Text("Light | < 3.0 METs", textAlign: TextAlign.center,)),
-						Expanded(child: Text("Moderate | 3.0 - 8.0 METs", textAlign: TextAlign.center,)),
-					]
-				),
+			child: CustomScrollView
+			(
+				slivers:
+				[
+					SliverGrid
+					(
+						gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount
+						(
+							crossAxisCount: 2,
+							childAspectRatio: 2
+						),
+						delegate: SliverChildBuilderDelegate
+						(
+							(context, index)
+							{
+								return switch(index)
+								{
+									0 => option("Light | < 3.0 METs", 0, nonRadio: true),
+									1 => option("Moderate | 3.0 - 8.0 METs", 0, nonRadio: true),
+									2 => option("Sitting: 1.3", 1.3),
+									3 => option("Light Weights: 3.5", 3.5),
+									4 => option("Standing: 1.8", 1.8),
+									5 => option("Heavy Weights: 5", 5),
+									6 => option("Yoga: 2.5", 2.5),
+									7 => option("Tennis: 8", 8),
+								  	_ => option("", 1),
+								};
+							},
+							childCount: 8
+						),
+					),
+				],
 
-				option("Sitting: 1.3", 1.3),
-				option("Weight training (lighter weights): 3.5", 3.5),
-				option("Standing: 1.8", 1.8),
-				option("Weight training (heavier weights): 5", 5),
-				option("Yoga: 2.5", 2.5),
-				option("Tennis: 8", 8),
-			],
+			)
 		);
 	}
 
-	Widget option(String text, double factor)
+	Widget option(String text, double factor, {bool? nonRadio})
 	{
-		return RadioListTile<double>
-		(
-			title: Text(text),
-			value: factor,
-			onChanged: (m)
-			{
-				setState(() => metFactor = m);
-      		},
-    	);
+		if(nonRadio == true)
+		{
+			return Padding
+			(
+				padding: const EdgeInsets.only(top: 30.0),
+				child: Text(text, textAlign: TextAlign.center, style: const TextStyle(fontSize: 20)),
+			);
+		}
+		else
+		{
+			return Card
+			(
+				child: RadioListTile<double>
+				(
+					title: Text(text),
+					value: factor,
+					groupValue: metFactor,
+					onChanged: (newValue)
+					{
+						setState(() => metFactor = newValue);
+					},
+				)
+			);
+		}
 	}
 
 	Widget textBox(String text, TextEditingController controller, {TextStyle? textStyle, int? fieldToSave})
@@ -152,13 +179,13 @@ class _BurnPageState extends State<BurnPage>
 							final double durationNum = double.tryParse(workoutDuration.text.trim()) ?? 0;
 							final double distanceNum = double.tryParse(distance.text.trim()) ?? 0;
 
-							final double weightLiftingBurn = metFactor! * widget.weight * (durationNum / 60) * 0.8;
-							final double cardioBurn = widget.weight * distanceNum;
+							final double weightLiftingBurn = metFactor! * widget.personWeight * (durationNum / 60) * 0.8;
+							final double cardioBurn = widget.personWeight * distanceNum;
 
 							Navigator.push
 							(
 								context,
-								MaterialPageRoute(builder: (context) => Utils.switchPage(context, EPOCPage(bmr: widget.bmr, weightLiftingBurn: weightLiftingBurn, cardioBurn: cardioBurn))) // Takes you to the page that shows all the locations connected to the restaurant
+								MaterialPageRoute(builder: (context) => Utils.switchPage(context, EPOCPage(personWeight: widget.personWeight, bmr: widget.bmr, weightLiftingBurn: weightLiftingBurn, cardioBurn: cardioBurn))) // Takes you to the page that shows all the locations connected to the restaurant
 							);
 						},
 						child: const Padding

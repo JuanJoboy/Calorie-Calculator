@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:food_files_app/database/database.dart';
 import 'package:food_files_app/pages/calculator/burn.dart';
 import 'package:food_files_app/pages/calculator/calculations.dart';
 import 'package:food_files_app/utilities/utilities.dart';
@@ -19,7 +20,8 @@ class _BMRPageState extends State<CalculatorPage>
 	final TextEditingController height = TextEditingController();
 	final TextEditingController age = TextEditingController();
 
-	double bmr = 0;
+	Object? latestBMR;
+	Object? latestWeight;
 
 	late CalculationFields _calcs;
 
@@ -61,8 +63,8 @@ class _BMRPageState extends State<CalculatorPage>
 				(
 					children:
 					[
-						button("Next", areFieldsEmpty),
-						button("Stick with $bmr BMR", bmrExistsAlready),
+						button1("Next"),
+						button2(),
 					]
 				)
 			],
@@ -99,7 +101,7 @@ class _BMRPageState extends State<CalculatorPage>
 		);
 	}
 
-	Widget button(String text, bool Function() condition)
+	Widget button1(String text)
 	{
 		return Card
 		(
@@ -110,7 +112,7 @@ class _BMRPageState extends State<CalculatorPage>
 				{
 					return ElevatedButton
 					(
-						onPressed: condition() ? null : () // if the fields are empty then grey out the button
+						onPressed: areFieldsEmpty() ? null : () async // Async so that the nav.push can be awaited, so that as soon as the user comes back to this page after coming from the results page, the page is rebuilt via setState and the bmr checker runs, allowing the button to be usable. Instead of forcing the user to go to another page, then back here so that the page rebuilds
 						{
 							final double weightNum = double.parse(weight.text.trim());
 							final double heightNum = double.parse(height.text.trim());
@@ -118,11 +120,16 @@ class _BMRPageState extends State<CalculatorPage>
 
 							final double bmr = (10 * weightNum) + (6.25 * heightNum) - (5 * ageNum) + 5;
 
-							Navigator.push
+							await Navigator.push
 							(
 								context,
-								MaterialPageRoute(builder: (context) => Utils.switchPage(context, BurnPage(bmr: bmr, weight: weightNum))) // Takes you to the page that shows all the locations connected to the restaurant
+								MaterialPageRoute(builder: (context) => Utils.switchPage(context, BurnPage(bmr: bmr, personWeight: weightNum))) // Takes you to the page that shows all the locations connected to the restaurant
 							);
+
+							setState(()
+							{
+								bmrExistsAlready();
+							});
 						},
 						child: Padding
 						(
@@ -135,13 +142,64 @@ class _BMRPageState extends State<CalculatorPage>
 		);
 	}
 
+	Widget button2()
+	{
+		return Card
+		(
+			child: FutureBuilder
+			(
+				future: bmrExistsAlready(),
+				builder: (context, snapshot)
+				{
+					bool notFound = snapshot.data ?? false;
+
+					return ElevatedButton
+					(
+						onPressed: !notFound ? null : () async // if the fields are empty then grey out the button
+						{
+							await Navigator.push
+							(
+								context,
+								MaterialPageRoute(builder: (context) => Utils.switchPage(context, BurnPage(bmr: latestBMR as double, personWeight: latestWeight as double))) // Takes you to the page that shows all the locations connected to the restaurant
+							);
+
+							setState(()
+							{
+								bmrExistsAlready();
+							});
+						},
+						child: Padding
+						(
+							padding: const EdgeInsets.all(16.0),
+							child: Text("Stick with ${(latestBMR as double?)?.truncate() ?? 0.truncate()} BMR", textAlign: TextAlign.center,),
+						),
+					);
+				}
+			)
+		);
+	}
+
 	bool areFieldsEmpty()
 	{
 		return (weight.text.trim().isEmpty) || (height.text.trim().isEmpty) || (age.text.trim().isEmpty); // Ensures that all the fields are filled
 	}
 
-	bool bmrExistsAlready()
+	Future<bool> bmrExistsAlready() async
 	{
-		return true;
+		final dbInstance = DatabaseHelper.instance;
+		final db = await dbInstance.database;
+
+		final allCalcs = await db.rawQuery("SELECT * FROM ${dbInstance.calcsTableName}");
+		
+		if(allCalcs.isEmpty)
+		{
+			return false;
+		}
+		else
+		{
+			latestBMR = allCalcs.last[dbInstance.calcsBMRColumnName];
+			latestWeight = allCalcs.last[dbInstance.calcsWeightColumnName];
+			return true;
+		}
 	}
 }

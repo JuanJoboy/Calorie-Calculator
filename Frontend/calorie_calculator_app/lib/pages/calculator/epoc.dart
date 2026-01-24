@@ -4,11 +4,12 @@ import 'package:food_files_app/utilities/utilities.dart';
 
 class EPOCPage extends StatefulWidget
 {
+	final double personWeight;
 	final double bmr;
 	final double weightLiftingBurn;
 	final double cardioBurn;
 	
-	const EPOCPage({super.key, required this.bmr, required this.weightLiftingBurn, required this.cardioBurn});
+	const EPOCPage({super.key, required this.personWeight, required this.bmr, required this.weightLiftingBurn, required this.cardioBurn});
 
 	@override
 	State<EPOCPage> createState() => _EPOCPageState();
@@ -48,7 +49,7 @@ class _EPOCPageState extends State<EPOCPage>
 					Navigator.push
 					(
 						context,
-						MaterialPageRoute(builder: (context) => Utils.switchPage(context, ResultsPage(bmr: widget.bmr, weightLiftingBurn: widget.weightLiftingBurn, cardioBurn: widget.cardioBurn, epoc: epoc))) // Takes you to the page that shows all the locations connected to the restaurant
+						MaterialPageRoute(builder: (context) => Utils.switchPage(context, ResultsPage(personWeight: widget.personWeight, bmr: widget.bmr, weightLiftingBurn: widget.weightLiftingBurn, cardioBurn: widget.cardioBurn, epoc: epoc))) // Takes you to the page that shows all the locations connected to the restaurant
 					);
 				},
 				child: Padding
