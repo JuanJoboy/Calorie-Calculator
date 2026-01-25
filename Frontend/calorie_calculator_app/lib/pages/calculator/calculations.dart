@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:food_files_app/database/database.dart';
+import 'package:calorie_calculator_app/database/database.dart';
 
 class Calculation
 {

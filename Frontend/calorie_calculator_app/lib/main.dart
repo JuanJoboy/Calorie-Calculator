@@ -1,10 +1,10 @@
 // import "package:english_words/english_words.dart"; // Imports a utility package containing thousands of common English words and functions to manipulate them. Used here to generate random WordPair objects.
 import "package:flutter/material.dart"; // The core Flutter framework. It provides "Material Design" widgets (buttons, cards, scaffolds) and the engine for rendering the UI.
-import "package:food_files_app/pages/calculator/bmr.dart";
-import "package:food_files_app/pages/calculator/calculations.dart";
-import "package:food_files_app/pages/history/history.dart";
-import "package:food_files_app/pages/information/information.dart";
-import "package:food_files_app/utilities/utilities.dart";
+import "package:calorie_calculator_app/pages/calculator/bmr.dart";
+import "package:calorie_calculator_app/pages/calculator/calculations.dart";
+import "package:calorie_calculator_app/pages/history/history.dart";
+import "package:calorie_calculator_app/pages/information/information.dart";
+import "package:calorie_calculator_app/utilities/utilities.dart";
 import "package:provider/provider.dart"; // A state management package. It allows data (like the list of favorites) to be shared across different screens without manually passing it through every constructor.
 // import 'package:google_fonts/google_fonts.dart';
 

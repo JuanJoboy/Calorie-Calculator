@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:food_files_app/database/database.dart';
-import 'package:food_files_app/pages/calculator/burn.dart';
-import 'package:food_files_app/pages/calculator/calculations.dart';
-import 'package:food_files_app/utilities/utilities.dart';
+import 'package:calorie_calculator_app/database/database.dart';
+import 'package:calorie_calculator_app/pages/calculator/burn.dart';
+import 'package:calorie_calculator_app/pages/calculator/calculations.dart';
+import 'package:calorie_calculator_app/utilities/utilities.dart';
 import 'package:provider/provider.dart';
 
 class CalculatorPage extends StatefulWidget
@@ -14,11 +14,31 @@ class CalculatorPage extends StatefulWidget
 	State<CalculatorPage> createState() => _BMRPageState();
 }
 
+enum Gender
+{
+	male,
+	female
+}
+
+extension GenderValues on Gender
+{
+	int get caloricValue
+	{
+		switch (this)
+		{
+			case Gender.male: return 5;
+			case Gender.female: return -161;
+		}
+	}
+}
+
 class _BMRPageState extends State<CalculatorPage>
 {
 	final TextEditingController weight = TextEditingController();
 	final TextEditingController height = TextEditingController();
 	final TextEditingController age = TextEditingController();
+
+	Gender? chosenGender;
 
 	Object? latestBMR;
 	Object? latestWeight;
@@ -58,6 +78,8 @@ class _BMRPageState extends State<CalculatorPage>
 				textBox("Weight in kg:", weight, fieldToSave: 1),
 				textBox("Height in cm", height, fieldToSave: 2),
 				textBox("Age in years", age, fieldToSave: 3),
+
+				gender(),
 
 				Row
 				(
@@ -101,6 +123,70 @@ class _BMRPageState extends State<CalculatorPage>
 		);
 	}
 
+	Widget gender()
+	{
+		return Expanded
+		(
+			child: CustomScrollView
+			(
+				slivers:
+				[
+					SliverGrid
+					(
+						gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount
+						(
+							crossAxisCount: 2,
+							childAspectRatio: 3
+						),
+						delegate: SliverChildBuilderDelegate
+						(
+							(context, index)
+							{
+								return switch(index)
+								{
+									0 => option(Icons.male_rounded, Gender.male),
+									1 => option(Icons.female_rounded, Gender.female),
+								  	_ => option(Icons.male_rounded, Gender.male),
+								};
+							},
+							childCount: 2
+						),
+					),
+				],
+
+			)
+		);
+	}
+
+	Widget option(IconData icon, Gender gender)
+	{
+		return Card
+		(
+			shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.circular(20)),
+			child: RadioListTile<Gender>
+			(
+				shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.circular(20)),
+				title: Padding
+				(
+					padding: const EdgeInsets.only(right: 60),
+					child: Icon(icon, size: 60,),
+				),
+				radioScaleFactor: 0,
+				value: gender,
+				groupValue: chosenGender,
+				onChanged: (newValue)
+				{
+					setState( ()
+					{
+						chosenGender = newValue;
+					});
+				},
+				selectedTileColor: chosenGender == Gender.male ? Colors.blue : Colors.pink,
+				selected: gender == chosenGender ? true : false,
+			)
+		);
+	}
+
 	Widget button1(String text)
 	{
 		return Card
@@ -118,7 +204,7 @@ class _BMRPageState extends State<CalculatorPage>
 							final double heightNum = double.parse(height.text.trim());
 							final double ageNum = double.parse(age.text.trim());
 
-							final double bmr = (10 * weightNum) + (6.25 * heightNum) - (5 * ageNum) + 5;
+							final double bmr = (10 * weightNum) + (6.25 * heightNum) - (5 * ageNum) + chosenGender!.caloricValue;
 
 							await Navigator.push
 							(
@@ -181,7 +267,7 @@ class _BMRPageState extends State<CalculatorPage>
 
 	bool areFieldsEmpty()
 	{
-		return (weight.text.trim().isEmpty) || (height.text.trim().isEmpty) || (age.text.trim().isEmpty); // Ensures that all the fields are filled
+		return (weight.text.trim().isEmpty) || (height.text.trim().isEmpty) || (age.text.trim().isEmpty) || (chosenGender == null); // Ensures that all the fields are filled
 	}
 
 	Future<bool> bmrExistsAlready() async

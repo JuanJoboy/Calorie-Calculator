@@ -1,5 +1,5 @@
-name: food_files_app
-description: "A new Flutter project."
+name: calorie_calculator_app
+description: "An app to calculate how many calories your body needs on a specific day"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -34,6 +34,7 @@ dependencies:
   path_provider: ^2.1.5
   path: ^1.9.1
   sqflite: ^2.4.2
+  bulleted_list: ^0.0.1+0.1a
 
 dev_dependencies:
   flutter_test:

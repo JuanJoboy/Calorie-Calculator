@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:food_files_app/pages/calculator/calculations.dart';
-import 'package:food_files_app/utilities/utilities.dart';
+import 'package:calorie_calculator_app/pages/calculator/calculations.dart';
+import 'package:calorie_calculator_app/utilities/utilities.dart';
 import 'package:provider/provider.dart';
 
 class ResultsPage extends StatefulWidget

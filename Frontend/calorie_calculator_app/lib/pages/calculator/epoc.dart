@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:food_files_app/pages/calculator/results.dart';
-import 'package:food_files_app/utilities/utilities.dart';
+import 'package:calorie_calculator_app/pages/calculator/results.dart';
+import 'package:calorie_calculator_app/utilities/utilities.dart';
 
 class EPOCPage extends StatefulWidget
 {
