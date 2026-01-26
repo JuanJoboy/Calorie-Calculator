@@ -71,54 +71,113 @@ class _BMRPageState extends State<CalculatorPage>
 	@override
 	Widget build(BuildContext context)
 	{
-		return Column
-		(
-			children:
-			[
-				textBox("Weight in kg:", weight, fieldToSave: 1),
-				textBox("Height in cm", height, fieldToSave: 2),
-				textBox("Age in years", age, fieldToSave: 3),
-
-				gender(),
-
-				Row
-				(
-					children:
-					[
-						button1("Next"),
-						button2(),
-					]
-				)
-			],
-		);
-	}
-
-	Widget textBox(String text, TextEditingController controller, {TextStyle? textStyle, int? fieldToSave})
-	{
-		return Card
+		return Center
 		(
 			child: Column
 			(
+				mainAxisAlignment: MainAxisAlignment.center,
+				mainAxisSize: MainAxisSize.min,
 				children:
 				[
-					Text(text, style: textStyle?.copyWith(fontSize: 20)),
-
-					TextField
+					header(),
+				
+					textBox("Weight", "kg", weight, fieldToSave: 1),
+					textBox("Height", "cm", height, fieldToSave: 2),
+					textBox("Age", "years", age, fieldToSave: 3),
+				
+					gender(),
+				
+					Row
 					(
-						style: textStyle?.copyWith(fontSize: 20),
-						controller: controller,
-						onChanged: (value)
-						{
-							switch(fieldToSave)
-							{
-								case 1: _calcs.updateControllers(weight: value);
-								case 2: _calcs.updateControllers(height: value);
-								case 3: _calcs.updateControllers(age: value);
-							}
-						},
-						inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))]
-					),
+						mainAxisAlignment: MainAxisAlignment.center,
+						children:
+						[
+							button1("Next"),
+							button2(),
+						]
+					)
 				],
+			),
+		);
+	}
+
+	Widget header()
+	{
+		return const Padding
+		(
+			padding: EdgeInsets.only(left: 20, top: 40, right: 20, bottom: 20),
+			child: Text
+			(
+				"BMR Calculator",
+				style: TextStyle
+				(
+					fontSize: 30,
+					fontWeight: FontWeight.bold,
+				),
+			),
+		);
+}
+
+	Widget textBox(String header, String unit, TextEditingController controller, {int? fieldToSave})
+	{
+		return SizedBox
+		(
+			width: 200,
+			child: Card
+			(
+				child: Column
+				(
+					children:
+					[
+						Text
+						(
+							header,
+							style: const TextStyle
+							(
+								fontWeight: FontWeight.w600
+							)
+						),
+
+						Row
+						(
+							mainAxisAlignment: MainAxisAlignment.center,
+							children:
+							[
+								SizedBox
+								(
+									width: 100,
+									child: TextField
+									(
+										style: const TextStyle
+										(
+											fontSize: 20
+										),
+										controller: controller,
+										onChanged: (value)
+										{
+											switch(fieldToSave)
+											{
+												case 1: _calcs.updateControllers(weight: value);
+												case 2: _calcs.updateControllers(height: value);
+												case 3: _calcs.updateControllers(age: value);
+											}
+										},
+										inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))]
+									),
+								),
+				
+								Text
+								(
+									unit,
+									style: const TextStyle
+									(
+										fontWeight: FontWeight.bold
+									),
+								)
+							],
+						)
+					],
+				),
 			),
 		);
 	}
