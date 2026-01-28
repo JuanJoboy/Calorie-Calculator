@@ -1,4 +1,5 @@
 // import "package:english_words/english_words.dart"; // Imports a utility package containing thousands of common English words and functions to manipulate them. Used here to generate random WordPair objects.
+import "package:calorie_calculator_app/utilities/colours.dart";
 import "package:flutter/material.dart"; // The core Flutter framework. It provides "Material Design" widgets (buttons, cards, scaffolds) and the engine for rendering the UI.
 import "package:calorie_calculator_app/pages/calculator/bmr.dart";
 import "package:calorie_calculator_app/pages/calculator/calculations.dart";
@@ -33,28 +34,51 @@ class MyApp extends StatelessWidget
 	@override
 	Widget build(BuildContext context)
 	{
-		const Color mySeed = Color.fromARGB(255, 0, 136, 255);
+		const Color lightSeed = Color.fromARGB(255, 255, 240, 230);
+		const Color darkSeed = Color.fromARGB(255, 53, 35, 35);
 		
 		return MaterialApp
 		(
-			title: 'Food Files',
+			title: 'Calorie Calculator',
+			// Light Theme
 			theme: ThemeData
 			(
 				useMaterial3: true,
+				scaffoldBackgroundColor: lightSeed,
 				colorScheme: ColorScheme.fromSeed
 				(
-					seedColor: mySeed,
-					brightness: Brightness.light, // Light Mode
+					brightness: Brightness.light,
+					seedColor: lightSeed,
 				),
+				extensions: 
+				[
+					const AppColours
+					(
+						backgroundColour: lightSeed,
+						secondaryColour: Color.fromARGB(255, 255, 205, 205),
+						tertiaryColour: Color.fromARGB(255, 255, 241, 241)
+					)
+				]
 			),
+			// Dark Theme
 			darkTheme: ThemeData
 			(
 				useMaterial3: true,
+				scaffoldBackgroundColor: darkSeed,
 				colorScheme: ColorScheme.fromSeed
 				(
-					seedColor: mySeed,
-					brightness: Brightness.dark, // Dark Mode
+					brightness: Brightness.dark,
+					seedColor: darkSeed,
 				),
+				extensions: 
+				[
+					const AppColours
+					(
+						backgroundColour: darkSeed,
+						secondaryColour: Color.fromARGB(255, 255, 205, 205),
+						tertiaryColour: Color.fromARGB(255, 140, 110, 110)
+					)
+				]
 			),
 			themeMode: ThemeMode.system, // Auto sets to the device's setting
 			home: const MyHomePage(), // The home page is immediately set to the feed because the index is set to 0 immediately

@@ -32,8 +32,7 @@ class Utils
 
 	static Color getBackgroundColor(ThemeData theme)
 	{
-		// If the mode is light, then return surfaceContainerLow, else return blueGrey if its dark mode
-		return theme.brightness == Brightness.light ? theme.colorScheme.surfaceContainerLow : Colors.blueGrey;
+		return theme.scaffoldBackgroundColor;
 	}
 
 	static bool backgroundColorIsLightMode(ThemeData theme)
@@ -45,7 +44,7 @@ class Utils
 	{
 		return ColoredBox
 		(
-			color: Utils.getBackgroundColor(Theme.of(context)), // Sets the background colour
+			color: getBackgroundColor(Theme.of(context)), // Sets the background colour
 			child: AnimatedSwitcher // Automatically cross-fades between pages when the page changes.
 			(
 				duration: const Duration(milliseconds: 200), // Cross fade duration

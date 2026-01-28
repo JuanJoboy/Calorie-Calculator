@@ -1,3 +1,4 @@
+import 'package:calorie_calculator_app/utilities/colours.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:calorie_calculator_app/database/database.dart';
@@ -83,7 +84,7 @@ class _BMRPageState extends State<CalculatorPage>
 				
 					textBox("Weight", "kg", weight, fieldToSave: 1),
 					textBox("Height", "cm", height, fieldToSave: 2),
-					textBox("Age", "years", age, fieldToSave: 3),
+					textBox("Age", "years", age, fieldToSave: 3, padding: 47),
 				
 					gender(),
 				
@@ -105,7 +106,7 @@ class _BMRPageState extends State<CalculatorPage>
 	{
 		return const Padding
 		(
-			padding: EdgeInsets.only(left: 20, top: 40, right: 20, bottom: 20),
+			padding: EdgeInsets.only(left: 20, top: 40, right: 20),
 			child: Text
 			(
 				"BMR Calculator",
@@ -116,67 +117,116 @@ class _BMRPageState extends State<CalculatorPage>
 				),
 			),
 		);
-}
-
-	Widget textBox(String header, String unit, TextEditingController controller, {int? fieldToSave})
+	}
+	
+	Widget textBox(String header, String unit, TextEditingController controller, {int? fieldToSave, double? padding})
 	{
-		return SizedBox
+		return Padding
 		(
-			width: 200,
-			child: Card
+			padding: const EdgeInsets.only(top: 50.0),
+			child: SizedBox
 			(
-				child: Column
+				height: 105,
+				width: 300,
+				child: Card
 				(
-					children:
-					[
-						Text
+					color: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
+					shape: RoundedRectangleBorder
+					(
+						side: BorderSide
 						(
-							header,
-							style: const TextStyle
-							(
-								fontWeight: FontWeight.w600
-							)
+							color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+							width: 2
 						),
-
-						Row
-						(
-							mainAxisAlignment: MainAxisAlignment.center,
-							children:
-							[
-								SizedBox
+						borderRadius: BorderRadiusGeometry.circular(20)
+					),
+					child: Column
+					(
+						children:
+						[
+							Padding
+							(
+								padding: const EdgeInsets.only(top: 10.0),
+								child: Text
 								(
-									width: 100,
-									child: TextField
-									(
-										style: const TextStyle
-										(
-											fontSize: 20
-										),
-										controller: controller,
-										onChanged: (value)
-										{
-											switch(fieldToSave)
-											{
-												case 1: _calcs.updateControllers(weight: value);
-												case 2: _calcs.updateControllers(height: value);
-												case 3: _calcs.updateControllers(age: value);
-											}
-										},
-										inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))]
-									),
-								),
-				
-								Text
-								(
-									unit,
+									header,
 									style: const TextStyle
 									(
-										fontWeight: FontWeight.bold
+										fontSize: 20,
+										fontWeight: FontWeight.w500
+									)
+								),
+							),
+				
+							Row
+							(
+								mainAxisAlignment: MainAxisAlignment.center,
+								children:
+								[
+									Padding
+									(
+										padding: EdgeInsets.only(left: padding ?? 30.0),
+										child: SizedBox
+										(
+											height: 40,
+											width: 100,
+											child: Card
+											(
+												shape: RoundedRectangleBorder
+												(
+													side: BorderSide
+													(
+														color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+														width: 2
+													),
+													borderRadius: BorderRadiusGeometry.circular(100)
+												),
+												color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+												child: TextField
+												(
+													textAlign: TextAlign.center,
+													decoration: const InputDecoration
+													(
+														hintText: "...",
+														border: InputBorder.none,
+													),
+													style: const TextStyle
+													(
+														fontSize: 15
+													),
+													controller: controller,
+													onChanged: (value)
+													{
+														switch(fieldToSave)
+														{
+															case 1: _calcs.updateControllers(weight: value);
+															case 2: _calcs.updateControllers(height: value);
+															case 3: _calcs.updateControllers(age: value);
+														}
+													},
+													inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))]
+												),
+											),
+										),
 									),
-								)
-							],
-						)
-					],
+					
+									Padding
+									(
+										padding: const EdgeInsets.only(left: 8.0, bottom: 3.0),
+										child: Text
+										(
+											unit,
+											style: const TextStyle
+											(
+												fontSize: 17,
+												fontWeight: FontWeight.bold
+											),
+										),
+									)
+								],
+							)
+						],
+					),
 				),
 			),
 		);
@@ -216,6 +266,39 @@ class _BMRPageState extends State<CalculatorPage>
 			)
 		);
 	}
+
+	// Widget gender()
+	// {
+	// 	return SegmentedButton<Gender>
+	// 	(
+	// 		style: ButtonStyle
+	// 		(
+	// 			backgroundColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states)
+	// 			{
+	// 				if (states.contains(WidgetState.selected))
+	// 				{
+	// 					return chosenGender == Gender.male ? const Color.fromARGB(255, 205, 234, 255) : Theme.of(context).extension<AppColours>()!.secondaryColour!;
+	// 				}
+
+	// 				return Colors.grey; // Default color
+	// 			}),
+	// 		),
+	// 		segments: const
+	// 		[
+	// 			ButtonSegment(value: Gender.male, icon: Icon(Icons.male_rounded)),
+	// 			ButtonSegment(value: Gender.female, icon: Icon(Icons.female_rounded)),
+	// 		],
+	// 		selected: {?chosenGender},
+	// 		onSelectionChanged: (Set<Gender> newSelection)
+	// 		{
+	// 			setState(()
+	// 			{
+	// 				chosenGender = newSelection.first;
+	// 			});
+	// 		},
+	// 		emptySelectionAllowed: true,
+	// 	);
+	// }
 
 	Widget option(IconData icon, Gender gender)
 	{

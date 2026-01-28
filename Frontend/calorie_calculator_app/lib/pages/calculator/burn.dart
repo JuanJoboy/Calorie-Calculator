@@ -22,7 +22,7 @@ enum Cardio
 	cycle
 }
 
-extension GenderValues on Cardio
+extension CardioValues on Cardio
 {
 	double get caloricValue
 	{
@@ -34,10 +34,31 @@ extension GenderValues on Cardio
 	}
 }
 
+enum WeightLifting
+{
+	upper,
+	mix,
+	lower
+}
+
+extension WeightLiftingValues on WeightLifting
+{
+	double get weightLiftingValue
+	{
+		switch (this)
+		{
+			case WeightLifting.upper: return 1;
+			case WeightLifting.mix: return 1.2;
+			case WeightLifting.lower: return 1.4;
+		}
+	}
+}
+
 class _BurnPageState extends State<BurnPage>
 {
 	double? metFactor;
 	Cardio? chosenCardio;
+	WeightLifting? chosenLift;
 	final TextEditingController workoutDuration = TextEditingController();
 	final TextEditingController distance = TextEditingController();
 
@@ -76,8 +97,9 @@ class _BurnPageState extends State<BurnPage>
 					met(),
 
 					textBox("Workout Duration in minutes", workoutDuration, fieldToSave: 1),
-					textBox("Distance in km", distance, fieldToSave: 2),
+					weightLifting(),
 
+					textBox("Distance in km", distance, fieldToSave: 2),
 					cardio(),
 
 					button(),
@@ -98,8 +120,8 @@ class _BurnPageState extends State<BurnPage>
 					(
 						gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount
 						(
-							crossAxisCount: 2,
-							childAspectRatio: 2
+							crossAxisCount: 3,
+							childAspectRatio: 1
 						),
 						delegate: SliverChildBuilderDelegate
 						(
@@ -108,15 +130,18 @@ class _BurnPageState extends State<BurnPage>
 								return switch(index)
 								{
 									0 => option("Light | < 4.0 METs", 0, nonRadio: true),
-									1 => option("Moderate | 4.0 - 8.0 METs", 0, nonRadio: true),
-									2 => option("Yoga: 2.5", 2.5),
-									3 => option("Heavy Weights: 5", 5),
-									4 => option("Light Weights: 3.5", 3.5),
-									5 => option("Tennis: 8", 8),
+									1 => option("Moderate | 4.0 - 6.0 METs", 0, nonRadio: true),
+									2 => option("Vigorous | < 6.0 METs", 0, nonRadio: true),
+									3 => option("Yoga: 2.5", 2.5),
+									4 => option("Badminton: 4.5", 4.5),
+									5 => option("Heavy Weights: 6", 6),
+									6 => option("Light Weights: 3.5", 3.5),
+									7 => option("Moderate Weights: 5", 5),
+									8 => option("Tennis: 7", 7),
 								  	_ => option("", 1),
 								};
 							},
-							childCount: 6
+							childCount: 9
 						),
 					),
 				],
@@ -178,6 +203,28 @@ class _BurnPageState extends State<BurnPage>
 					),
 				],
 			),
+		);
+	}
+
+	Widget weightLifting()
+	{
+		return SegmentedButton<WeightLifting>
+		(
+			segments: const
+			[
+				ButtonSegment(value: WeightLifting.upper, label: Text('Upper')),
+				ButtonSegment(value: WeightLifting.mix, label: Text('Upper / Lower Mix')),
+				ButtonSegment(value: WeightLifting.lower, label: Text('Lower')),
+			],
+			selected: {?chosenLift},
+			onSelectionChanged: (Set<WeightLifting> newSelection)
+			{
+				setState(()
+				{
+					chosenLift = newSelection.first;
+				});
+			},
+			emptySelectionAllowed: true,
 		);
 	}
 
@@ -261,7 +308,7 @@ class _BurnPageState extends State<BurnPage>
 							final double durationNum = double.tryParse(workoutDuration.text.trim()) ?? 0;
 							final double distanceNum = double.tryParse(distance.text.trim()) ?? 0;
 
-							final double weightLiftingBurn = ((((metFactor ?? 0) * 3.5 * widget.personWeight) / 200) * durationNum) * 0.8;
+							final double weightLiftingBurn = ((((metFactor ?? 0) * 3.5 * widget.personWeight) / 200) * durationNum) * 0.8 * (chosenLift?.weightLiftingValue ?? 0);
 							final double cardioBurn = widget.personWeight * distanceNum * (chosenCardio?.caloricValue ?? 0);
 
 							Navigator.push
@@ -283,11 +330,11 @@ class _BurnPageState extends State<BurnPage>
 
 	bool areFieldsEmpty()
 	{
-		if((metFactor == null && workoutDuration.text.isEmpty) && (chosenCardio == null && distance.text.isEmpty))
+		if((metFactor == null && chosenLift == null && workoutDuration.text.isEmpty) && (chosenCardio == null && distance.text.isEmpty))
 		{
 			return true;
 		}
-		else if(metFactor == null && workoutDuration.text.isNotEmpty)
+		else if((metFactor == null || chosenLift == null) && workoutDuration.text.isNotEmpty)
 		{
 			return true;
 		}
