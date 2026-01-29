@@ -80,7 +80,7 @@ class MyApp extends StatelessWidget
 					)
 				]
 			),
-			themeMode: ThemeMode.system, // Auto sets to the device's setting
+			themeMode: ThemeMode.light, // Auto sets to the device's setting
 			home: const MyHomePage(), // The home page is immediately set to the feed because the index is set to 0 immediately
 		);
 	}

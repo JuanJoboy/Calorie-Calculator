@@ -6,10 +6,11 @@ class EPOCPage extends StatefulWidget
 {
 	final double personWeight;
 	final double bmr;
-	final double weightLiftingBurn;
+	final double tdee;
+	final double activityBurn;
 	final double cardioBurn;
 	
-	const EPOCPage({super.key, required this.personWeight, required this.bmr, required this.weightLiftingBurn, required this.cardioBurn});
+	const EPOCPage({super.key, required this.personWeight, required this.bmr, required this.tdee, required this.activityBurn, required this.cardioBurn});
 
 	@override
 	State<EPOCPage> createState() => _EPOCPageState();
@@ -28,9 +29,9 @@ class _EPOCPageState extends State<EPOCPage>
 			(
 				children:
 				[
-					button("Low Intensity Session: 5% EPOC", 0.05),
-
-					button("High Intensity Session: 10% EPOC", 0.1)
+					button("Low Intensity (Steady State): 5% EPOC", 0.05),
+					button("High Intensity (HIIT / Weights): 10% EPOC", 0.1),
+					button("Extreme Intensity (RPE 10 / Failure): 15% EPOC", 0.15)
 				],
 			)
 		);
@@ -44,12 +45,12 @@ class _EPOCPageState extends State<EPOCPage>
 			(
 				onPressed: ()
 				{
-					final double epoc = (widget.weightLiftingBurn + widget.cardioBurn) * epocFactor;
+					final double epoc = (widget.activityBurn + widget.cardioBurn) * epocFactor;
 
 					Navigator.push
 					(
 						context,
-						MaterialPageRoute(builder: (context) => Utils.switchPage(context, ResultsPage(personWeight: widget.personWeight, bmr: widget.bmr, weightLiftingBurn: widget.weightLiftingBurn, cardioBurn: widget.cardioBurn, epoc: epoc))) // Takes you to the page that shows all the locations connected to the restaurant
+						MaterialPageRoute(builder: (context) => Utils.switchPage(context, ResultsPage(personWeight: widget.personWeight, bmr: widget.bmr, tdee: widget.tdee, activityBurn: widget.activityBurn, cardioBurn: widget.cardioBurn, epoc: epoc))) // Takes you to the page that shows all the locations connected to the restaurant
 					);
 				},
 				child: Padding

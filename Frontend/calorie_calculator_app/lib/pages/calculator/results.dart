@@ -7,11 +7,12 @@ class ResultsPage extends StatefulWidget
 {
 	final double personWeight;
 	final double bmr;
-	final double weightLiftingBurn;
+	final double tdee;
+	final double activityBurn;
 	final double cardioBurn;
 	final double epoc;
 
-	const ResultsPage({super.key, required this.personWeight, required this.bmr, required this.weightLiftingBurn, required this.cardioBurn, required this.epoc});
+	const ResultsPage({super.key, required this.personWeight, required this.bmr, required this.tdee, required this.activityBurn, required this.cardioBurn, required this.epoc});
 
 	@override
 	State<ResultsPage> createState() => _ResultsPageState();
@@ -33,8 +34,7 @@ class _ResultsPageState extends State<ResultsPage>
 	@override
 	Widget build(BuildContext context)
 	{
-		final double tdee = (widget.bmr * 1.2);
-		final double total = tdee + widget.weightLiftingBurn + widget.cardioBurn + widget.epoc;
+		final double total = widget.tdee + widget.activityBurn + widget.cardioBurn + widget.epoc;
 
 		return Scaffold
 		(
@@ -44,14 +44,14 @@ class _ResultsPageState extends State<ResultsPage>
 			(
 				children:
 				[
-					displayInfo("Basal Metabolic Rate (BMR)", "${widget.bmr.truncate()} kcal"),
-					displayInfo("Total Daily Energy Expenditure (TDEE)", "${tdee.truncate()} kcal"),
-					displayInfo("Weightlifting Burn (MET Method)", "${widget.weightLiftingBurn.truncate()} kcal"),
-					displayInfo("Running Burn (Distance Method)", "${widget.cardioBurn.truncate()} kcal"),
-					displayInfo("Recovery Burn (EPOC)", "${widget.epoc.truncate()} kcal"),
-					displayInfo("Total Caloric Intake Required", "${total.truncate()}"),
+					displayInfo("Basal Metabolic Rate (BMR)", "${widget.bmr.round()} kcal"),
+					displayInfo("Total Daily Energy Expenditure (TDEE)", "${widget.tdee.round()} kcal"),
+					displayInfo("Activity Burn (MET Method)", "${widget.activityBurn.round()} kcal"),
+					displayInfo("Running Burn (Distance Method)", "${widget.cardioBurn.round()} kcal"),
+					displayInfo("Recovery Burn (EPOC)", "${widget.epoc.round()} kcal"),
+					displayInfo("Total Caloric Intake Required", "${total.round()}"),
 
-					button(context, tdee, total)
+					button(context, total)
 				],
 			)
 		);
@@ -72,7 +72,7 @@ class _ResultsPageState extends State<ResultsPage>
 		);
 	}
 
-	Widget button(BuildContext context, double tdee, double total)
+	Widget button(BuildContext context, double total)
 	{
 		return Card
 		(
@@ -80,7 +80,7 @@ class _ResultsPageState extends State<ResultsPage>
 			(
 				onPressed: ()
 				{
-					newCalculation(widget.personWeight, widget.bmr, tdee, widget.weightLiftingBurn, widget.cardioBurn, widget.epoc, total);
+					newCalculation(widget.personWeight, widget.bmr, widget.tdee, widget.activityBurn, widget.cardioBurn, widget.epoc, total);
 					
 					Navigator.popUntil
 					(
@@ -97,9 +97,9 @@ class _ResultsPageState extends State<ResultsPage>
 		);
 	}
 
-	void newCalculation(double weight, double bmr, double tdee, double weightLiftingBurn, double cardioBurn, double epoc, double total)
+	void newCalculation(double weight, double bmr, double tdee, double activityBurn, double cardioBurn, double epoc, double total)
 	{
-		Calculation calc = Calculation(id: null, date: DateTime.now().toIso8601String(), personWeight: weight, bmr: bmr, tdee: tdee, weightLiftingBurn: weightLiftingBurn, cardioBurn: cardioBurn, epoc: epoc, totalBurn: total);
+		Calculation calc = Calculation(id: null, date: DateTime.now().toIso8601String(), personWeight: weight, bmr: bmr, tdee: tdee, weightLiftingBurn: activityBurn, cardioBurn: cardioBurn, epoc: epoc, totalBurn: total);
 
 		_list.uploadCalc(calc);
 	}

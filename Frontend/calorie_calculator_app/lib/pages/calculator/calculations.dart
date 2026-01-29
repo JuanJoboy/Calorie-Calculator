@@ -38,17 +38,23 @@ class CalculationFields extends ChangeNotifier
 	String h = "";
 	String a = "";
 	String m = "";
-	String wd = "";
+	String s = "";
+	String up = "";
+	String ac = "";
+	String lo = "";
 	String d = "";
 	String e = "";
 
-	void updateControllers({String? weight, String? height, String? age, String? workoutDuration, String? distance})
+	void updateControllers({String? weight, String? height, String? age, String? sport, String? upper, String? accessories, String? lower, String? distance})
 	{
 		// If the parameter isn't null, then save the value, so that when the page rebuilds, it rebuilds with this value
 		if(weight != null) w = weight;
 		if(height != null) h = height;
 		if(age != null) a = age;
-		if(workoutDuration != null) wd = workoutDuration;
+		if(sport != null) s = sport;
+		if(upper != null) up = upper;
+		if(accessories != null) ac = accessories;
+		if(lower != null) lo = lower;
 		if(distance != null) d = distance;
 	}
 }

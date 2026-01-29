@@ -33,16 +33,45 @@ extension GenderValues on Gender
 	}
 }
 
+enum Tdee
+{
+	sedentary,
+	lightlyActive,
+	moderatelyActive,
+	heavilyActive
+}
+
+extension TdeeValues on Tdee
+{
+	double get tdeeValue
+	{
+		switch (this)
+		{
+			case Tdee.sedentary: return 1.2;
+			case Tdee.lightlyActive: return 1.375;
+			case Tdee.moderatelyActive: return 1.55;
+			case Tdee.heavilyActive: return 1.725;
+		}
+	}
+}
+
 class _BMRPageState extends State<CalculatorPage>
 {
 	final TextEditingController weight = TextEditingController();
 	final TextEditingController height = TextEditingController();
 	final TextEditingController age = TextEditingController();
 
+	int isTdeeSelected = 0;
+	double selectedTdee = 1.2;
+
 	Gender? chosenGender;
+	Color? maleColour;
+	Color? femaleColour;
 
 	Object? latestBMR;
+	Object? latestTDEE;
 	Object? latestWeight;
+
 
 	late CalculationFields _calcs;
 
@@ -72,48 +101,89 @@ class _BMRPageState extends State<CalculatorPage>
 	@override
 	Widget build(BuildContext context)
 	{
-		return Center
+		return SingleChildScrollView
 		(
-			child: Column
+			child: Center
 			(
-				mainAxisAlignment: MainAxisAlignment.center,
-				mainAxisSize: MainAxisSize.min,
-				children:
-				[
-					header(),
-				
-					textBox("Weight", "kg", weight, fieldToSave: 1),
-					textBox("Height", "cm", height, fieldToSave: 2),
-					textBox("Age", "years", age, fieldToSave: 3, padding: 47),
-				
-					gender(),
-				
-					Row
-					(
-						mainAxisAlignment: MainAxisAlignment.center,
-						children:
-						[
-							button1("Next"),
-							button2(),
-						]
-					)
-				],
+				child: Column
+				(
+					mainAxisAlignment: MainAxisAlignment.center,
+					mainAxisSize: MainAxisSize.min,
+					children:
+					[
+						header("Calorie Calculator", 30, FontWeight.bold),
+
+						header("Measurements", 25, FontWeight.w600),
+						textBox("Weight", "kg", weight, fieldToSave: 1),
+						textBox("Height", "cm", height, fieldToSave: 2),
+						textBox("Age", "years", age, fieldToSave: 3, padding: 47),
+
+						header("Baseline Activity Level", 25, FontWeight.w600),
+						Column
+						(
+							children:
+							[
+								Row
+								(
+									mainAxisAlignment: MainAxisAlignment.center,
+									children:
+									[
+										tdeeChip("Sedentary", Tdee.sedentary, 0),
+										tdeeChip("Lightly Active", Tdee.lightlyActive, 1),
+									]
+								),
+								Row
+								(
+									mainAxisAlignment: MainAxisAlignment.center,
+									children:
+									[
+										tdeeChip("Moderately Active", Tdee.moderatelyActive, 2),
+										tdeeChip("Heavily Active", Tdee.heavilyActive, 3),
+									]
+								),
+							],
+						),
+
+						header("Gender", 25, FontWeight.w600),
+						Row
+						(
+							mainAxisAlignment: MainAxisAlignment.center,
+							children:
+							[
+								male(),
+								female(),
+							]
+						),
+					
+						Row
+						(
+							mainAxisAlignment: MainAxisAlignment.center,
+							children:
+							[
+								const Padding(padding: EdgeInsetsGeometry.only(top: 100)),
+								nextButton(),
+								const Padding(padding: EdgeInsetsGeometry.only(left: 15, right: 15)),
+								continueWithButton(),
+							]
+						)
+					],
+				),
 			),
 		);
 	}
 
-	Widget header()
+	Widget header(String text, double fontSize, FontWeight fontWeight)
 	{
-		return const Padding
+		return Padding
 		(
-			padding: EdgeInsets.only(left: 20, top: 40, right: 20),
+			padding: const EdgeInsets.only(left: 20, top: 40, right: 20),
 			child: Text
 			(
-				"BMR Calculator",
+				text,
 				style: TextStyle
 				(
-					fontSize: 30,
-					fontWeight: FontWeight.bold,
+					fontSize: fontSize,
+					fontWeight: fontWeight,
 				),
 			),
 		);
@@ -123,7 +193,7 @@ class _BMRPageState extends State<CalculatorPage>
 	{
 		return Padding
 		(
-			padding: const EdgeInsets.only(top: 50.0),
+			padding: const EdgeInsets.only(top: 20.0),
 			child: SizedBox
 			(
 				height: 105,
@@ -192,7 +262,8 @@ class _BMRPageState extends State<CalculatorPage>
 													),
 													style: const TextStyle
 													(
-														fontSize: 15
+														fontSize: 15,
+														color: Colors.black
 													),
 													controller: controller,
 													onChanged: (value)
@@ -204,7 +275,8 @@ class _BMRPageState extends State<CalculatorPage>
 															case 3: _calcs.updateControllers(age: value);
 														}
 													},
-													inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))]
+													inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))],
+													keyboardType: const TextInputType.numberWithOptions(decimal: true),
 												),
 											),
 										),
@@ -232,177 +304,203 @@ class _BMRPageState extends State<CalculatorPage>
 		);
 	}
 
-	Widget gender()
+	Widget tdeeChip(String label, Tdee tdee, int index)
 	{
-		return Expanded
+		return Padding
 		(
-			child: CustomScrollView
+			padding: const EdgeInsets.only(left: 20, right: 20, top: 30, bottom: 0),
+			child: ChoiceChip
 			(
-				slivers:
-				[
-					SliverGrid
-					(
-						gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount
-						(
-							crossAxisCount: 2,
-							childAspectRatio: 3
-						),
-						delegate: SliverChildBuilderDelegate
-						(
-							(context, index)
-							{
-								return switch(index)
-								{
-									0 => option(Icons.male_rounded, Gender.male),
-									1 => option(Icons.female_rounded, Gender.female),
-								  	_ => option(Icons.male_rounded, Gender.male),
-								};
-							},
-							childCount: 2
-						),
-					),
-				],
-
-			)
-		);
-	}
-
-	// Widget gender()
-	// {
-	// 	return SegmentedButton<Gender>
-	// 	(
-	// 		style: ButtonStyle
-	// 		(
-	// 			backgroundColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states)
-	// 			{
-	// 				if (states.contains(WidgetState.selected))
-	// 				{
-	// 					return chosenGender == Gender.male ? const Color.fromARGB(255, 205, 234, 255) : Theme.of(context).extension<AppColours>()!.secondaryColour!;
-	// 				}
-
-	// 				return Colors.grey; // Default color
-	// 			}),
-	// 		),
-	// 		segments: const
-	// 		[
-	// 			ButtonSegment(value: Gender.male, icon: Icon(Icons.male_rounded)),
-	// 			ButtonSegment(value: Gender.female, icon: Icon(Icons.female_rounded)),
-	// 		],
-	// 		selected: {?chosenGender},
-	// 		onSelectionChanged: (Set<Gender> newSelection)
-	// 		{
-	// 			setState(()
-	// 			{
-	// 				chosenGender = newSelection.first;
-	// 			});
-	// 		},
-	// 		emptySelectionAllowed: true,
-	// 	);
-	// }
-
-	Widget option(IconData icon, Gender gender)
-	{
-		return Card
-		(
-			shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.circular(20)),
-			child: RadioListTile<Gender>
-			(
-				shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.circular(20)),
-				title: Padding
-				(
-					padding: const EdgeInsets.only(right: 60),
-					child: Icon(icon, size: 60,),
-				),
-				radioScaleFactor: 0,
-				value: gender,
-				groupValue: chosenGender,
-				onChanged: (newValue)
+				label: Text(label, style: TextStyle(color: Colors.black)),
+				selected: isTdeeSelected == index,
+				onSelected: (value)
 				{
-					setState( ()
+					setState(()
 					{
-						chosenGender = newValue;
+						selectedTdee = tdee.tdeeValue;
+						isTdeeSelected = index;
 					});
 				},
-				selectedTileColor: chosenGender == Gender.male ? Colors.blue : Colors.pink,
-				selected: gender == chosenGender ? true : false,
-			)
+				selectedColor: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+				backgroundColor: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
+				checkmarkColor: Colors.black,
+			),
 		);
 	}
 
-	Widget button1(String text)
+	Widget male()
 	{
-		return Card
+		Color? blue = Colors.blue[200];
+		return GestureDetector
 		(
-			child: ListenableBuilder
-			(
-				listenable: Listenable.merge([weight, height, age]), // Combines all the controllers together to say "Track all these guys's changes"
-				builder: (context, child)
+			onTap: ()
+			{
+				setState(()
 				{
-					return ElevatedButton
+					if(maleColour == null)
+					{
+						maleColour = blue;
+						femaleColour = null;
+						chosenGender = Gender.male;
+						return;
+					}
+
+					if(maleColour == blue)
+					{
+						maleColour = null;
+						femaleColour = null;
+						chosenGender = null;
+						return;
+					}
+				});
+			},
+			child: Padding
+			(
+				padding: const EdgeInsets.all(30.0),
+				child: Card
+				(
+					color: maleColour == null ? Colors.blue[50] : blue,
+					shape: RoundedRectangleBorder
 					(
-						onPressed: areFieldsEmpty() ? null : () async // Async so that the nav.push can be awaited, so that as soon as the user comes back to this page after coming from the results page, the page is rebuilt via setState and the bmr checker runs, allowing the button to be usable. Instead of forcing the user to go to another page, then back here so that the page rebuilds
-						{
-							final double weightNum = double.parse(weight.text.trim());
-							final double heightNum = double.parse(height.text.trim());
-							final double ageNum = double.parse(age.text.trim());
-
-							final double bmr = (10 * weightNum) + (6.25 * heightNum) - (5 * ageNum) + chosenGender!.caloricValue;
-
-							await Navigator.push
-							(
-								context,
-								MaterialPageRoute(builder: (context) => Utils.switchPage(context, BurnPage(bmr: bmr, personWeight: weightNum))) // Takes you to the page that shows all the locations connected to the restaurant
-							);
-
-							setState(()
-							{
-								bmrExistsAlready();
-							});
-						},
-						child: Padding
-						(
-							padding: const EdgeInsets.all(16.0),
-							child: Text(text, textAlign: TextAlign.center,),
-						),
-					);
-				}
-			)
+						borderRadius: BorderRadiusGeometry.circular(25)
+					),
+					child: const Icon(Icons.male_rounded, size: 70, color: Colors.black),
+				),
+			),
 		);
 	}
 
-	Widget button2()
+	Widget female()
 	{
-		return Card
+		Color? pink = Colors.pink[200];
+		return GestureDetector
 		(
-			child: FutureBuilder
-			(
-				future: bmrExistsAlready(),
-				builder: (context, snapshot)
+			onTap: ()
+			{
+				setState(()
 				{
-					bool notFound = snapshot.data ?? false;
+					if(femaleColour == null)
+					{
+						femaleColour = pink;
+						maleColour = null;
+						chosenGender = Gender.female;
+						return;
+					}
 
-					return ElevatedButton
+					if(femaleColour == pink)
+					{
+						femaleColour = null;
+						maleColour = null;
+						chosenGender = null;
+						return;
+					}
+				});
+			},
+			child: Padding
+			(
+				padding: const EdgeInsets.all(30.0),
+				child: Card
+				(
+					color: femaleColour == null ? Colors.pink[50] : pink,
+					shape: RoundedRectangleBorder
 					(
-						onPressed: !notFound ? null : () async // if the fields are empty then grey out the button
-						{
-							await Navigator.push
-							(
-								context,
-								MaterialPageRoute(builder: (context) => Utils.switchPage(context, BurnPage(bmr: latestBMR as double, personWeight: latestWeight as double))) // Takes you to the page that shows all the locations connected to the restaurant
-							);
+						borderRadius: BorderRadiusGeometry.circular(25)
+					),
+					child: const Icon(Icons.female_rounded, size: 70, color: Colors.black),
+				),
+			),
+		);
+	}
 
-							setState(()
-							{
-								bmrExistsAlready();
-							});
-						},
-						child: Padding
+	Widget nextButton()
+	{
+		return SizedBox
+		(
+			height: 70,
+			width: 120,
+			child: Card
+			(
+				shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.circular(112)),
+				elevation: 2,
+				child: ListenableBuilder
+				(
+					listenable: Listenable.merge([weight, height, age]), // Combines all the controllers together to say "Track all these guys's changes"
+					builder: (context, child)
+					{
+						return ElevatedButton
 						(
-							padding: const EdgeInsets.all(16.0),
-							child: Text("Stick with ${(latestBMR as double?)?.truncate() ?? 0.truncate()} BMR", textAlign: TextAlign.center,),
-						),
-					);
-				}
+							style: ElevatedButton.styleFrom
+							(
+								backgroundColor: Theme.of(context).extension<AppColours>()!.secondaryColour!
+							),
+							onPressed: areFieldsEmpty() ? null : () async // Async so that the nav.push can be awaited, so that as soon as the user comes back to this page after coming from the results page, the page is rebuilt via setState and the bmr checker runs, allowing the button to be usable. Instead of forcing the user to go to another page, then back here so that the page rebuilds
+							{
+								final double weightNum = double.parse(weight.text.trim());
+								final double heightNum = double.parse(height.text.trim());
+								final double ageNum = double.parse(age.text.trim());
+				
+								final double bmr = (10 * weightNum) + (6.25 * heightNum) - (5 * ageNum) + chosenGender!.caloricValue;
+								final double tdee = bmr * selectedTdee;
+				
+								await Navigator.push
+								(
+									context,
+									MaterialPageRoute(builder: (context) => Utils.switchPage(context, BurnPage(bmr: bmr, tdee: tdee, personWeight: weightNum))) // Takes you to the page that shows all the locations connected to the restaurant
+								);
+				
+								setState(()
+								{
+									bmrExistsAlready();
+								});
+							},
+							child: const Text("Next", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black))
+						);
+					}
+				)
+			),
+		);
+	}
+
+	Widget continueWithButton()
+	{
+		return SizedBox
+		(
+			height: 70,
+			width: 170,
+			child: Card
+			(
+				shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.circular(112)),
+				elevation: 2,
+				child: FutureBuilder
+				(
+					future: bmrExistsAlready(),
+					builder: (context, snapshot)
+					{
+						bool notFound = snapshot.data ?? false;
+
+						return ElevatedButton
+						(
+							style: ElevatedButton.styleFrom
+							(
+								backgroundColor: Theme.of(context).extension<AppColours>()!.secondaryColour!
+							),
+							onPressed: !notFound ? null : () async // if the fields are empty then grey out the button
+							{
+								await Navigator.push
+								(
+									context,
+									MaterialPageRoute(builder: (context) => Utils.switchPage(context, BurnPage(bmr: latestBMR as double, tdee: latestTDEE as double, personWeight: latestWeight as double))) // Takes you to the page that shows all the locations connected to the restaurant
+								);
+
+								setState(()
+								{
+									bmrExistsAlready();
+								});
+							},
+							child: Text("Stick with ${(latestTDEE as double?)?.round() ?? 0.round()} TDEE", textAlign: TextAlign.center, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black))
+						);
+					}
+				)
 			)
 		);
 	}
@@ -426,6 +524,7 @@ class _BMRPageState extends State<CalculatorPage>
 		else
 		{
 			latestBMR = allCalcs.last[dbInstance.calcsBMRColumnName];
+			latestTDEE = allCalcs.last[dbInstance.calcsTDEEColumnName];
 			latestWeight = allCalcs.last[dbInstance.calcsWeightColumnName];
 			return true;
 		}
