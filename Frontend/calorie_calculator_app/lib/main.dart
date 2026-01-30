@@ -56,30 +56,44 @@ class MyApp extends StatelessWidget
 					(
 						backgroundColour: lightSeed,
 						secondaryColour: Color.fromARGB(255, 255, 205, 205),
-						tertiaryColour: Color.fromARGB(255, 255, 241, 241)
+						tertiaryColour: Color.fromARGB(255, 255, 241, 241),
+						maleUnColour: Color.fromRGBO(227, 242, 253, 1),
+						maleSeColour: Color.fromRGBO(144, 202, 249, 1),
+						femaleUnColour: Color.fromRGBO(252, 228, 236, 1),
+						femaleSeColour: Color.fromRGBO(244, 143, 177, 1),
+						runUnColour: Color.fromRGBO(232, 245, 233, 1),
+						runSeColour: Color.fromRGBO(165, 214, 167, 1),
+						cycleUnColour: Color.fromRGBO(255, 253, 231, 1),
+						cycleSeColour: Color.fromRGBO(255, 245, 157, 1),
+    					aerobicOutlineColour: Color.fromRGBO(232, 245, 233, 1),
+    					aerobicBackgroundColour: Color.fromRGBO(165, 214, 167, 1),
+    					anaerobicOutlineColour: Color.fromRGBO(255, 243, 224, 1),
+    					anaerobicBackgroundColour: Color.fromRGBO(255, 204, 128, 1),
+    					maximalOutlineColour: Color.fromRGBO(255, 235, 238, 1),
+    					maximalBackgroundColour: Color.fromRGBO(239, 154, 154, 1),
 					)
 				]
 			),
-			// Dark Theme
-			darkTheme: ThemeData
-			(
-				useMaterial3: true,
-				scaffoldBackgroundColor: darkSeed,
-				colorScheme: ColorScheme.fromSeed
-				(
-					brightness: Brightness.dark,
-					seedColor: darkSeed,
-				),
-				extensions: 
-				[
-					const AppColours
-					(
-						backgroundColour: darkSeed,
-						secondaryColour: Color.fromARGB(255, 255, 205, 205),
-						tertiaryColour: Color.fromARGB(255, 140, 110, 110)
-					)
-				]
-			),
+			// // Dark Theme
+			// darkTheme: ThemeData
+			// (
+			// 	useMaterial3: true,
+			// 	scaffoldBackgroundColor: darkSeed,
+			// 	colorScheme: ColorScheme.fromSeed
+			// 	(
+			// 		brightness: Brightness.dark,
+			// 		seedColor: darkSeed,
+			// 	),
+			// 	extensions: 
+			// 	[
+			// 		const AppColours
+			// 		(
+			// 			backgroundColour: darkSeed,
+			// 			secondaryColour: Color.fromARGB(255, 255, 205, 205),
+			// 			tertiaryColour: Color.fromARGB(255, 140, 110, 110)
+			// 		)
+			// 	]
+			// ),
 			themeMode: ThemeMode.light, // Auto sets to the device's setting
 			home: const MyHomePage(), // The home page is immediately set to the feed because the index is set to 0 immediately
 		);

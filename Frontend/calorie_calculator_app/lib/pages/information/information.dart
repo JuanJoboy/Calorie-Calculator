@@ -24,6 +24,7 @@ class InformationPage extends StatelessWidget
 						summary(),
 						gainWeight(),
 						loseWeight()
+						// Add references and make them open the website. if u do [1] as ur referencing, then see if when clicking on that, it'll either take u to the reference section or straight to website
 					],
 				),
 			)

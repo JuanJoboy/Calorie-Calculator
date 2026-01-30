@@ -127,6 +127,7 @@ class _BurnPageState extends State<BurnPage>
 			appBar: AppBar(title: const Text("Burn Calculator")),
 			body: SingleChildScrollView
 			(
+				physics: const BouncingScrollPhysics(),
 				child: Center
 				(
 					child: Column
@@ -373,8 +374,8 @@ class _BurnPageState extends State<BurnPage>
 	{
 		return AnimatedCrossFade
 		(
-			firstChild: sportWidget(),
-			secondChild: weightLifting(),
+			firstChild: metFactor == null ? const SizedBox.shrink() : sportWidget(),
+			secondChild: metFactor == null ? const SizedBox.shrink() : weightLifting(),
 			crossFadeState: selectedSport() ? CrossFadeState.showFirst : CrossFadeState.showSecond,
 			duration: const Duration(milliseconds: 200)
 		);
@@ -447,7 +448,9 @@ class _BurnPageState extends State<BurnPage>
 
 	Widget run()
 	{
-		Color? green = Colors.green[200];
+		Color unselectedGreen = Theme.of(context).extension<AppColours>()!.runUnColour!;
+		Color selectedGreen = Theme.of(context).extension<AppColours>()!.runSeColour!;
+		
 		return GestureDetector
 		(
 			onTap: ()
@@ -456,13 +459,13 @@ class _BurnPageState extends State<BurnPage>
 				{
 					if(runColour == null)
 					{
-						runColour = green;
+						runColour = selectedGreen;
 						cycleColour = null;
 						chosenCardio = Cardio.run;
 						return;
 					}
 
-					if(runColour == green)
+					if(runColour == selectedGreen)
 					{
 						runColour = null;
 						cycleColour = null;
@@ -476,7 +479,7 @@ class _BurnPageState extends State<BurnPage>
 				padding: const EdgeInsets.all(30.0),
 				child: Card
 				(
-					color: runColour == null ? Colors.green[50] : green,
+					color: runColour == null ? unselectedGreen : selectedGreen,
 					shape: RoundedRectangleBorder
 					(
 						borderRadius: BorderRadiusGeometry.circular(25)
@@ -489,7 +492,9 @@ class _BurnPageState extends State<BurnPage>
 
 	Widget cycle()
 	{
-		Color? yellow = Colors.yellow[200];
+		Color unselectedYellow = Theme.of(context).extension<AppColours>()!.cycleUnColour!;
+		Color selectedYellow = Theme.of(context).extension<AppColours>()!.cycleSeColour!;
+		
 		return GestureDetector
 		(
 			onTap: ()
@@ -498,13 +503,13 @@ class _BurnPageState extends State<BurnPage>
 				{
 					if(cycleColour == null)
 					{
-						cycleColour = yellow;
+						cycleColour = selectedYellow;
 						runColour = null;
 						chosenCardio = Cardio.cycle;
 						return;
 					}
 
-					if(cycleColour == yellow)
+					if(cycleColour == selectedYellow)
 					{
 						cycleColour = null;
 						runColour = null;
@@ -518,7 +523,7 @@ class _BurnPageState extends State<BurnPage>
 				padding: const EdgeInsets.all(30.0),
 				child: Card
 				(
-					color: cycleColour == null ? Colors.yellow[50] : yellow,
+					color: cycleColour == null ? unselectedYellow : selectedYellow,
 					shape: RoundedRectangleBorder
 					(
 						borderRadius: BorderRadiusGeometry.circular(25)

@@ -103,6 +103,7 @@ class _BMRPageState extends State<CalculatorPage>
 	{
 		return SingleChildScrollView
 		(
+			physics: const BouncingScrollPhysics(),
 			child: Center
 			(
 				child: Column
@@ -330,7 +331,9 @@ class _BMRPageState extends State<CalculatorPage>
 
 	Widget male()
 	{
-		Color? blue = Colors.blue[200];
+		Color unselectedBlue = Theme.of(context).extension<AppColours>()!.maleUnColour!;
+		Color selectedBlue = Theme.of(context).extension<AppColours>()!.maleSeColour!;
+
 		return GestureDetector
 		(
 			onTap: ()
@@ -339,13 +342,13 @@ class _BMRPageState extends State<CalculatorPage>
 				{
 					if(maleColour == null)
 					{
-						maleColour = blue;
+						maleColour = selectedBlue;
 						femaleColour = null;
 						chosenGender = Gender.male;
 						return;
 					}
 
-					if(maleColour == blue)
+					if(maleColour == selectedBlue)
 					{
 						maleColour = null;
 						femaleColour = null;
@@ -359,7 +362,7 @@ class _BMRPageState extends State<CalculatorPage>
 				padding: const EdgeInsets.all(30.0),
 				child: Card
 				(
-					color: maleColour == null ? Colors.blue[50] : blue,
+					color: maleColour == null ? unselectedBlue : selectedBlue,
 					shape: RoundedRectangleBorder
 					(
 						borderRadius: BorderRadiusGeometry.circular(25)
@@ -372,7 +375,9 @@ class _BMRPageState extends State<CalculatorPage>
 
 	Widget female()
 	{
-		Color? pink = Colors.pink[200];
+		Color unselectedPink = Theme.of(context).extension<AppColours>()!.femaleUnColour!;
+		Color selectedPink = Theme.of(context).extension<AppColours>()!.femaleSeColour!;
+		
 		return GestureDetector
 		(
 			onTap: ()
@@ -381,13 +386,13 @@ class _BMRPageState extends State<CalculatorPage>
 				{
 					if(femaleColour == null)
 					{
-						femaleColour = pink;
+						femaleColour = selectedPink;
 						maleColour = null;
 						chosenGender = Gender.female;
 						return;
 					}
 
-					if(femaleColour == pink)
+					if(femaleColour == selectedPink)
 					{
 						femaleColour = null;
 						maleColour = null;
@@ -401,7 +406,7 @@ class _BMRPageState extends State<CalculatorPage>
 				padding: const EdgeInsets.all(30.0),
 				child: Card
 				(
-					color: femaleColour == null ? Colors.pink[50] : pink,
+					color: femaleColour == null ? unselectedPink : selectedPink,
 					shape: RoundedRectangleBorder
 					(
 						borderRadius: BorderRadiusGeometry.circular(25)
