@@ -1,4 +1,5 @@
 import 'package:calorie_calculator_app/utilities/colours.dart';
+import 'package:calorie_calculator_app/utilities/help.dart';
 import 'package:flutter/material.dart';
 import 'package:calorie_calculator_app/pages/calculator/results.dart';
 import 'package:calorie_calculator_app/utilities/utilities.dart';
@@ -44,15 +45,15 @@ class _EPOCPageState extends State<EPOCPage>
 						crossAxisAlignment: CrossAxisAlignment.center,
 						children:
 						[
-							header("Activity Intensity Level", 30, FontWeight.bold),
+							Utils.widgetPlusHelper(Utils.header("Activity Intensity Level", 30, FontWeight.bold), HelpIcon(msg: "Select your Intensity based on RPE (Rate of Perceived Exertion). The more you exerted yourself, the higher your RPE.",), top: 50, right: 17.5),
 
-							header("Light / Aerobic", 25, FontWeight.w600),
+							Utils.header("Light / Aerobic", 25, FontWeight.w600),
 							button("RPE 1-4", "Breathing is easy;", "conversation is possible", 0.05, aeOutline, aeBackground),
 
-							header("Moderate / Anaerobic", 25, FontWeight.w600),
+							Utils.header("Moderate / Anaerobic", 25, FontWeight.w600),
 							button("RPE 5-8", "Heavy lifting or fast pace;", "conversation is difficult", 0.1, anOutline, anBackground),
 							
-							header("Vigorous / Maximal", 25, FontWeight.w600),
+							Utils.header("Vigorous / Maximal", 25, FontWeight.w600),
 							button("RPE 9-10", "To failure, and gasping for air;", "conversation is impossible", 0.15, maOutline, maBackground),
 
 							const Padding(padding: EdgeInsetsGeometry.all(50))
@@ -60,23 +61,6 @@ class _EPOCPageState extends State<EPOCPage>
 					),
 				)
 			)
-		);
-	}
-
-	Widget header(String text, double fontSize, FontWeight fontWeight)
-	{
-		return Padding
-		(
-			padding: const EdgeInsets.only(top: 40),
-			child: Text
-			(
-				text,
-				style: TextStyle
-				(
-					fontSize: fontSize,
-					fontWeight: fontWeight,
-				),
-			),
 		);
 	}
 

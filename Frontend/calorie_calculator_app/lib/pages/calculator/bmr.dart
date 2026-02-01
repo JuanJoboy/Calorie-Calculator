@@ -1,4 +1,5 @@
 import 'package:calorie_calculator_app/utilities/colours.dart';
+import 'package:calorie_calculator_app/utilities/help.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:calorie_calculator_app/database/database.dart';
@@ -36,9 +37,9 @@ extension GenderValues on Gender
 enum Tdee
 {
 	sedentary,
-	lightlyActive,
-	moderatelyActive,
-	heavilyActive
+	moderate,
+	active,
+	vigorous
 }
 
 extension TdeeValues on Tdee
@@ -47,10 +48,10 @@ extension TdeeValues on Tdee
 	{
 		switch (this)
 		{
-			case Tdee.sedentary: return 1.2;
-			case Tdee.lightlyActive: return 1.375;
-			case Tdee.moderatelyActive: return 1.55;
-			case Tdee.heavilyActive: return 1.725;
+			case Tdee.sedentary: return 1.45;
+			case Tdee.moderate: return 1.75;
+			case Tdee.active: return 2.00;
+			case Tdee.vigorous: return 2.20;
 		}
 	}
 }
@@ -62,7 +63,7 @@ class _BMRPageState extends State<CalculatorPage>
 	final TextEditingController age = TextEditingController();
 
 	int isTdeeSelected = 0;
-	double selectedTdee = 1.2;
+	double selectedTdee = Tdee.sedentary.tdeeValue;
 
 	Gender? chosenGender;
 	Color? maleColour;
@@ -71,7 +72,6 @@ class _BMRPageState extends State<CalculatorPage>
 	Object? latestBMR;
 	Object? latestTDEE;
 	Object? latestWeight;
-
 
 	late CalculationFields _calcs;
 
@@ -112,14 +112,15 @@ class _BMRPageState extends State<CalculatorPage>
 					mainAxisSize: MainAxisSize.min,
 					children:
 					[
-						header("Calorie Calculator", 30, FontWeight.bold),
+						Utils.header("Calorie Calculator", 30, FontWeight.bold),
 
-						header("Measurements", 25, FontWeight.w600),
+						Utils.widgetPlusHelper(Utils.header("Measurements", 25, FontWeight.w600), HelpIcon(msg: "Input your current body weight, height, and age into the text fields.",), top: 45, right: 17.5),
+
 						textBox("Weight", "kg", weight, fieldToSave: 1),
 						textBox("Height", "cm", height, fieldToSave: 2),
 						textBox("Age", "years", age, fieldToSave: 3, padding: 47),
 
-						header("Baseline Activity Level", 25, FontWeight.w600),
+						Utils.widgetPlusHelper(Utils.header("Physical Activity Level", 25, FontWeight.w600), HelpIcon(msg: "Select a Physical Activity Level (PAL) based on your occupational movement and daily routine only. Do not include gym sessions or sports, as these are calculated on the next page. If an activity that you regularly do isn't listed on the next page, adjust this PAL upward to account for that additional energy demand.",), top: 45, right: 17.5),
 						Column
 						(
 							children:
@@ -130,7 +131,7 @@ class _BMRPageState extends State<CalculatorPage>
 									children:
 									[
 										tdeeChip("Sedentary", Tdee.sedentary, 0),
-										tdeeChip("Lightly Active", Tdee.lightlyActive, 1),
+										tdeeChip("Moderately Active", Tdee.moderate, 1),
 									]
 								),
 								Row
@@ -138,14 +139,15 @@ class _BMRPageState extends State<CalculatorPage>
 									mainAxisAlignment: MainAxisAlignment.center,
 									children:
 									[
-										tdeeChip("Moderately Active", Tdee.moderatelyActive, 2),
-										tdeeChip("Heavily Active", Tdee.heavilyActive, 3),
+										tdeeChip("Active", Tdee.active, 2),
+										tdeeChip("Vigorously Active", Tdee.vigorous, 3),
 									]
 								),
 							],
 						),
 
-						header("Gender", 25, FontWeight.w600),
+						Utils.widgetPlusHelper(Utils.header("Gender", 25, FontWeight.w600), HelpIcon(msg: "Click on one of the 2 buttons below, that you most identify with.",), top: 45, right: 17.5),
+						
 						Row
 						(
 							mainAxisAlignment: MainAxisAlignment.center,
@@ -168,23 +170,6 @@ class _BMRPageState extends State<CalculatorPage>
 							]
 						)
 					],
-				),
-			),
-		);
-	}
-
-	Widget header(String text, double fontSize, FontWeight fontWeight)
-	{
-		return Padding
-		(
-			padding: const EdgeInsets.only(left: 20, top: 40, right: 20),
-			child: Text
-			(
-				text,
-				style: TextStyle
-				(
-					fontSize: fontSize,
-					fontWeight: fontWeight,
 				),
 			),
 		);

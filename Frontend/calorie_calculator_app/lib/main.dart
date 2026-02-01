@@ -94,6 +94,19 @@ class MyApp extends StatelessWidget
 			// 		)
 			// 	]
 			// ),
+			builder: (context, child)
+			{
+				// Makes the app look the same everywhere, and it won't adapt to people's phones settings
+				return MediaQuery
+				(
+					data: MediaQuery.of(context).copyWith
+					(
+						textScaler: TextScaler.noScaling,
+						boldText: false
+					),
+					child: child!
+				);
+			},
 			themeMode: ThemeMode.light, // Auto sets to the device's setting
 			home: const MyHomePage(), // The home page is immediately set to the feed because the index is set to 0 immediately
 		);

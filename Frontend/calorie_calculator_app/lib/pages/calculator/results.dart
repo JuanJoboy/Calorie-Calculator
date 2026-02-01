@@ -22,14 +22,17 @@ class ResultsPage extends StatefulWidget
 class _ResultsPageState extends State<ResultsPage>
 {
 	late AllCalculations _list;
+	late CalculationFields _calcs;
 
 	@override void initState()
 	{
     	super.initState();
 		
 		final AllCalculations list = context.read<AllCalculations>(); // Since there's no context available here, I just read, rather than making and adding the widget to the tree
-
 		_list = list;
+
+		final CalculationFields calc = context.read<CalculationFields>(); // Since there's no context available here, I just read, rather than making and adding the widget to the tree
+		_calcs = calc;
   	}
 
 	@override
@@ -52,25 +55,24 @@ class _ResultsPageState extends State<ResultsPage>
 						crossAxisAlignment: CrossAxisAlignment.center,
 						children:
 						[
-							header("Caloric Breakdown", 30, FontWeight.bold),
-
+							Utils.header("Caloric Breakdown", 30, FontWeight.bold),
 							
-							header("Basal Metabolic Rate", 25, FontWeight.w600),
+							Utils.header("Basal Metabolic Rate", 25, FontWeight.w600),
 							displayInfo("BMR", "${widget.bmr.round()}", padding: 40),
 							
-							header("Total Daily Energy Expenditure", 25, FontWeight.w600),
+							Utils.header("Total Daily Energy Expenditure", 25, FontWeight.w600),
 							displayInfo("TDEE", "${widget.tdee.round()}", padding: 40),
 							
-							header("Activity Burn", 25, FontWeight.w600),
+							Utils.header("Activity Burn", 25, FontWeight.w600),
 							displayInfo("MET Method", "${widget.activityBurn.round()}", padding: 40),
 							
-							header("Running Burn", 25, FontWeight.w600),
+							Utils.header("Running Burn", 25, FontWeight.w600),
 							displayInfo("Distance Method", "${widget.cardioBurn.round()}", padding: 40),
 							
-							header("Recovery Burn", 25, FontWeight.w600),
+							Utils.header("Recovery Burn", 25, FontWeight.w600),
 							displayInfo("EPOC", "${widget.epoc.round()}", padding: 40),
 							
-							header("Todays Caloric Ceiling", 25, FontWeight.w600),
+							Utils.header("Todays Caloric Ceiling", 25, FontWeight.w600),
 							displayInfo("Maintenance Calories", "${total.round()}", padding: 40),
 
 							submitButton(total)
@@ -80,23 +82,6 @@ class _ResultsPageState extends State<ResultsPage>
 			)
 		);
   	}
-
-	Widget header(String text, double fontSize, FontWeight fontWeight)
-	{
-		return Padding
-		(
-			padding: const EdgeInsets.only(top: 40),
-			child: Text
-			(
-				text,
-				style: TextStyle
-				(
-					fontSize: fontSize,
-					fontWeight: fontWeight,
-				),
-			),
-		);
-	}
 
 	Widget displayInfo(String header, String info, {double? padding})
 	{
@@ -230,5 +215,11 @@ class _ResultsPageState extends State<ResultsPage>
 		Calculation calc = Calculation(id: null, date: DateTime.now().toIso8601String(), personWeight: weight, bmr: bmr, tdee: tdee, weightLiftingBurn: activityBurn, cardioBurn: cardioBurn, epoc: epoc, totalBurn: total);
 
 		_list.uploadCalc(calc);
+		resetControllers();
+	}
+
+	void resetControllers()
+	{
+		_calcs.updateControllers(sport: "", upper: "", accessories: "", lower: "", distance: "");
 	}
 }

@@ -29,6 +29,7 @@ class _HistoryPageState extends State<HistoryPage>
 				(
 					child: list.calcList.isNotEmpty ? ListView.builder
 					(
+						physics: const BouncingScrollPhysics(),
 						itemCount: list.calcList.length,
 						itemBuilder: (context, index)
 						{

@@ -1,7 +1,47 @@
+import 'package:calorie_calculator_app/utilities/help.dart';
 import 'package:flutter/material.dart';
 
 class Utils
 {
+	static Widget header(String text, double fontSize, FontWeight fontWeight)
+	{
+		return Padding
+		(
+			padding: const EdgeInsets.only(top: 40),
+			child: Center
+			(
+				child: Text
+				(
+					text,
+					style: TextStyle
+					(
+						fontSize: fontSize,
+						fontWeight: fontWeight,
+					),
+				),
+			),
+		);
+	}
+
+	static Widget widgetPlusHelper(Widget mainWidget, HelpIcon helpIcon, {double? top, double? right, double? left, double? bottom})
+	{
+		return Stack
+		(
+			clipBehavior: Clip.none,
+			children:
+			[
+				mainWidget,
+				Positioned // Adjusts position relative to the mainWidget edge
+				(
+					right: right,
+					top: top,
+					left: left,
+					bottom: bottom,
+					child: helpIcon,
+				),
+			],
+		);
+	}
 	static Color? getColor(double? rating, ThemeData theme)
 	{
 		final bool lightMode = theme.brightness == Brightness.light;

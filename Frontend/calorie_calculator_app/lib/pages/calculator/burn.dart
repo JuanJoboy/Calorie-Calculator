@@ -1,4 +1,5 @@
 import 'package:calorie_calculator_app/utilities/colours.dart';
+import 'package:calorie_calculator_app/utilities/help.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:calorie_calculator_app/pages/calculator/calculations.dart';
@@ -153,7 +154,7 @@ class _BurnPageState extends State<BurnPage>
 		(
 			children:
 			[
-				header("Activity Selection", 30, FontWeight.bold),
+				Utils.widgetPlusHelper(Utils.header("Activity Selection", 30, FontWeight.bold), HelpIcon(msg: "Select the activity that you did, to apply its MET value. This constant determines how intense your exercise was and how many calories you burned.\n\nNote: No values are needed to proceed, however if you do enter data into any field, you must select a corresponding activity to ensure the correct intensity factor is applied to your results.",), top: 50, right: 17.5),
 			
 				Row
 				(
@@ -165,7 +166,7 @@ class _BurnPageState extends State<BurnPage>
 							(
 								children:
 								[
-									header("Gym", 25, FontWeight.w600),
+									Utils.header("Gym", 25, FontWeight.w600),
 									option(MET.light.metText, MET.light.metValue, padding: 5),
 									option(MET.intermediate.metText, MET.intermediate.metValue, padding: 5),
 									option(MET.heavy.metText, MET.heavy.metValue, padding: 5)
@@ -179,7 +180,7 @@ class _BurnPageState extends State<BurnPage>
 							(
 								children:
 								[
-									header("Sport", 25, FontWeight.w600),
+									Utils.header("Sport", 25, FontWeight.w600),
 									option(MET.yoga.metText, MET.yoga.metValue, padding: 7.5),
 									option(MET.badminton.metText, MET.badminton.metValue, padding: 7.5),
 									option(MET.tennis.metText, MET.tennis.metValue, padding: 7.5)
@@ -189,23 +190,6 @@ class _BurnPageState extends State<BurnPage>
 					],
 				)
 			],
-		);
-	}
-
-	Widget header(String text, double fontSize, FontWeight fontWeight)
-	{
-		return Padding
-		(
-			padding: const EdgeInsets.only(top: 40),
-			child: Text
-			(
-				text,
-				style: TextStyle
-				(
-					fontSize: fontSize,
-					fontWeight: fontWeight,
-				),
-			),
 		);
 	}
 
@@ -235,6 +219,7 @@ class _BurnPageState extends State<BurnPage>
 						padding: EdgeInsets.only(top: padding ?? 5),
 						child: RadioListTile<double>
 						(
+							contentPadding: const EdgeInsets.symmetric(horizontal: 0.0), // Reclaims some of the space lost by the radio tile
 							title: Text(text),
 							value: factor,
 							groupValue: metFactor,
@@ -389,7 +374,7 @@ class _BurnPageState extends State<BurnPage>
 			[
 				const Padding(padding: EdgeInsetsGeometry.all(5)),
 
-				header(activityName ?? "", 25, FontWeight.w600),
+				Utils.widgetPlusHelper(Utils.header(activityName ?? "", 25, FontWeight.w600), HelpIcon(msg: "Enter the net time spent in active play. Exclude long periods of inactivity or halftime to maintain accuracy.\nIf you switch to a gym workout, this field is automatically bypassed.",), top: 45, right: 17.5),
 
 				textBox("Activity Duration", "mins", sportDuration, fieldToSave: 1)
 			]
@@ -414,11 +399,11 @@ class _BurnPageState extends State<BurnPage>
 			[
 				const Padding(padding: EdgeInsetsGeometry.all(10)),
 
-				header("Targeted Muscle Group", 25, FontWeight.w600),
+				Utils.widgetPlusHelper(Utils.header("Targeted Muscle Group", 25, FontWeight.w600), HelpIcon(msg: "Enter your total time in the gym from your first set to your last. The formula used applies a 0.8 factor to account for standard rest intervals between sets. Entering data into a muscle group adjusts the intensity based on the metabolic demand of the movement type.\nIf you switch to a sport, these fields are automatically bypassed.",), top: 45, right: 17.5),
 
-				textBox("Upper Body Duration", "mins", upperDuration, fieldToSave: 2), // Compound
-				textBox("Accessories Duration", "mins", accessoriesDuration, fieldToSave: 3), // Isolation
-				textBox("Lower Body Duration", "mins", lowerDuration, fieldToSave: 4), // Compound
+				Utils.widgetPlusHelper(textBox("Upper Body Duration", "mins", upperDuration, fieldToSave: 2), HelpIcon(msg: "Compound movements that target multiple muscles for the upper body and back area.\nExamples: Bench Press, Overhead Press, Dips, Push-ups, Pull-ups, Chin-ups, Bent-over Rows, Lat Pulldown, Cable Rows",), top: 35, right: 20), // Compound
+				Utils.widgetPlusHelper(textBox("Accessories Duration", "mins", accessoriesDuration, fieldToSave: 3), HelpIcon(msg: "Isolated movements that only target 1-2 muscle groups.\nExamples: Bicep Curl, Tricep Cable Pushdown, Lateral Raise, Leg Extensions, Leg Curl, Calf Raise, Crunches",), top: 35, right: 20), // Isolation
+				Utils.widgetPlusHelper(textBox("Lower Body Duration", "mins", lowerDuration, fieldToSave: 4), HelpIcon(msg: "Compound movements that target multiple muscles for the lower body and back area.\nExamples: Squats, Deadlifts, Lunges, Bulgarian Split Squats, Step-ups.",), top: 35, right: 20), // Compound
 			]
 		);
 	}
@@ -429,7 +414,7 @@ class _BurnPageState extends State<BurnPage>
 		(
 			children:
 			[
-				header("Cardio", 25, FontWeight.w600),
+				Utils.widgetPlusHelper(Utils.header("Cardio", 25, FontWeight.w600), HelpIcon(msg: "To calculate how many calories you burned during cardio, input the distance that you traveled into the text field, and click on either the Run-Button or the Cycling-Button to apply the correct efficiency factor.",), top: 45, right: 17.5),
 
 				textBox("Distance", "km", distance, fieldToSave: 5),
 
