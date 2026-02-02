@@ -18,6 +18,7 @@ void main()
 		(
 			providers:
 			[
+				ChangeNotifierProvider(create: (context) => NavigationNotifier()),
 				ChangeNotifierProvider(create: (context) => CalculationFields()),
 				ChangeNotifierProvider(create: (context) => AllCalculations()..init()), // The ..init() triggers the load
 				ChangeNotifierProvider(create: (context) => UsersTdeeNotifier()..init()) // The ..init() triggers the load
@@ -124,11 +125,12 @@ class MyHomePage extends StatefulWidget
 
 class _MyHomePageState extends State<MyHomePage>
 {
-	int selectedIndex = 1;
-
 	@override
 	Widget build(BuildContext context)
 	{
+		final NavigationNotifier navNotifier = context.watch<NavigationNotifier>();
+		int selectedIndex = navNotifier.selectedIndex;
+
 		final ColoredBox mainArea = Utils.switchPage(context, getCurrentPage(selectedIndex));
 
 		return LayoutBuilder
@@ -160,6 +162,7 @@ class _MyHomePageState extends State<MyHomePage>
 	{
 		return BottomNavigationBar
 		(
+			type: BottomNavigationBarType.fixed,
 			items:
 			[
 				BottomNavigationBarItem
@@ -168,6 +171,15 @@ class _MyHomePageState extends State<MyHomePage>
 					(
 						offset: const Offset(0, 10), // Pushes the icon down 10 pixels
 						child: const Icon(Icons.book, size: 30),
+					),
+					label: "" // Nav items need labels but I dont actually want any text
+				),
+				BottomNavigationBarItem
+				(
+					icon: Transform.translate
+					(
+						offset: const Offset(0, 10), // Pushes the icon down 10 pixels
+						child: const Icon(Icons.cached_outlined, size: 30),
 					),
 					label: "" // Nav items need labels but I dont actually want any text
 				),
@@ -191,15 +203,23 @@ class _MyHomePageState extends State<MyHomePage>
 				)
 			],
 
-			currentIndex: selectedIndex, // Sets the page to the feed page on start up
+			currentIndex: context.read<NavigationNotifier>().selectedIndex, // Sets the page to the feed page on start up
 
 			onTap: (value) // When a tab is tapped, setState tells Flutter the selectedIndex changed, triggering a rebuild to show the new page.
 			{
-				setState( ()
-				{
-					selectedIndex = value; // Tapping on a nav bar item changes the page
-				});
+				context.read<NavigationNotifier>().changeIndex(value);
 			},
 		);
+	}
+}
+
+class NavigationNotifier extends ChangeNotifier
+{
+	int selectedIndex = 1;
+
+	void changeIndex(int newIndex)
+	{
+		selectedIndex = newIndex;
+		notifyListeners();
 	}
 }

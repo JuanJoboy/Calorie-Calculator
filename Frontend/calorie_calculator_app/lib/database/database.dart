@@ -70,7 +70,7 @@ class DatabaseHelper
 							$tdeeIDColumnName INTEGER PRIMARY KEY DEFAULT 1,
 							$tdeeTDEEColumnName REAL NOT NULL,
 							$tdeeBMRColumnName REAL NOT NULL,
-							$tdeeWeightColumnName REAL NOT NULL,
+							$tdeeWeightColumnName REAL NOT NULL
 						)
 					'''
 				);
@@ -160,14 +160,5 @@ class DatabaseHelper
 			whereArgs: [1],
 			conflictAlgorithm: ConflictAlgorithm.replace
 		);
-	}
-
-	Future<bool> hasExistingTdee() async
-	{
-		final db = await database;
-		final result = await db.rawQuery("SELECT COUNT(*) FROM $tdeeTableName");
-		int? count = Sqflite.firstIntValue(result);
-		
-		return count != null && count > 0;
 	}
 }

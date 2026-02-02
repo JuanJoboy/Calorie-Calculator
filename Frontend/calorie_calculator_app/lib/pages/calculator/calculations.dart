@@ -141,7 +141,7 @@ class UsersTdeeNotifier extends ChangeNotifier
 		final db = await dbInstance.database;
 		final List<Map<String, dynamic>> maps = await db.query(dbInstance.tdeeTableName, limit: 1); // Stops after the first search cause there's only one entry
 
-		if(maps.first.isNotEmpty)
+		if(maps.isNotEmpty)
 		{
 			usersTdee = UsersTdee.fromMap(maps.first, dbInstance);
 		}
@@ -152,9 +152,8 @@ class UsersTdeeNotifier extends ChangeNotifier
 	void uploadOrEditTdee(double bmr, double tdee, double weight) async
 	{
 		final DatabaseHelper dbHelper = DatabaseHelper.instance;
-		bool exists = await dbHelper.hasExistingTdee();
 
-    	if (!exists)
+    	if (usersTdee == null)
 		{
 			final int id = await dbHelper.addTDEE(bmr, tdee, weight);
 			usersTdee = UsersTdee(id: id, bmr: bmr, tdee: tdee, weight: weight);

@@ -1,3 +1,4 @@
+import 'package:calorie_calculator_app/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:calorie_calculator_app/database/database.dart';
 import 'package:calorie_calculator_app/pages/calculator/calculations.dart';
@@ -11,6 +12,9 @@ class HistoryPage extends StatefulWidget
 	State<HistoryPage> createState() => _HistoryPageState();
 }
 
+late UsersTdeeNotifier _tdeeNotifier;
+bool get tdeeIsNull => _tdeeNotifier.usersTdee == null;
+
 class _HistoryPageState extends State<HistoryPage>
 {
 	late AllCalculations _list;
@@ -20,11 +24,29 @@ class _HistoryPageState extends State<HistoryPage>
 	{
 		AllCalculations list = context.watch<AllCalculations>();
 		_list = list;
+		final UsersTdeeNotifier tdeeNotifier = context.watch<UsersTdeeNotifier>();
+		_tdeeNotifier = tdeeNotifier;
+
+		if (_tdeeNotifier.usersTdee == null)
+		{
+			_tdeeNotifier.loadTdee();
+		}
+
+		int? b = 0;
+		int? t = 0;
+
+		if(!tdeeIsNull)
+		{
+			b = _tdeeNotifier.usersTdee?.bmr.round();
+			t = _tdeeNotifier.usersTdee?.tdee.round();
+		}
 
 		return Column
 		(
 			children:
 			[
+				Utils.header("BMR: $b	|	TDEE: $t", 30, FontWeight.bold),
+
 				Expanded
 				(
 					child: list.calcList.isNotEmpty ? ListView.builder
