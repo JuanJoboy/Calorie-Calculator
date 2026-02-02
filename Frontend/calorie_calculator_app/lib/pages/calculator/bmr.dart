@@ -10,7 +10,10 @@ import 'package:provider/provider.dart';
 
 class CalculatorPage extends StatefulWidget
 {
-	const CalculatorPage({super.key});
+	final String title;
+	final bool isDedicatedBMRPage;
+
+	const CalculatorPage({super.key, required this.title, required this.isDedicatedBMRPage});
 
 	@override
 	State<CalculatorPage> createState() => _BMRPageState();
@@ -69,11 +72,14 @@ class _BMRPageState extends State<CalculatorPage>
 	Color? maleColour;
 	Color? femaleColour;
 
-	Object? latestBMR;
-	Object? latestTDEE;
-	Object? latestWeight;
+	double? latestBMR;
+	double? latestTDEE;
+	double? latestWeight;
 
 	late CalculationFields _calcs;
+	late UsersTdeeNotifier _tdeeNotifier;
+
+	Future<bool>? bmrExists;
 
 	@override
 	void dispose()
@@ -91,11 +97,15 @@ class _BMRPageState extends State<CalculatorPage>
 
 		final CalculationFields list = context.read<CalculationFields>(); // Since there's no context available here, I just read, rather than making and adding the widget to the tree
 		_calcs = list;
+		final UsersTdeeNotifier tdeeNotifier = context.read<UsersTdeeNotifier>();
+		_tdeeNotifier = tdeeNotifier;
 
 		// On the first go, it sets all the fields to blank, but then whenever the user goes to another page, and then back here, the page will rebuild with the previous values. This is so that the fields don't keep resetting
 		weight.text = _calcs.w;
 		height.text = _calcs.h;
 		age.text = _calcs.a;
+
+		bmrExists = bmrExistsAlready(); // Initializes the Future once to ensure the database is queried only once
   	}
 
 	@override
@@ -112,7 +122,7 @@ class _BMRPageState extends State<CalculatorPage>
 					mainAxisSize: MainAxisSize.min,
 					children:
 					[
-						Utils.header("Calorie Calculator", 30, FontWeight.bold),
+						Utils.header(widget.title, 30, FontWeight.bold),
 
 						Utils.widgetPlusHelper(Utils.header("Measurements", 25, FontWeight.w600), HelpIcon(msg: "Input your current body weight, height, and age into the text fields.",), top: 45, right: 17.5),
 
@@ -157,18 +167,8 @@ class _BMRPageState extends State<CalculatorPage>
 								female(),
 							]
 						),
-					
-						Row
-						(
-							mainAxisAlignment: MainAxisAlignment.center,
-							children:
-							[
-								const Padding(padding: EdgeInsetsGeometry.only(top: 100)),
-								nextButton(),
-								const Padding(padding: EdgeInsetsGeometry.only(left: 15, right: 15)),
-								continueWithButton(),
-							]
-						)
+
+						buttonsThatProcessInfo()
 					],
 				),
 			),
@@ -297,7 +297,7 @@ class _BMRPageState extends State<CalculatorPage>
 			padding: const EdgeInsets.only(left: 20, right: 20, top: 30, bottom: 0),
 			child: ChoiceChip
 			(
-				label: Text(label, style: TextStyle(color: Colors.black)),
+				label: Text(label, style: const TextStyle(color: Colors.black)),
 				selected: isTdeeSelected == index,
 				onSelected: (value)
 				{
@@ -402,7 +402,29 @@ class _BMRPageState extends State<CalculatorPage>
 		);
 	}
 
-	Widget nextButton()
+	Widget buttonsThatProcessInfo()
+	{
+		if(widget.isDedicatedBMRPage)
+		{
+			return nextButton("Upload TDEE");
+		}
+		else
+		{
+			return Row
+			(
+				mainAxisAlignment: MainAxisAlignment.center,
+				children:
+				[
+					const Padding(padding: EdgeInsetsGeometry.only(top: 100)),
+					nextButton("Next"),
+					const Padding(padding: EdgeInsetsGeometry.only(left: 15, right: 15)),
+					continueWithButton(),
+				]
+			);
+		}
+	}
+
+	Widget nextButton(String nextText)
 	{
 		return SizedBox
 		(
@@ -425,25 +447,9 @@ class _BMRPageState extends State<CalculatorPage>
 							),
 							onPressed: areFieldsEmpty() ? null : () async // Async so that the nav.push can be awaited, so that as soon as the user comes back to this page after coming from the results page, the page is rebuilt via setState and the bmr checker runs, allowing the button to be usable. Instead of forcing the user to go to another page, then back here so that the page rebuilds
 							{
-								final double weightNum = double.parse(weight.text.trim());
-								final double heightNum = double.parse(height.text.trim());
-								final double ageNum = double.parse(age.text.trim());
-				
-								final double bmr = (10 * weightNum) + (6.25 * heightNum) - (5 * ageNum) + chosenGender!.caloricValue;
-								final double tdee = bmr * selectedTdee;
-				
-								await Navigator.push
-								(
-									context,
-									MaterialPageRoute(builder: (context) => Utils.switchPage(context, BurnPage(bmr: bmr, tdee: tdee, personWeight: weightNum))) // Takes you to the page that shows all the locations connected to the restaurant
-								);
-				
-								setState(()
-								{
-									bmrExistsAlready();
-								});
+								processInfo();
 							},
-							child: const Text("Next", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black))
+							child: Text(nextText, textAlign: TextAlign.center, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black))
 						);
 					}
 				)
@@ -463,7 +469,7 @@ class _BMRPageState extends State<CalculatorPage>
 				elevation: 2,
 				child: FutureBuilder
 				(
-					future: bmrExistsAlready(),
+					future: bmrExists,
 					builder: (context, snapshot)
 					{
 						bool notFound = snapshot.data ?? false;
@@ -482,17 +488,57 @@ class _BMRPageState extends State<CalculatorPage>
 									MaterialPageRoute(builder: (context) => Utils.switchPage(context, BurnPage(bmr: latestBMR as double, tdee: latestTDEE as double, personWeight: latestWeight as double))) // Takes you to the page that shows all the locations connected to the restaurant
 								);
 
-								setState(()
-								{
-									bmrExistsAlready();
-								});
+								// May not need
+								// setState(()
+								// {
+								// 	bmrExistsAlready();
+								// });
 							},
-							child: Text("Stick with ${(latestTDEE as double?)?.round() ?? 0.round()} TDEE", textAlign: TextAlign.center, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black))
+							child: Text("Stick with ${(latestTDEE)?.round() ?? 0.round()} TDEE", textAlign: TextAlign.center, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black))
 						);
 					}
 				)
 			)
 		);
+	}
+
+	(double, double, double) calculateBodyInfo()
+	{
+		final double weightNum = double.parse(weight.text.trim());
+		final double heightNum = double.parse(height.text.trim());
+		final double ageNum = double.parse(age.text.trim());
+
+		final double bmr = (10 * weightNum) + (6.25 * heightNum) - (5 * ageNum) + chosenGender!.caloricValue;
+		final double tdee = bmr * selectedTdee;
+
+		return (bmr, tdee, weightNum);
+	}
+
+	void processInfo() async
+	{
+		final (bmr, tdee, weightNum) = calculateBodyInfo();
+
+		if(widget.isDedicatedBMRPage)
+		{
+			setState(()
+			{
+				_tdeeNotifier.uploadOrEditTdee(bmr, tdee, weightNum); // Forces a rebuild of the page which ensures that the bmrExists variable is refreshed and sees the new value instead of being on the stale old value
+			});
+		}
+		else
+		{
+			await Navigator.push
+			(
+				context,
+				MaterialPageRoute(builder: (context) => Utils.switchPage(context, BurnPage(bmr: bmr, tdee: tdee, personWeight: weightNum))) // Takes you to the page that shows all the locations connected to the restaurant
+			);
+		}
+
+		// May not need
+		// setState(()
+		// {
+		// 	bmrExistsAlready();
+		// });			
 	}
 
 	bool areFieldsEmpty()
@@ -505,17 +551,18 @@ class _BMRPageState extends State<CalculatorPage>
 		final dbInstance = DatabaseHelper.instance;
 		final db = await dbInstance.database;
 
-		final allCalcs = await db.rawQuery("SELECT * FROM ${dbInstance.calcsTableName}");
+		final preExistingTdee = await db.rawQuery("SELECT * FROM ${dbInstance.tdeeTableName}");
 		
-		if(allCalcs.isEmpty)
+		if(preExistingTdee.isEmpty)
 		{
 			return false;
 		}
 		else
 		{
-			latestBMR = allCalcs.last[dbInstance.calcsBMRColumnName];
-			latestTDEE = allCalcs.last[dbInstance.calcsTDEEColumnName];
-			latestWeight = allCalcs.last[dbInstance.calcsWeightColumnName];
+			latestBMR = preExistingTdee.first[dbInstance.tdeeBMRColumnName] as double?;
+			latestTDEE = preExistingTdee.first[dbInstance.tdeeTDEEColumnName] as double?;
+			latestWeight = preExistingTdee.first[dbInstance.tdeeWeightColumnName] as double?;
+
 			return true;
 		}
 	}

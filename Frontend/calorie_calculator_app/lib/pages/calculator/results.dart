@@ -1,3 +1,4 @@
+import 'package:calorie_calculator_app/database/database.dart';
 import 'package:calorie_calculator_app/utilities/colours.dart';
 import 'package:flutter/material.dart';
 import 'package:calorie_calculator_app/pages/calculator/calculations.dart';
@@ -23,16 +24,20 @@ class _ResultsPageState extends State<ResultsPage>
 {
 	late AllCalculations _list;
 	late CalculationFields _calcs;
+	late UsersTdeeNotifier _usersNotifier;
 
 	@override void initState()
 	{
     	super.initState();
 		
-		final AllCalculations list = context.read<AllCalculations>(); // Since there's no context available here, I just read, rather than making and adding the widget to the tree
+		final AllCalculations list = context.read<AllCalculations>();
 		_list = list;
 
-		final CalculationFields calc = context.read<CalculationFields>(); // Since there's no context available here, I just read, rather than making and adding the widget to the tree
+		final CalculationFields calc = context.read<CalculationFields>();
 		_calcs = calc;
+
+		final UsersTdeeNotifier usersNotifier = context.read<UsersTdeeNotifier>();
+		_usersNotifier = usersNotifier;
   	}
 
 	@override
@@ -210,11 +215,14 @@ class _ResultsPageState extends State<ResultsPage>
 		);
 	}
 
-	void newCalculation(double weight, double bmr, double tdee, double activityBurn, double cardioBurn, double epoc, double total)
+	Future<void> newCalculation(double weight, double bmr, double tdee, double activityBurn, double cardioBurn, double epoc, double total) async
 	{
 		Calculation calc = Calculation(id: null, date: DateTime.now().toIso8601String(), personWeight: weight, bmr: bmr, tdee: tdee, weightLiftingBurn: activityBurn, cardioBurn: cardioBurn, epoc: epoc, totalBurn: total);
 
 		_list.uploadCalc(calc);
+
+		_usersNotifier.uploadOrEditTdee(bmr, tdee, weight);
+
 		resetControllers();
 	}
 

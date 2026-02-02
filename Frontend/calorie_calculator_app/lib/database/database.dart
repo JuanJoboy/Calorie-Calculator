@@ -4,7 +4,7 @@ import 'package:sqflite/sqflite.dart';
 class DatabaseHelper
 {
 	static Database? _db;
-	static const int _currentVersion = 2;
+	static const int _currentVersion = 3;
 	static final DatabaseHelper instance = DatabaseHelper._constructor(); // Makes a singleton
 
 	final String calcsTableName = "calcs";
@@ -18,6 +18,12 @@ class DatabaseHelper
 	final String calcsEPOCColumnName = "epoc";
 	final String calcsTotalBurnColumnName = "totalBurn";
 
+	final String tdeeTableName = "tdee";
+	final String tdeeIDColumnName = "id";
+	final String tdeeTDEEColumnName = "tdee";
+	final String tdeeBMRColumnName = "bmr";
+	final String tdeeWeightColumnName = "weight";
+
 	DatabaseHelper._constructor();
 
 	Future<Database> get database async
@@ -30,26 +36,44 @@ class DatabaseHelper
 		final String databaseDirPath = await getDatabasesPath();
 		final String databasePath = join(databaseDirPath, "master_db.db");
 
-		final Database database = await openDatabase
+		return await openDatabase
 		(
 			databasePath,
 			version: _currentVersion,
+			onConfigure: (db) async
+			{
+				await db.execute('PRAGMA foreign_keys = ON');
+			},
 			onCreate: (db, version)
 			{
 				db.execute
-				('''
-					CREATE TABLE $calcsTableName (
-						$calcsIDColumnName INTEGER PRIMARY KEY AUTOINCREMENT,
-						$calcsDateColumnName TEXT NOT NULL,
-						$calcsWeightColumnName REAL NOT NULL,
-						$calcsBMRColumnName REAL NOT NULL,
-						$calcsTDEEColumnName REAL NOT NULL,
-						$calcsWeightLiftingBurnColumnName REAL NOT NULL,
-						$calcsCardioBurnColumnName REAL NOT NULL,
-						$calcsEPOCColumnName REAL NOT NULL,
-						$calcsTotalBurnColumnName REAL NOT NULL
-					)
-				''');
+				(
+					'''
+						CREATE TABLE $calcsTableName (
+							$calcsIDColumnName INTEGER PRIMARY KEY AUTOINCREMENT,
+							$calcsDateColumnName TEXT NOT NULL,
+							$calcsWeightColumnName REAL NOT NULL,
+							$calcsBMRColumnName REAL NOT NULL,
+							$calcsTDEEColumnName REAL NOT NULL,
+							$calcsWeightLiftingBurnColumnName REAL NOT NULL,
+							$calcsCardioBurnColumnName REAL NOT NULL,
+							$calcsEPOCColumnName REAL NOT NULL,
+							$calcsTotalBurnColumnName REAL NOT NULL
+						)
+					''',
+				);
+
+				db.execute
+				(
+					'''
+						CREATE TABLE $tdeeTableName (
+							$tdeeIDColumnName INTEGER PRIMARY KEY DEFAULT 1,
+							$tdeeTDEEColumnName REAL NOT NULL,
+							$tdeeBMRColumnName REAL NOT NULL,
+							$tdeeWeightColumnName REAL NOT NULL,
+						)
+					'''
+				);
 			},
 			onUpgrade: (db, oldVersion, newVersion) async
 			{
@@ -57,10 +81,22 @@ class DatabaseHelper
 				{
 					await db.execute("ALTER TABLE $calcsTableName ADD COLUMN $calcsWeightColumnName REAL NOT NULL DEFAULT 0.0");
 				}
-			},
+				if (oldVersion < 3)
+				{
+					await db.execute
+					(
+						'''
+							CREATE TABLE $tdeeTableName (
+								$tdeeIDColumnName INTEGER PRIMARY KEY DEFAULT 1,
+								$tdeeTDEEColumnName REAL NOT NULL,
+								$tdeeBMRColumnName REAL NOT NULL,
+								$tdeeWeightColumnName REAL NOT NULL
+							)
+						'''
+					);
+				}
+			}
 		);
-
-		return database;
 	}
 
 	// Returns an int to notify that a successful addition took place
@@ -94,5 +130,44 @@ class DatabaseHelper
 			where: "$calcsIDColumnName = ?",
 			whereArgs: [id]
 		);
+	}
+
+	// Returns an int to notify that a successful addition took place
+	Future<int> addTDEE(double bmr, double tdee, double weight) async
+	{
+		final db = await database;
+
+		return await db.insert
+		(
+			tdeeTableName, // Table name that the info is being inserted into
+			{	// A map with the column's name on the left and the values on the right
+				tdeeTDEEColumnName: tdee,
+				tdeeBMRColumnName: bmr,
+				tdeeWeightColumnName: weight,
+			}
+		);
+	}
+
+	Future<int> updateTDEE(double bmr, double tdee, double weight) async
+	{
+		final db = await database;
+
+		return await db.update
+		(
+			tdeeTableName,
+			{tdeeBMRColumnName: bmr, tdeeTDEEColumnName: tdee, tdeeWeightColumnName: weight}, // New info being updated
+			where: "$tdeeIDColumnName = ?",
+			whereArgs: [1],
+			conflictAlgorithm: ConflictAlgorithm.replace
+		);
+	}
+
+	Future<bool> hasExistingTdee() async
+	{
+		final db = await database;
+		final result = await db.rawQuery("SELECT COUNT(*) FROM $tdeeTableName");
+		int? count = Sqflite.firstIntValue(result);
+		
+		return count != null && count > 0;
 	}
 }

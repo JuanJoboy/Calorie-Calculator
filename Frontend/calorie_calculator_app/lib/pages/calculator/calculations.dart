@@ -103,3 +103,68 @@ class AllCalculations extends ChangeNotifier
 		notifyListeners();
 	}
 }
+
+class UsersTdee
+{
+	final int? id;
+	final double bmr;
+	final double tdee;
+	final double weight;
+
+	const UsersTdee({required this.id, required this.bmr, required this.tdee, required this.weight});
+
+	factory UsersTdee.fromMap(Map<String, dynamic> map, DatabaseHelper db)
+	{
+		return UsersTdee
+		(
+			id: map[db.tdeeIDColumnName],
+			bmr: (map[db.tdeeBMRColumnName] as num).toDouble(),
+			tdee: (map[db.tdeeTDEEColumnName] as num).toDouble(),
+			weight: (map[db.tdeeWeightColumnName] as num).toDouble(),
+		); 
+	}
+}
+
+class UsersTdeeNotifier extends ChangeNotifier
+{
+	UsersTdee? usersTdee;
+
+	Future<void> init() async
+	{
+		await loadTdee();
+		notifyListeners();
+	}
+
+	Future<void> loadTdee() async
+	{
+		final dbInstance = DatabaseHelper.instance;
+		final db = await dbInstance.database;
+		final List<Map<String, dynamic>> maps = await db.query(dbInstance.tdeeTableName, limit: 1); // Stops after the first search cause there's only one entry
+
+		if(maps.first.isNotEmpty)
+		{
+			usersTdee = UsersTdee.fromMap(maps.first, dbInstance);
+		}
+		
+		notifyListeners();
+	}
+
+	void uploadOrEditTdee(double bmr, double tdee, double weight) async
+	{
+		final DatabaseHelper dbHelper = DatabaseHelper.instance;
+		bool exists = await dbHelper.hasExistingTdee();
+
+    	if (!exists)
+		{
+			final int id = await dbHelper.addTDEE(bmr, tdee, weight);
+			usersTdee = UsersTdee(id: id, bmr: bmr, tdee: tdee, weight: weight);
+		}
+		else
+		{
+			await dbHelper.updateTDEE(bmr, tdee, weight);
+			usersTdee = UsersTdee(id: 1, bmr: bmr, tdee: tdee, weight: weight);
+		}
+
+		notifyListeners();
+	}
+}

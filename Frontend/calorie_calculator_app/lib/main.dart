@@ -19,7 +19,8 @@ void main()
 			providers:
 			[
 				ChangeNotifierProvider(create: (context) => CalculationFields()),
-				ChangeNotifierProvider(create: (context) => AllCalculations()..init()) // The ..init() triggers the load
+				ChangeNotifierProvider(create: (context) => AllCalculations()..init()), // The ..init() triggers the load
+				ChangeNotifierProvider(create: (context) => UsersTdeeNotifier()..init()) // The ..init() triggers the load
 			],
 
 			child: const MyApp(), // The entire app now has access to a list of providers, rather than just creating and listening to 1
@@ -148,9 +149,10 @@ class _MyHomePageState extends State<MyHomePage>
 		return switch(selectedIndex)
 		{
 			0 => const InformationPage(),
-			1 => const CalculatorPage(),
-			2 => const HistoryPage(),
-			_ => const CalculatorPage()
+			1 => const CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: true),
+			2 => const CalculatorPage(title: "Daily Calorie Calculator", isDedicatedBMRPage: false),
+			3 => const HistoryPage(),
+			_ => const CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: true),
 		};
 	}
 
