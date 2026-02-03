@@ -35,9 +35,9 @@ extension METValues on MET
 	{
 		switch (this)
 		{
-			case MET.light: return 3.5;
-			case MET.intermediate: return 5.0;
-			case MET.heavy: return 6.0;
+			case MET.light: return 3.0;
+			case MET.intermediate: return 4.0;
+			case MET.heavy: return 5.0;
 			case MET.yoga: return 2.5;
 			case MET.badminton: return 4.5;
 			case MET.tennis: return 7.0;
@@ -48,9 +48,9 @@ extension METValues on MET
 	{
 		switch (this)
 		{
-			case MET.light: return "Light Weights";
-			case MET.intermediate: return "Intermediate Weights";
-			case MET.heavy: return "Heavy Weights";
+			case MET.light: return "Light Weights: < 60% 1RM";
+			case MET.intermediate: return "Mild Weights: 60-80% 1RM";
+			case MET.heavy: return "Heavy Weights: > 80% 1RM";
 			case MET.yoga: return "Yoga";
 			case MET.badminton: return "Badminton";
 			case MET.tennis: return "Tennis";
@@ -557,8 +557,8 @@ class _BurnPageState extends State<BurnPage>
 
 									// Systemic Load Multipliers
 									final double upperBurn = metCalculator(upperDurationNum, 1.2);
-									final double accBurn = metCalculator(accDurationNum, 1.0);
-									final double lowerBurn = metCalculator(lowerDurationNum, 1.4);
+									final double accBurn = metCalculator(accDurationNum, 0.7);
+									final double lowerBurn = metCalculator(lowerDurationNum, 1.3);
 				
 									final double weightLiftingBurn = (upperBurn + accBurn + lowerBurn) * 0.8;
 									final double sportBurn = metCalculator(sportDurationNum, 1);

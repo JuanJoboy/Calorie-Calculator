@@ -51,10 +51,10 @@ class _EPOCPageState extends State<EPOCPage>
 							button("RPE 1-4", "Breathing is easy;", "conversation is possible", 0.05, aeOutline, aeBackground),
 
 							Utils.header("Moderate / Anaerobic", 25, FontWeight.w600),
-							button("RPE 5-8", "Heavy lifting or fast pace;", "conversation is difficult", 0.1, anOutline, anBackground),
+							button("RPE 5-8", "Heavy lifting or fast pace;", "conversation is difficult", 0.10, anOutline, anBackground),
 							
 							Utils.header("Vigorous / Maximal", 25, FontWeight.w600),
-							button("RPE 9-10", "To failure, and gasping for air;", "conversation is impossible", 0.15, maOutline, maBackground),
+							button("RPE 9-10", "To failure, and gasping for air;", "conversation is impossible", 0.13, maOutline, maBackground),
 
 							const Padding(padding: EdgeInsetsGeometry.all(50))
 						],
