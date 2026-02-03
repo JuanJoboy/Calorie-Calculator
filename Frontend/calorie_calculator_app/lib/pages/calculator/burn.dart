@@ -1,6 +1,7 @@
 import 'package:calorie_calculator_app/utilities/colours.dart';
 import 'package:calorie_calculator_app/utilities/help.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:calorie_calculator_app/pages/calculator/calculations.dart';
 import 'package:calorie_calculator_app/pages/calculator/epoc.dart';
@@ -19,43 +20,98 @@ class BurnPage extends StatefulWidget
 	State<BurnPage> createState() => _BurnPageState();
 }
 
-enum MET
+abstract interface class Intensity
 {
-	light,
-	intermediate,
-	heavy,
-	yoga,
-	badminton,
-	tennis,
+	double get value;
+	String get label;
 }
 
-extension METValues on MET
+enum EasyMET implements Intensity
 {
-	double get metValue
-	{
-		switch (this)
-		{
-			case MET.light: return 3.0;
-			case MET.intermediate: return 4.0;
-			case MET.heavy: return 5.0;
-			case MET.yoga: return 2.5;
-			case MET.badminton: return 4.5;
-			case MET.tennis: return 7.0;
-		}
-	}
+	yoga(value: 2.5001, label: 'Yoga'),
+	croquet(value: 2.5002, label: 'Croquet'),
+	fishing(value: 2.5003, label: 'Fishing'),
+	golf(value: 2.5004, label: 'Golf'),
+	canoe(value: 2.5005, label: 'Canoeing leisurely'),
+	ballroom(value: 2.9001, label: 'Slow Ballroom Dancing'),
+	weightLifting(value: 3.0000, label: 'Light Weights: < 60% 1RM'),
+	bowling(value: 3.0001, label: 'Bowling'),
+	archery(value: 3.5002, label: 'Archery');
 
-	String get metText
-	{
-		switch (this)
-		{
-			case MET.light: return "Light Weights: < 60% 1RM";
-			case MET.intermediate: return "Mild Weights: 60-80% 1RM";
-			case MET.heavy: return "Heavy Weights: > 80% 1RM";
-			case MET.yoga: return "Yoga";
-			case MET.badminton: return "Badminton";
-			case MET.tennis: return "Tennis";
-		}
-	}
+	// Fields defined directly on the enum
+	@override
+	final double value;
+	@override
+	final String label;
+
+	// Internal constructor
+	const EasyMET({required this.value, required this.label});
+}
+
+enum MidMET implements Intensity
+{
+	weightLifting(value: 4.0000, label: 'Mild Weights: 60-80% 1RM'),
+	horseback(value: 4.0001, label: 'Horseback Riding'),
+	tableTennis(value: 4.0002, label: 'Table Tennis'),
+	taiChi(value: 4.0003, label: 'Tai Chi'),
+	volleyBall(value: 4.0004, label: 'Non-Competitive Volleyball'),
+	badminton(value: 4.5001, label: 'Badminton'),
+	tennisDoubles(value: 5.0001, label: 'Tennis, Doubles'),
+	lowAerobic(value: 5.0002, label: 'Low Impact Aerobic Dance'),
+	baseball(value: 5.0003, label: 'Baseball'),
+	softball(value: 5.0004, label: 'Softball'),
+	kayak(value: 5.0005, label: 'Kayaking'),
+	skateboarding(value: 5.0006, label: 'Skateboarding'),
+	snorkel(value: 5.0007, label: 'Snorkeling'),
+	iceSkating(value: 5.5001, label: 'Slow Ice Skating'),
+	wrestling(value: 6.0001, label: 'Wrestling'),
+	ballet(value: 6.0002, label: 'Ballet'),
+	fencing(value: 6.0003, label: 'Fencing'),
+	surfing(value: 6.0004, label: 'Surfing'),
+	waterSki(value: 6.0005, label: 'Water Skiing'),
+	snowSki(value: 6.0006, label: 'Snow Skiing');
+
+	// Fields defined directly on the enum
+	@override
+	final double value;
+	@override
+	final String label;
+
+	// Internal constructor
+	const MidMET({required this.value, required this.label});
+}
+
+enum HardMET implements Intensity
+{
+	weightLifting(value: 5.0000, label: 'Heavy Weights: > 80% 1RM'),
+	highAerobic(value: 7.0001, label: 'High Impact Aerobic Dance'),
+	iceSkating(value: 7.0002, label: 'Fast Ice Skating'),
+	casualSoccer(value: 7.0003, label: 'Casual Soccer'),
+	tennis(value: 7.0004, label: 'Tennis, Singles'),
+	basketball(value: 8.0001, label: 'Basketball'),
+	football(value: 8.0002, label: 'Football'),
+	frisbee(value: 8.0003, label: 'Ultimate Frisbee'),
+	iceHockey(value: 8.0004, label: 'Ice Hockey'),
+	fieldHockey(value: 8.0005, label: 'Field Hockey'),
+	lacrosse(value: 8.0006, label: 'Lacrosse'),
+	racquetballTeam(value: 8.0007, label: 'Racquetball Team'),
+	slowRope(value: 8.0008, label: 'Slow Rope Skipping'),
+	mountainClimbing(value: 8.0009, label: 'Mountain Climbing'),
+	volleyBall(value: 8.00011, label: 'Competitive Volleyball'),
+	waterPolo(value: 10.0001, label: 'Water Polo'),
+	racquetball(value: 10.0002, label: 'Racquetball'),
+	mma(value: 10.0003, label: 'Martial Arts Sparring'),
+	compSoccer(value: 10.0004, label: 'Competitive Soccer'),
+	fastRope(value: 12.0001, label: 'Fast Rope Skipping');
+
+	// Fields defined directly on the enum
+	@override
+	final double value;
+	@override
+	final String label;
+
+	// Internal constructor
+	const HardMET({required this.value, required this.label});
 }
 
 enum Cardio
@@ -80,6 +136,8 @@ class _BurnPageState extends State<BurnPage>
 {
 	double? metFactor;
 	String? activityName;
+
+	late ScrollController offSetController;
 
 	final TextEditingController sportDuration = TextEditingController();
 
@@ -108,6 +166,8 @@ class _BurnPageState extends State<BurnPage>
 	@override void initState()
 	{
     	super.initState();
+
+		offSetController = ScrollController(initialScrollOffset: 10000); // Need to initialize this offSet here otherwise it takes 10 years to initialize if i do it in listOfOptions()
 
 		final CalculationFields list = context.read<CalculationFields>();
 		_calcs = list;
@@ -150,51 +210,64 @@ class _BurnPageState extends State<BurnPage>
 
 	Widget met()
 	{
+		Color aeOutline = Theme.of(context).extension<AppColours>()!.aerobicOutlineColour!;
+		Color aeBackground = Theme.of(context).extension<AppColours>()!.aerobicBackgroundColour!;
+		Color anOutline = Theme.of(context).extension<AppColours>()!.anaerobicOutlineColour!;
+		Color anBackground = Theme.of(context).extension<AppColours>()!.anaerobicBackgroundColour!;
+		Color maOutline = Theme.of(context).extension<AppColours>()!.maximalOutlineColour!;
+		Color maBackground = Theme.of(context).extension<AppColours>()!.maximalBackgroundColour!;
+
 		return Column
 		(
 			children:
 			[
 				Utils.widgetPlusHelper(Utils.header("Activity Selection", 30, FontWeight.bold), HelpIcon(msg: "Select the activity that you did, to apply its MET value. This constant determines how intense your exercise was and how many calories you burned.\n\nNote: No values are needed to proceed, however if you do enter data into any field, you must select a corresponding activity to ensure the correct intensity factor is applied to your results.",), top: 50, right: 17.5),
 			
-				Row
+				Column
 				(
 					children:
 					[
-						Expanded // Tells each column to take up 50% of the width, otherwise they'd just bunch up at the start
-						(
-							child: Column
-							(
-								children:
-								[
-									Utils.header("Gym", 25, FontWeight.w600),
-									option(MET.light.metText, MET.light.metValue, padding: 5),
-									option(MET.intermediate.metText, MET.intermediate.metValue, padding: 5),
-									option(MET.heavy.metText, MET.heavy.metValue, padding: 5)
-								]
-							),
-						),
-			
-						Expanded
-						(
-							child: Column
-							(
-								children:
-								[
-									Utils.header("Sport", 25, FontWeight.w600),
-									option(MET.yoga.metText, MET.yoga.metValue, padding: 7.5),
-									option(MET.badminton.metText, MET.badminton.metValue, padding: 7.5),
-									option(MET.tennis.metText, MET.tennis.metValue, padding: 7.5)
-								]
-							),
-						)
+						Utils.header("Light Activities", 25, FontWeight.w600),
+						listOfOptions(EasyMET.values, aeOutline, aeBackground),
+
+						Utils.header("Moderate Activities", 25, FontWeight.w600),
+						listOfOptions(MidMET.values, anOutline, anBackground),
+
+						Utils.header("Vigorous Activities", 25, FontWeight.w600),
+						listOfOptions(HardMET.values, maOutline, maBackground),
 					],
 				)
 			],
 		);
 	}
 
-	Widget option(String text, double factor, {double? padding})
+	Widget listOfOptions(List<Intensity> metList, Color outlineColour, Color backgroundColour)
 	{
+		return SizedBox
+		(
+			height: 100,
+			width: double.infinity,
+
+			child: ListView.builder
+			(
+				controller: offSetController,
+				physics: const BouncingScrollPhysics(),
+				scrollDirection: Axis.horizontal,
+				itemCount: null, // null sets it to infinity basically
+				itemBuilder: (context, index)
+				{
+					final Intensity item = metList[index % metList.length]; // Makes it infinitely cycle
+					return option(item, outlineColour, backgroundColour, padding: 7.5);
+				}
+			),
+		);
+	}
+
+	Widget option(Intensity item, Color outlineColour, Color backgroundColour, {double? padding})
+	{
+		final String text = item.label;
+		final double factor = item.value;
+
 		return Padding
 		(
 			padding: const EdgeInsets.only(top: 20.0),
@@ -204,12 +277,12 @@ class _BurnPageState extends State<BurnPage>
 				width: 210,
 				child: Card
 				(
-					color: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
+					color: outlineColour,
 					shape: RoundedRectangleBorder
 					(
 						side: BorderSide
 						(
-							color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+							color: backgroundColour,
 							width: 2
 						),
 						borderRadius: BorderRadiusGeometry.circular(20)
@@ -220,7 +293,7 @@ class _BurnPageState extends State<BurnPage>
 						child: RadioListTile<double>
 						(
 							contentPadding: const EdgeInsets.symmetric(horizontal: 0.0), // Reclaims some of the space lost by the radio tile
-							title: Text(text),
+							title: Text(text, style: const TextStyle(fontWeight: .bold)),
 							value: factor,
 							groupValue: metFactor,
 							onChanged: (newValue)
@@ -383,23 +456,25 @@ class _BurnPageState extends State<BurnPage>
 
 	bool selectedSport()
 	{
-		if((metFactor == null) || (metFactor == MET.yoga.metValue) || (metFactor == MET.badminton.metValue) || (metFactor == MET.tennis.metValue))
+		if((metFactor == null) || (metFactor == EasyMET.weightLifting.value) || (metFactor == MidMET.weightLifting.value) || (metFactor == HardMET.weightLifting.value))
 		{
-			return true;
+			return false;
 		}
 
-		return false;
+		return true;
 	}
 
 	Widget weightLifting()
 	{
+		final String? name = activityName?.split(":").first;
+
 		return Column
 		(
 			children:
 			[
-				const Padding(padding: EdgeInsetsGeometry.all(10)),
+				const Padding(padding: EdgeInsetsGeometry.all(5)),
 
-				Utils.widgetPlusHelper(Utils.header("Targeted Muscle Group", 25, FontWeight.w600), HelpIcon(msg: "Enter your total time in the gym from your first set to your last. The formula used applies a 0.8 factor to account for standard rest intervals between sets. Entering data into a muscle group adjusts the intensity based on the metabolic demand of the movement type.\nIf you switch to a sport, these fields are automatically bypassed.",), top: 45, right: 17.5),
+				Utils.widgetPlusHelper(Utils.header(name ?? "", 25, FontWeight.w600), HelpIcon(msg: "Enter your total time in the gym from your first set to your last. The formula used applies a 0.8 factor to account for standard rest intervals between sets. Entering data into a muscle group adjusts the intensity based on the metabolic demand of the movement type.\nIf you switch to a sport, these fields are automatically bypassed.",), top: 45, right: 17.5),
 
 				Utils.widgetPlusHelper(textBox("Upper Body Duration", "mins", upperDuration, fieldToSave: 2), HelpIcon(msg: "Compound movements that target multiple muscles for the upper body and back area.\nExamples: Bench Press, Overhead Press, Dips, Push-ups, Pull-ups, Chin-ups, Bent-over Rows, Lat Pulldown, Cable Rows",), top: 35, right: 20), // Compound
 				Utils.widgetPlusHelper(textBox("Accessories Duration", "mins", accessoriesDuration, fieldToSave: 3), HelpIcon(msg: "Isolated movements that only target 1-2 muscle groups.\nExamples: Bicep Curl, Tricep Cable Pushdown, Lateral Raise, Leg Extensions, Leg Curl, Calf Raise, Crunches",), top: 35, right: 20), // Isolation
@@ -584,12 +659,12 @@ class _BurnPageState extends State<BurnPage>
 
 	double extractCorrectActivity(double weight, double sport)
 	{
-		if((metFactor == MET.yoga.metValue) || (metFactor == MET.badminton.metValue) || (metFactor == MET.tennis.metValue))
+		if((metFactor == EasyMET.weightLifting.value) || (metFactor == MidMET.weightLifting.value) || (metFactor == HardMET.weightLifting.value))
 		{
-			return sport;
+			return weight;
 		}
 
-		return weight;
+		return sport;
 	}
 
 	double metCalculator(double durationNum, double burnMultiplier)
