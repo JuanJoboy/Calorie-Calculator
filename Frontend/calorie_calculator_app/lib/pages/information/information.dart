@@ -380,14 +380,14 @@ class InformationPage extends StatelessWidget
 					const Align(alignment: AlignmentGeometry.centerLeft, child: Text('''3. Vigorous / Maximal''', style: TextStyle(fontWeight: FontWeight.bold))),
 					const BulletedList
 					(
-						listItems: ['''EPOC Factor: 15%''', '''Examples: Lifting to failure or sprinting.''', '''Impact: Creates the largest oxygen debt and the highest metabolic afterburn.'''],
+						listItems: ['''EPOC Factor: 13%''', '''Examples: Lifting to failure or sprinting.''', '''Impact: Creates the largest oxygen debt and the highest metabolic afterburn.'''],
 					),
 
 					const Text("So by simply training harder in a shorter amount of time, you can end up burning more calories."),
 
 					const BulletedList
 					(
-						listItems: ['''Formula: (Activity Burn + Run Burn) * EPOC Level''', '''Example: (551 + 700) * 0.15 = 187'''],
+						listItems: ['''Formula: (Activity Burn + Run Burn) * EPOC Level''', '''Example: (551 + 700) * 0.13 = 163'''],
 					),
 				],
 			),
@@ -435,8 +435,8 @@ class InformationPage extends StatelessWidget
 								children:
 								[
 									headerOption("Heavy Weight Lifting (40 minutes of upper body)"),
-									textOption("((6 * 3.5 * 70) / 200) * 40 * 1.2"),
-									textOption("353 kcal")
+									textOption("((5 * 3.5 * 70) / 200) * 40 * 1.2"),
+									textOption("294 kcal")
 								]
 							),
 							TableRow
@@ -444,8 +444,8 @@ class InformationPage extends StatelessWidget
 								children:
 								[
 									headerOption("Heavy Weight Lifting (30 minutes of accessories)"),
-									textOption("((6 * 3.5 * 70) / 200) * 30 * 1"),
-									textOption("221 kcal")
+									textOption("((5 * 3.5 * 70) / 200) * 30 * 0.7"),
+									textOption("129 kcal")
 								]
 							),
 							TableRow
@@ -453,8 +453,8 @@ class InformationPage extends StatelessWidget
 								children:
 								[
 									headerOption("Total Gym Expenditure"),
-									textOption("(353 + 221) * 0.8"),
-									textOption("459 kcal")
+									textOption("(294 + 129) * 0.8"),
+									textOption("338 kcal")
 								]
 							),
 							TableRow
@@ -471,8 +471,8 @@ class InformationPage extends StatelessWidget
 								children:
 								[
 									headerOption("EPOC (Moderate / Anaerobic)"),
-									textOption("(459 + 140) * 0.10"),
-									textOption("60 kcal")
+									textOption("(338 + 140) * 0.10"),
+									textOption("48 kcal")
 								]
 							),
 							TableRow
@@ -480,8 +480,8 @@ class InformationPage extends StatelessWidget
 								children:
 								[
 									headerOption("Total Burn"),
-									textOption("(1,700 * 1.45) + (((((6 * 3.5 * 70) / 200) * 40 * 1.2) + (((6 * 3.5 * 70) / 200) * 30 * 1)) * 0.8) + (70 * 2 * 1) + ((459 + 140) * 0.10)"),
-									textOption("3,124 kcal")
+									textOption("(1,700 * 1.45) + (((((5 * 3.5 * 70) / 200) * 40 * 1.2) + (((5 * 3.5 * 70) / 200) * 30 * 0.7)) * 0.8) + (70 * 2 * 1) + ((338 + 140) * 0.10)"),
+									textOption("2,991 kcal")
 								]
 							)
 						],
@@ -495,7 +495,7 @@ class InformationPage extends StatelessWidget
 							[
 								const TextSpan(text: '''To double check this value, go to '''),
 								hyperlinkText("BMR Calculator", "https://www.calculator.net/bmr-calculator.html?cage=25&csex=m&cheightfeet=5&cheightinch=10&cpound=160&cheightmeter=180&ckg=70&cmop=0&coutunit=c&cformula=m&cfatpct=20&ctype=metric&x=Calculate", context),
-								const TextSpan(text: ''' and put in a 25 year old Male that weighs 70kg and is 180cm tall. And you'll see that the value provided here is right in the middle of the 2 values for "Intense exercise 6-7 times/week" and "Very intense exercise daily, or physical job". Which makes sense, if you did this intense workout every single day, you definitely would need 3000+ calories everyday to retain basic bodily functions.'''),
+								const TextSpan(text: ''' and put in a 25 year old Male that weighs 70kg and is 180cm tall. And you'll see that the value provided here is very close to the value associated with "Intense exercise 6-7 times/week". Which makes sense, because if you did this intense workout every single day, you definitely would need around 3,000 calories everyday to retain basic bodily functions.'''),
 							]
 						)
 					),
@@ -533,8 +533,8 @@ class InformationPage extends StatelessWidget
 								children:
 								[
 									headerOption("Legs + Accessories Gym Day (2x)"),
-									textOption("3,170"),
-									textOption("3,670"),
+									textOption("3,011"),
+									textOption("3,511"),
 									textOption("+500")
 								]
 							),
@@ -543,8 +543,8 @@ class InformationPage extends StatelessWidget
 								children:
 								[
 									headerOption("Upper + Accessories Gym Day (2x)"),
-									textOption("3,124"),
-									textOption("3,624"),
+									textOption("2,991"),
+									textOption("3,491"),
 									textOption("+500")
 								]
 							),
@@ -563,8 +563,8 @@ class InformationPage extends StatelessWidget
 								children:
 								[
 									headerOption("Weekly Total"),
-									textOption("19,983"),
-									textOption("23,483"),
+									textOption("19,399"),
+									textOption("22,899"),
 									textOption("+3,500")
 								]
 							)
@@ -604,9 +604,9 @@ class InformationPage extends StatelessWidget
 								children:
 								[
 									headerOption("Legs + Accessories Gym Day (2x)"),
-									textOption("3,170"),
+									textOption("3,011"),
 									textOption("2,500"),
-									textOption("-670")
+									textOption("-511")
 								]
 							),
 							TableRow
@@ -614,9 +614,9 @@ class InformationPage extends StatelessWidget
 								children:
 								[
 									headerOption("Upper + Accessories Gym Day (2x)"),
-									textOption("3,124"),
-									textOption("2,600"),
-									textOption("-524")
+									textOption("2,991"),
+									textOption("2,400"),
+									textOption("-591")
 								]
 							),
 							TableRow
@@ -625,8 +625,8 @@ class InformationPage extends StatelessWidget
 								[
 									headerOption("Rest Day (3x)"),
 									textOption("2,465"),
-									textOption("2,065"),
-									textOption("-400")
+									textOption("2,000"),
+									textOption("-465")
 								]
 							),
 							TableRow
@@ -634,9 +634,9 @@ class InformationPage extends StatelessWidget
 								children:
 								[
 									headerOption("Weekly Total"),
-									textOption("19,983"),
-									textOption("16,395"),
-									textOption("-3,588")
+									textOption("19,399"),
+									textOption("15,800"),
+									textOption("-3,599")
 								]
 							)
 						],
