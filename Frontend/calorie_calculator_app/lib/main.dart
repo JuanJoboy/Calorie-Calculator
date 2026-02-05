@@ -1,4 +1,5 @@
 // import "package:english_words/english_words.dart"; // Imports a utility package containing thousands of common English words and functions to manipulate them. Used here to generate random WordPair objects.
+import "package:calorie_calculator_app/pages/nutrition/nutrition.dart";
 import "package:calorie_calculator_app/utilities/colours.dart";
 import "package:flutter/material.dart"; // The core Flutter framework. It provides "Material Design" widgets (buttons, cards, scaffolds) and the engine for rendering the UI.
 import "package:calorie_calculator_app/pages/calculator/bmr.dart";
@@ -18,6 +19,7 @@ void main()
 		(
 			providers:
 			[
+				ChangeNotifierProvider(create: (context) => NutritionFields()),
 				ChangeNotifierProvider(create: (context) => NavigationNotifier()),
 				ChangeNotifierProvider(create: (context) => CalculationFields()),
 				ChangeNotifierProvider(create: (context) => AllCalculations()..init()), // The ..init() triggers the load
@@ -154,6 +156,7 @@ class _MyHomePageState extends State<MyHomePage>
 			1 => const CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: true),
 			2 => const CalculatorPage(title: "Daily Calorie Calculator", isDedicatedBMRPage: false),
 			3 => const HistoryPage(),
+			4 => const NutritionPage(),
 			_ => const CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: true),
 		};
 	}
@@ -165,42 +168,11 @@ class _MyHomePageState extends State<MyHomePage>
 			type: BottomNavigationBarType.fixed,
 			items:
 			[
-				BottomNavigationBarItem
-				(
-					icon: Transform.translate
-					(
-						offset: const Offset(0, 10), // Pushes the icon down 10 pixels
-						child: const Icon(Icons.book, size: 30),
-					),
-					label: "" // Nav items need labels but I dont actually want any text
-				),
-				BottomNavigationBarItem
-				(
-					icon: Transform.translate
-					(
-						offset: const Offset(0, 10), // Pushes the icon down 10 pixels
-						child: const Icon(Icons.cached_outlined, size: 30),
-					),
-					label: "" // Nav items need labels but I dont actually want any text
-				),
-				BottomNavigationBarItem
-				(
-					icon: Transform.translate
-					(
-						offset: const Offset(0, 10), // Pushes the icon down 10 pixels
-						child: const Icon(Icons.calculate_outlined, size: 30),
-					),
-					label: "" // Nav items need labels but I dont actually want any text
-				),
-				BottomNavigationBarItem
-				(
-					icon: Transform.translate
-					(
-						offset: const Offset(0, 10), // Pushes the icon down 10 pixels
-						child: const Icon(Icons.history_rounded, size: 30),
-					),
-					label: ""
-				)
+				navItem(Icons.book),
+				navItem(Icons.cached_outlined),
+				navItem(Icons.calculate_outlined),
+				navItem(Icons.history_rounded),
+				navItem(Icons.food_bank),
 			],
 
 			currentIndex: context.read<NavigationNotifier>().selectedIndex, // Sets the page to the feed page on start up
@@ -209,6 +181,19 @@ class _MyHomePageState extends State<MyHomePage>
 			{
 				context.read<NavigationNotifier>().changeIndex(value);
 			},
+		);
+	}
+
+	BottomNavigationBarItem navItem(IconData icon)
+	{
+		return BottomNavigationBarItem
+		(
+			icon: Transform.translate
+			(
+				offset: const Offset(0, 10), // Pushes the icon down 10 pixels
+				child: Icon(icon, size: 30),
+			),
+			label: ""
 		);
 	}
 }

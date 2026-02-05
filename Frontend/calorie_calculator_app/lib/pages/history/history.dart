@@ -92,7 +92,7 @@ class _HistoryPageState extends State<HistoryPage>
 		final total = list[index].totalBurn.toInt();
 		final diff = total - tdee;
 
-		return  Card
+		return Card
 		(
 			child: Column
 			(
