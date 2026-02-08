@@ -47,7 +47,7 @@ class InformationPage extends StatelessWidget
 				children:
 				[
 					Text('''Disclaimer'''),
-					Text('''The caloric data provided are simply mathematical estimations, not clinical measurements. Individual factors (genetics, body composition, hormonal health, etc) are too variable and are beyond the scope of this calculator. This means that these figures serve as a guide rather than an absolute value. Use these results at your own discretion. For precise nutritional or medical planning, consult a certified professional.'''),
+					Text('''The caloric data provided are simply mathematical estimations, not clinical measurements. Individual factors (genetics, body composition, hormonal health, etc) are too variable and are beyond the scope of this calculator. This means that these figures serve as a guide rather than an absolute value. The same goes with the nutritional information, they're based on the standards for a healthy adult, not an elderly person or a child. So use these results at your own discretion. For precise nutritional or medical planning, consult a certified professional.'''),
 				],
 			),
 		);
@@ -711,7 +711,7 @@ class InformationPage extends StatelessWidget
 			(
 				children:
 				[
-					const Text("To calculate macros, micros and water intake, you must first establish how much you weigh and your Total Daily Energy Expenditure (TDEE)."),
+					const Text("To calculate macros, micros and water intake, you must first establish how much you weigh and what your caloric ceiling is for today."),
 
 					const Text('''1. Protein''', style: TextStyle(fontSize: 15, fontWeight: .bold)),
 					const Text('''Protein is calculated by body weight, not by a percentage of calories. This ensures you maintain muscle mass regardless of whether you are in a deficit or surplus.'''),
@@ -745,8 +745,8 @@ class InformationPage extends StatelessWidget
 						)
 					),
 
-					const Text('''Your intake should be around 20 to 30% of your TDEE'''),
-					const Text('''Example (2,465 TDEE): (2,465 * 0.25) / 9 = 68g of total fat.'''),
+					const Text('''Your intake should be around 20 to 30% of your Total Calories'''),
+					const Text('''Example (2,465 kcal): (2,465 * 0.25) / 9 = 68g of total fat.'''),
 
 					Text.rich
 					(
@@ -771,13 +771,13 @@ class InformationPage extends StatelessWidget
 							[
 								const TextSpan(text: '''Now to break it down even further, for Saturated Fats, '''),
 								hyperlinkText("you shouldn't consume any more than 10%", "https://www.healthline.com/nutrition/how-much-fat-to-eat#how-much-is-healthy", context),
-								const TextSpan(text: ''' of your TDEE. However, that also doesn't mean that you should try eat 0%. Saturated Fat is a precursor to cholesterol, which is a '''),
+								const TextSpan(text: ''' of your Total Calories. However, that also doesn't mean that you should try eat 0%. Saturated Fat is a precursor to cholesterol, which is a '''),
 								hyperlinkText("building block of vitamin D, hormones, and fat-dissolving bile acids.", "https://www.health.harvard.edu/heart-health/how-its-made-cholesterol-production-in-your-body", context),
 							]
 						)
 					),
 
-					const Text('''Example (2,465 TDEE): (2,465 * 0.1) / 9 = 27g of Saturated Fat.'''),
+					const Text('''Example (2,465 kcal): (2,465 * 0.1) / 9 = 27g of Saturated Fat.'''),
 					const Text('''Unsaturated Fats should make up the majority of your total fat (the other 41g of fat).'''),
 					const Text('''And Trans Fats should be kept as low as possible.'''),
 
@@ -802,9 +802,9 @@ class InformationPage extends StatelessWidget
 					const Text('''3. Carbohydrates''', style: TextStyle(fontSize: 15, fontWeight: .bold)),
 					const Text('''Carbohydrates are the primary source of fuel for the body. They provide energy for cells, tissues, and organs like the brain. Simple carbs (fruit, white-bread, sugary food) are great for pre-workout meals as they allow for immediate energy; and complex carbs (whole grains, beans, starchy food) are great for providing steady energy throughout the day.'''),
 					const Text('''To calculate how many to eat, simply get take the result thats leftover after calculating your protein and fat.'''),
-					const Text('''Calculation: TDEE - (Protein + Fat calories) = Carbohydrate Calories.'''),
+					const Text('''Calculation: Total Calories - (Protein + Fat calories) = Carbohydrate Calories.'''),
 					const Text('''Conversion factors: Protein = 4kcal/g, Carbs = 4kcal/g, Fats = 9kcal/g.'''),
-					const Text('''Example (2,465 TDEE): (2,465 - (126 * 4) - (68 * 9)) / 4 = 337g of Carbohydrates'''),
+					const Text('''Example (2,465 kcal): (2,465 - (126 * 4) - (68 * 9)) / 4 = 337g of Carbohydrates'''),
 
 					Text.rich
 					(
@@ -835,12 +835,12 @@ class InformationPage extends StatelessWidget
 								hyperlinkText("Gluconeogenesis", "https://teachmephysiology.com/biochemistry/atp-production/gluconeogenesis/", context),
 								const TextSpan(text: ''', where it converts non-carbohydrate sources into glucose to maintain your sugar levels.'''),
 								const TextSpan(text: '''So if there's no floor for how much I should consume, then what's the ceiling? According to the WHO, you should cut off your sugar intake around '''),
-								hyperlinkText("the 10% mark of your TDEE.", "https://www.healthdirect.gov.au/sugar", context),
+								hyperlinkText("the 10% mark of your Total Calories.", "https://www.healthdirect.gov.au/sugar", context),
 							]
 						)
 					),
 
-					const Text('''Example (2,465 TDEE): (2,465 * 0.1) / 4 = 62g of Sugar'''),
+					const Text('''Example (2,465 kcal): (2,465 * 0.1) / 4 = 62g of Sugar'''),
 					const Text('''And just to be clear, eating natural sugars from fruits and vegetables are perfectly fine (within reason) as they come within the whole-food matrix of fibre and other nutrients, which allows for slow absorption and a steady release of insulin.'''),
 					const Text('''Added Sugars, like those found in syrups are just empty calories as they don't provide any micronutrient benefit.'''),
 

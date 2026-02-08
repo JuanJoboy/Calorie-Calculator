@@ -4,9 +4,10 @@ import 'package:sqflite/sqflite.dart';
 class DatabaseHelper
 {
 	static Database? _db;
-	static const int _currentVersion = 3;
+	static const int _currentVersion = 5;
 	static final DatabaseHelper instance = DatabaseHelper._constructor(); // Makes a singleton
 
+	// Single Calculation Table
 	final String calcsTableName = "calcs";
 	final String calcsIDColumnName = "id";
 	final String calcsDateColumnName = "date";
@@ -18,11 +19,47 @@ class DatabaseHelper
 	final String calcsEPOCColumnName = "epoc";
 	final String calcsTotalBurnColumnName = "totalBurn";
 
+	// TDEE Table
 	final String tdeeTableName = "tdee";
 	final String tdeeIDColumnName = "id";
 	final String tdeeTDEEColumnName = "tdee";
 	final String tdeeBMRColumnName = "bmr";
 	final String tdeeWeightColumnName = "weight";
+	final String tdeeAgeColumnName = "age";
+	final String tdeeGenderColumnName = "gender";
+
+	// Week-Folder Table
+	final String weeklyPlansTableName = "weekly_plans";
+	final String weeklyPlansIDColumnName = "id";
+	final String weeklyPlansFolderNameColumnName = "folder_name";
+
+	// Day Table Within The Week-Folder
+	final String dailyEntriesTableName = "daily_entries";
+	final String dailyEntriesIDColumnName = "id";
+	final String dailyEntriesWeeklyPlanIDColumnName = "weekly_plan_id";
+	final String dailyEntriesDayIDColumnName = "day_of_the_week";
+	final String dailyEntriesWeightColumnName = "weight";
+	final String dailyEntriesAgeColumnName = "age";
+	final String dailyEntriesMaleColumnName = "male";
+	final String dailyEntriesAdditionalCaloriesColumnName = "additional_calories";
+	final String dailyEntriesBMRColumnName = "bmr";
+	final String dailyEntriesTDEEColumnName = "tdee";
+	final String dailyEntriesActivityFactorColumnName = "activity_factor";
+	final String dailyEntriesActivityNameColumnName = "activity_name";
+	final String dailyEntriesActivityBurnColumnName = "activity_burn";
+	final String dailyEntriesSportDurationColumnName = "sport_duration";
+	final String dailyEntriesUpperDurationColumnName = "upper_duration";
+	final String dailyEntriesAccessoriesDurationColumnName = "accessories_duration";
+	final String dailyEntriesLowerDurationColumnName = "lower_duration";
+	final String dailyEntriesCardioFactorColumnName = "cardio_factor";
+	final String dailyEntriesCardioNameColumnName = "cardio_name";
+	final String dailyEntriesCardioBurnColumnName = "cardio_burn";
+	final String dailyEntriesCardioDistanceColumnName = "cardio_distance";
+	final String dailyEntriesEpocFactorColumnName = "epoc_factor";
+	final String dailyEntriesEpocNameColumnName = "epoc_name";
+	final String dailyEntriesEpocBurnColumnName = "epoc_burn";
+	final String dailyEntriesProteinIntensityColumnName = "protein_intensity";
+	final String dailyEntriesFatIntakeColumnName = "fat_intake";
 
 	DatabaseHelper._constructor();
 
@@ -70,7 +107,54 @@ class DatabaseHelper
 							$tdeeIDColumnName INTEGER PRIMARY KEY DEFAULT 1,
 							$tdeeTDEEColumnName REAL NOT NULL,
 							$tdeeBMRColumnName REAL NOT NULL,
-							$tdeeWeightColumnName REAL NOT NULL
+							$tdeeWeightColumnName REAL NOT NULL,
+							$tdeeAgeColumnName REAL NOT NULL,
+							$tdeeGenderColumnName INTEGER NOT NULL
+						)
+					'''
+				);
+
+				db.execute
+				(
+					'''
+						CREATE TABLE $weeklyPlansTableName (
+							$weeklyPlansIDColumnName INTEGER PRIMARY KEY AUTOINCREMENT,
+							$weeklyPlansFolderNameColumnName TEXT NOT NULL
+						)
+					'''
+				);
+
+				db.execute
+				(
+					'''
+						CREATE TABLE $dailyEntriesTableName (
+							$dailyEntriesIDColumnName INTEGER PRIMARY KEY AUTOINCREMENT,
+							$dailyEntriesWeeklyPlanIDColumnName INTEGER NOT NULL,
+							$dailyEntriesDayIDColumnName INTEGER NOT NULL,
+							$dailyEntriesWeightColumnName REAL NOT NULL,
+							$dailyEntriesAgeColumnName REAL NOT NULL,
+							$dailyEntriesMaleColumnName INTEGER NOT NULL,
+							$dailyEntriesAdditionalCaloriesColumnName REAL NOT NULL,
+							$dailyEntriesBMRColumnName REAL NOT NULL,
+							$dailyEntriesTDEEColumnName REAL NOT NULL,
+							$dailyEntriesActivityFactorColumnName REAL NOT NULL,
+							$dailyEntriesActivityNameColumnName TEXT NOT NULL,
+							$dailyEntriesActivityBurnColumnName REAL NOT NULL,
+							$dailyEntriesSportDurationColumnName REAL NOT NULL,
+							$dailyEntriesUpperDurationColumnName REAL NOT NULL,
+							$dailyEntriesAccessoriesDurationColumnName REAL NOT NULL,
+							$dailyEntriesLowerDurationColumnName REAL NOT NULL,
+							$dailyEntriesCardioFactorColumnName REAL NOT NULL,
+							$dailyEntriesCardioNameColumnName TEXT NOT NULL,
+							$dailyEntriesCardioBurnColumnName REAL NOT NULL,
+							$dailyEntriesCardioDistanceColumnName REAL NOT NULL,
+							$dailyEntriesEpocFactorColumnName REAL NOT NULL,
+							$dailyEntriesEpocNameColumnName TEXT NOT NULL,
+							$dailyEntriesEpocBurnColumnName REAL NOT NULL,
+							$dailyEntriesProteinIntensityColumnName REAL NOT NULL,
+							$dailyEntriesFatIntakeColumnName REAL NOT NULL,
+							UNIQUE($dailyEntriesWeeklyPlanIDColumnName, $dailyEntriesDayIDColumnName),
+							FOREIGN KEY ($dailyEntriesWeeklyPlanIDColumnName) REFERENCES $weeklyPlansTableName ($weeklyPlansIDColumnName) ON DELETE CASCADE ON UPDATE CASCADE
 						)
 					'''
 				);
@@ -91,6 +175,65 @@ class DatabaseHelper
 								$tdeeTDEEColumnName REAL NOT NULL,
 								$tdeeBMRColumnName REAL NOT NULL,
 								$tdeeWeightColumnName REAL NOT NULL
+							)
+						'''
+					);
+				}
+				if (oldVersion < 4)
+				{
+					// Check if column exists before adding to prevent crashes on "dirty" databases
+					var tableInfo = await db.rawQuery("PRAGMA table_info($tdeeTableName)");
+					var hasAge = tableInfo.any((column) => column['name'] == tdeeAgeColumnName);
+					
+					if (!hasAge)
+					{
+						await db.execute("ALTER TABLE $tdeeTableName ADD COLUMN $tdeeAgeColumnName REAL NOT NULL DEFAULT 0.0");
+						await db.execute("ALTER TABLE $tdeeTableName ADD COLUMN $tdeeGenderColumnName INTEGER NOT NULL DEFAULT 1");
+					}
+				}
+				if(oldVersion < 5)
+				{
+					db.execute
+					(
+						'''
+							CREATE TABLE $weeklyPlansTableName (
+								$weeklyPlansIDColumnName INTEGER PRIMARY KEY AUTOINCREMENT,
+								$weeklyPlansFolderNameColumnName TEXT NOT NULL
+							)
+						'''
+					);
+
+					db.execute
+					(
+						'''
+							CREATE TABLE $dailyEntriesTableName (
+								$dailyEntriesIDColumnName INTEGER PRIMARY KEY AUTOINCREMENT,
+								$dailyEntriesWeeklyPlanIDColumnName INTEGER NOT NULL,
+								$dailyEntriesDayIDColumnName INTEGER NOT NULL,
+								$dailyEntriesWeightColumnName REAL NOT NULL,
+								$dailyEntriesAgeColumnName REAL NOT NULL,
+								$dailyEntriesMaleColumnName INTEGER NOT NULL,
+								$dailyEntriesAdditionalCaloriesColumnName REAL NOT NULL,
+								$dailyEntriesBMRColumnName REAL NOT NULL,
+								$dailyEntriesTDEEColumnName REAL NOT NULL,
+								$dailyEntriesActivityFactorColumnName REAL NOT NULL,
+								$dailyEntriesActivityNameColumnName TEXT NOT NULL,
+								$dailyEntriesActivityBurnColumnName REAL NOT NULL,
+								$dailyEntriesSportDurationColumnName REAL NOT NULL,
+								$dailyEntriesUpperDurationColumnName REAL NOT NULL,
+								$dailyEntriesAccessoriesDurationColumnName REAL NOT NULL,
+								$dailyEntriesLowerDurationColumnName REAL NOT NULL,
+								$dailyEntriesCardioFactorColumnName REAL NOT NULL,
+								$dailyEntriesCardioNameColumnName TEXT NOT NULL,
+								$dailyEntriesCardioBurnColumnName REAL NOT NULL,
+								$dailyEntriesCardioDistanceColumnName REAL NOT NULL,
+								$dailyEntriesEpocFactorColumnName REAL NOT NULL,
+								$dailyEntriesEpocNameColumnName TEXT NOT NULL,
+								$dailyEntriesEpocBurnColumnName REAL NOT NULL,
+								$dailyEntriesProteinIntensityColumnName REAL NOT NULL,
+								$dailyEntriesFatIntakeColumnName REAL NOT NULL,
+								UNIQUE($dailyEntriesWeeklyPlanIDColumnName, $dailyEntriesDayIDColumnName),
+								FOREIGN KEY ($dailyEntriesWeeklyPlanIDColumnName) REFERENCES $weeklyPlansTableName ($weeklyPlansIDColumnName) ON DELETE CASCADE ON UPDATE CASCADE
 							)
 						'''
 					);
@@ -133,7 +276,7 @@ class DatabaseHelper
 	}
 
 	// Returns an int to notify that a successful addition took place
-	Future<int> addTDEE(double bmr, double tdee, double weight) async
+	Future<int> addTDEE(double bmr, double tdee, double weight, double age, bool male) async
 	{
 		final db = await database;
 
@@ -144,18 +287,26 @@ class DatabaseHelper
 				tdeeTDEEColumnName: tdee,
 				tdeeBMRColumnName: bmr,
 				tdeeWeightColumnName: weight,
+				tdeeAgeColumnName: age,
+				tdeeGenderColumnName: male == true ? 1 : 0
 			}
 		);
 	}
 
-	Future<int> updateTDEE(double bmr, double tdee, double weight) async
+	Future<int> updateTDEE(double bmr, double tdee, double weight, double age, bool male) async
 	{
 		final db = await database;
 
 		return await db.update
 		(
 			tdeeTableName,
-			{tdeeBMRColumnName: bmr, tdeeTDEEColumnName: tdee, tdeeWeightColumnName: weight}, // New info being updated
+			{
+				tdeeBMRColumnName: bmr,
+				tdeeTDEEColumnName: tdee,
+				tdeeWeightColumnName: weight,
+				tdeeAgeColumnName: age,
+				tdeeGenderColumnName: male == true ? 1 : 0
+			}, // New info being updated
 			where: "$tdeeIDColumnName = ?",
 			whereArgs: [1],
 			conflictAlgorithm: ConflictAlgorithm.replace

@@ -1,19 +1,86 @@
-import 'dart:math';
-
+import 'package:bulleted_list/bulleted_list.dart';
+import 'package:calorie_calculator_app/pages/calculator/burn.dart';
 import 'package:calorie_calculator_app/utilities/colours.dart';
+import 'package:calorie_calculator_app/utilities/formulas.dart';
 import 'package:flutter/material.dart';
 import 'package:calorie_calculator_app/utilities/utilities.dart';
 
 class DietPage extends StatefulWidget
 {
 	final double weight;
-	final double tdee;
-	final double activityDuration;
+	final int tdee;
+	final double metFactor;
+	final String activityName;
+	final int activityBurn;
+	final double cardioFactor;
+	final int sportDuration;
+	final int upperDuration;
+	final int accessoryDuration;
+	final int lowerDuration;
+	final String cardioName;
+	final double cardioDistance;
+	final int cardioBurn;
+	final int epocBurn;
+	final String epocIntensity;
+	final int totalCaloriesBurned;
+	final int caloricCeiling;
 	final double proteinIntensity;
 	final double fatIntake;
 	final double fibre;
+	final double activityDuration;
+	final bool weeklyPlanner;
 
-	const DietPage({super.key, required this.weight, required this.tdee, required this.activityDuration, required this.proteinIntensity, required this.fatIntake, required this.fibre});
+	const DietPage({
+		super.key,
+		required this.weight,
+		required this.tdee,
+		required this.metFactor,
+		required this.activityName,
+		required this.activityBurn,
+		required this.cardioFactor,
+		required this.sportDuration,
+		required this.upperDuration,
+		required this.accessoryDuration,
+		required this.lowerDuration,
+		required this.cardioName,
+		required this.cardioDistance,
+		required this.cardioBurn,
+		required this.epocBurn,
+		required this.epocIntensity,
+		required this.totalCaloriesBurned,
+		required this.caloricCeiling,
+		required this.proteinIntensity,
+		required this.fatIntake,
+		required this.fibre,
+		required this.activityDuration,
+		required this.weeklyPlanner,
+	});
+
+	const DietPage.noActivity({
+		super.key,
+		required this.weight,
+		required this.tdee,
+		this.metFactor = 0,
+		this.activityName = "",
+		this.activityBurn = 0,
+		this.cardioFactor = 0,
+		this.sportDuration = 0,
+		this.upperDuration = 0,
+		this.accessoryDuration = 0,
+		this.lowerDuration = 0,
+		this.cardioName = "",
+		this.cardioDistance = 0,
+		this.cardioBurn = 0,
+		this.epocBurn = 0,
+		this.epocIntensity = "",
+		this.totalCaloriesBurned = 0,
+		this.caloricCeiling = 0,
+		required this.proteinIntensity,
+		required this.fatIntake,
+		required this.fibre,
+		this.activityDuration = 0,
+		this.weeklyPlanner = false,
+	});
 
 	@override
 	State<DietPage> createState() => _DietPageState();
@@ -21,6 +88,7 @@ class DietPage extends StatefulWidget
 
 enum DietView
 {
+	calories,
 	macros,
 	water,
 	micros
@@ -125,7 +193,15 @@ enum TraceMinerals implements Micronutrient
 
 class _DietPageState extends State<DietPage>
 {
-	DietView activeView = DietView.macros;
+	late DietView activeView;
+
+	@override
+	void initState()
+	{
+		super.initState();
+
+		activeView = widget.weeklyPlanner == true ? DietView.calories : DietView.macros;
+	}
 
 	@override
 	Widget build(BuildContext context)
@@ -133,7 +209,7 @@ class _DietPageState extends State<DietPage>
 		return Scaffold
 		(
 			backgroundColor: Utils.getBackgroundColor(Theme.of(context)),
-			appBar: AppBar(title: const Text("Dietary Analysis")),
+			appBar: AppBar(title: const Text("Analysis")),
 			body: SingleChildScrollView
 			(
 				physics: const BouncingScrollPhysics(),
@@ -149,12 +225,7 @@ class _DietPageState extends State<DietPage>
 
 							SegmentedButton<DietView>
 							(
-								segments: const
-								[
-									ButtonSegment(value: DietView.macros, label: Text('Macros'), icon: Icon(Icons.pie_chart)),
-									ButtonSegment(value: DietView.water, label: Text('Water'), icon: Icon(Icons.water_drop)),
-									ButtonSegment(value: DietView.micros, label: Text('Micros'), icon: Icon(Icons.biotech))
-								],
+								segments: segments(),
 								selected: {activeView},
 								onSelectionChanged: (Set<DietView> views)
 								{
@@ -181,34 +252,68 @@ class _DietPageState extends State<DietPage>
 		);
   	}
 
+	List<ButtonSegment<DietView>> segments()
+	{
+		if(widget.weeklyPlanner == true)
+		{
+			return const
+			[
+				ButtonSegment(value: DietView.calories, label: Text('Calories', style: TextStyle(fontSize: 13)), icon: Icon(Icons.fitness_center)),
+				ButtonSegment(value: DietView.macros, label: Text('Macros', style: TextStyle(fontSize: 13)), icon: Icon(Icons.pie_chart)),
+				ButtonSegment(value: DietView.water, label: Text('Water', style: TextStyle(fontSize: 13)), icon: Icon(Icons.water_drop)),
+				ButtonSegment(value: DietView.micros, label: Text('Micros', style: TextStyle(fontSize: 13)), icon: Icon(Icons.biotech))
+			];
+		}
+		else
+		{
+			return const
+			[
+				ButtonSegment(value: DietView.macros, label: Text('Macros'), icon: Icon(Icons.pie_chart)),
+				ButtonSegment(value: DietView.water, label: Text('Water'), icon: Icon(Icons.water_drop)),
+				ButtonSegment(value: DietView.micros, label: Text('Micros'), icon: Icon(Icons.biotech))
+			];
+		}
+	}
+
 	Widget displayAll()
 	{
-		// Macro
-		final int protein = (widget.weight * widget.proteinIntensity).round();
-		final int totalFat = ((widget.tdee * widget.fatIntake) / 9).round();
-		final int saturatedFat = ((widget.tdee * 0.1) / 9).round();
-		final int unsaturatedFat = (totalFat - saturatedFat).round();
-		final double omega3 = double.parse((max((widget.fibre == 30 ? 1.6 : 1.1), (widget.tdee * 0.01) / 9)).toStringAsFixed(2));
-		final double omega6 = double.parse((max((widget.fibre == 30 ? 17 : 12), (widget.tdee * 0.05) / 9)).toStringAsFixed(2));
-		final int cholesterol = 300;
-		final int carb = ((widget.tdee - (protein * 4) - (totalFat * 9)) / 4).round();
-		final int fibre = (widget.fibre).round();
-		final int solubleFibre = (fibre * 0.4).round();
-		final int insolubleFibre = (fibre * 0.6).round();
-		final int sugar = ((widget.tdee * 0.1) / 4).round();
+		// Protein
+		final int protein = NutritionMath.protein(widget.weight, widget.proteinIntensity);
+
+		// Fats
+		final (:totalFat, :saturatedFat, :unsaturatedFat, :omega3, :omega6, :cholesterol) = NutritionMath.fat(widget.tdee.roundToDouble(), widget.fatIntake, widget.fibre == 30);
+
+		// Carbs
+		final (:totalCarb, :solubleFibre, :insolubleFibre, :sugar) = NutritionMath.carb(widget.tdee.roundToDouble(), protein, totalFat, widget.fibre);
 
 		// Water
-		final double minBaseWater = double.parse((widget.weight * 0.030).toStringAsFixed(2));
-		final double maxBaseWater = double.parse((widget.weight * 0.035).toStringAsFixed(2));
-		final double minExerciseWater = double.parse(((widget.activityDuration / 60) * 0.50).toStringAsFixed(2));
-		final double maxExerciseWater = double.parse(((widget.activityDuration / 60) * 1.00).toStringAsFixed(2));
+		final (:minBaseWater, :maxBaseWater, :minExerciseWater, :maxExerciseWater) = NutritionMath.water(widget.weight, widget.activityDuration, widget.metFactor, widget.cardioDistance, widget.cardioFactor);
+
+		final bool noActivity = widget.metFactor == 0 && widget.cardioFactor == 0;
 
 		switch(activeView)
 		{
-			case DietView.macros:
+			case DietView.calories:
 				return Column
 				(
 					key: const ValueKey(0),
+					children:
+					[
+						Utils.header(noActivity == true ? "Rest Day 😴" : "Activity", 30, FontWeight.bold),
+	
+						activityCard(widget.metFactor != 0, widget.activityName, widget.activityBurn),
+	
+						activityCard(widget.cardioFactor != 0, widget.cardioName, widget.cardioBurn),
+
+						activityCard(!noActivity, "EPOC", widget.epocBurn),
+
+						calorieCard(widget.tdee, widget.totalCaloriesBurned, widget.caloricCeiling)
+					],
+				);
+			case DietView.macros:
+				return Column
+				(
+					key: const ValueKey(1),
 					children:
 					[
 						Utils.header("Protein", 25, FontWeight.w600),
@@ -223,7 +328,7 @@ class _DietPageState extends State<DietPage>
 						displayInfo("Cholesterol", "$cholesterol", "mg", padding: 35, width: 90),
 						
 						Utils.header("Carbohydrates", 25, FontWeight.w600),
-						displayInfo("Total Carbs", "$carb", "g", padding: 20, width: 90),
+						displayInfo("Total Carbs", "$totalCarb", "g", padding: 20, width: 90),
 						displayInfo("Soluble Fibre", "$solubleFibre", "g", padding: 20, width: 90),
 						displayInfo("Insoluble Fibre", "$insolubleFibre", "g", padding: 20, width: 90),
 						displayInfo("Max Sugar", "$sugar", "g", padding: 20, width: 90),
@@ -232,7 +337,7 @@ class _DietPageState extends State<DietPage>
 			case DietView.water:
 				return Column
 				(
-					key: const ValueKey(1),
+					key: const ValueKey(2),
 					children:
 					[
 						Utils.header("Daily Hydration", 25, FontWeight.w600),
@@ -243,7 +348,7 @@ class _DietPageState extends State<DietPage>
 			case DietView.micros:
 				return Column
 				(
-					key: const ValueKey(2),
+					key: const ValueKey(3),
 					children:
 					[
 						micronutrients("Water Soluble", WaterSoluble.values),
@@ -256,6 +361,193 @@ class _DietPageState extends State<DietPage>
 					],
 				);
 		}
+	}
+
+	Widget activityCard(bool condition, String activity, int caloricValue)
+	{
+		return condition ? Padding
+		(
+			padding: const EdgeInsets.only(top: 40.0),
+			child: LayoutBuilder
+			(
+				builder: (context, constraints)
+				{
+					return SizedBox
+					(
+						width: constraints.maxWidth - 10,
+						child: Card
+						(
+							color: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
+							shape: RoundedRectangleBorder
+							(
+								side: BorderSide
+								(
+									color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+									width: 4
+								),
+								borderRadius: BorderRadiusGeometry.circular(20)
+							),
+							child: Column
+							(
+								mainAxisAlignment: MainAxisAlignment.center,
+								crossAxisAlignment: CrossAxisAlignment.center,
+								children:
+								[					
+									Utils.header(activity, 25, FontWeight.w600, padding: 20),
+
+									const Padding(padding: EdgeInsetsGeometry.only(top: 20)),
+
+									BulletedList
+									(
+										listItems: activityDurations(activity),
+										style: const TextStyle(fontSize: 20, color: Colors.black),
+										bullet: Icon(((activity == "EPOC" ? Icons.trending_up : (activity == Cardio.run.label || activity == Cardio.cycle.label) ? Icons.route_rounded : Icons.alarm_rounded)), size: 30, color: Theme.of(context).extension<AppColours>()!.runSeColour!),
+									),
+
+									BulletedList
+									(
+										listItems: [richText("Calories Burned", intValue: caloricValue, unit: "kcal", padding: 20)],
+										style: const TextStyle(fontSize: 20, color: Colors.black),
+										bullet: Icon(Icons.whatshot_rounded, size: 30, color: Colors.deepOrange[400]),
+									),
+								],
+							),
+						)
+					);
+				}
+			)
+		) : const SizedBox();
+	}
+
+	Widget calorieCard(int tdee, int total, int ceiling)
+	{
+		return Padding
+		(
+			padding: const EdgeInsets.only(top: 40.0),
+			child: LayoutBuilder
+			(
+				builder: (context, constraints)
+				{
+					return SizedBox
+					(
+						width: constraints.maxWidth - 10,
+						child: Card
+						(
+							color: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
+							shape: RoundedRectangleBorder
+							(
+								side: BorderSide
+								(
+									color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+									width: 4
+								),
+								borderRadius: BorderRadiusGeometry.circular(20)
+							),
+							child: Column
+							(
+								mainAxisAlignment: MainAxisAlignment.center,
+								crossAxisAlignment: CrossAxisAlignment.center,
+								children:
+								[					
+									Utils.header("Caloric Breakdown", 25, FontWeight.w600, padding: 20),
+
+									const Padding(padding: EdgeInsetsGeometry.only(top: 20)),
+
+									BulletedList
+									(
+										listItems: [richText("Base TDEE", intValue: tdee, unit: "kcal", padding: 15)],
+										style: const TextStyle(fontSize: 20, color: Colors.black),
+										bullet: Icon(Icons.self_improvement_rounded, size: 30, color: Theme.of(context).extension<AppColours>()!.maleSeColour!)
+									),
+
+									BulletedList
+									(
+										listItems: [richText("Total Calories Burned", intValue: total, unit: "kcal", padding: 15)],
+										style: const TextStyle(fontSize: 20, color: Colors.black),
+										bullet: Icon(Icons.workspace_premium_rounded, size: 30, color: Colors.deepOrange[400])
+									),
+
+									BulletedList
+									(
+										listItems: [richText("Caloric Ceiling", intValue: ceiling, unit: "kcal", padding: 15)],
+										style: const TextStyle(fontSize: 20, color: Colors.black),
+										bullet: Icon(Icons.vertical_align_top, size: 30, color: Theme.of(context).extension<AppColours>()!.femaleSeColour!)
+									),
+								],
+							),
+						)
+					);
+				}
+			)
+		);
+	}
+
+	List<Widget> activityDurations(String activity)
+	{
+		if(activity.contains("Weights"))
+		{
+			return <Widget>
+			[
+				richText("Upper Body", intValue: widget.upperDuration, unit: "min"),
+				richText("Accessories", intValue: widget.accessoryDuration, unit: "min"),
+				richText("Lower Body", intValue: widget.lowerDuration, unit: "min"),
+			];
+		}
+		else if(activity == Cardio.run.label || activity == Cardio.cycle.label)
+		{
+			return <Widget>
+			[
+				richText("Distance", doubleValue: widget.cardioDistance, unit: "km"),
+			];
+		}
+		else if(activity == "EPOC")
+		{
+			return <Widget>
+			[
+				richText("Intensity", epocValue: widget.epocIntensity),
+			];
+		}
+		else
+		{
+			return <Widget>
+			[
+				richText("Duration", intValue: widget.sportDuration, unit: "min"),
+			];
+		}
+	}
+
+	Widget richText(String text, {String? unit, double? padding, int? intValue, double? doubleValue, String? epocValue})
+	{
+		bool useEpoc = false;
+		if(epocValue != null)
+		{
+			useEpoc = true;
+		}
+
+		if(unit != null && unit == "min")
+		{
+			if(intValue != null && intValue != 1)
+			{
+				unit = "${unit}s";
+			}
+		}
+
+		return Padding
+		(
+			padding: EdgeInsets.symmetric(vertical: padding ?? 5.0),
+			child: Text.rich
+			(
+				TextSpan
+				(
+					style: const TextStyle(fontSize: 20),
+					children:
+					[
+						TextSpan(text: '''$text: ''', style: const TextStyle(fontWeight: FontWeight.w500)),
+						TextSpan(text: useEpoc == true ? epocValue : ("${intValue?.toString() ?? doubleValue.toString()} $unit"))
+					]
+				)
+			),
+		);
 	}
 
 	Widget micronutrients(String header, List<Micronutrient> micros)
@@ -285,7 +577,7 @@ class _DietPageState extends State<DietPage>
 						displayInfo
 						(
 							micro.label,
-							(widget.fibre == 30 ? micro.maleValue : micro.femaleValue).toString(),
+							(NutritionMath.electrolyteCalculator(micro, widget.fibre == 30, widget.activityDuration, widget.metFactor, widget.cardioDistance, widget.cardioFactor)).toString(),
 							micro.unit,
 							padding: micro.unit == "mg" ? 35 : 45,
 							width: 100
@@ -335,8 +627,6 @@ class _DietPageState extends State<DietPage>
 								),
 							),
 
-							// const Spacer(),
-
 							const Padding(padding: EdgeInsetsGeometry.only(top: 5)),
 				
 							Row
@@ -345,20 +635,6 @@ class _DietPageState extends State<DietPage>
 								crossAxisAlignment: CrossAxisAlignment.center,
 								children:
 								[
-									// Container
-									// (
-									// 	padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-									// 	decoration: BoxDecoration
-									// 	(
-									// 		color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
-                      				// 		borderRadius: BorderRadius.circular(10),
-									// 	),
-									// 	child: Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))
-									// ),
-
-									// const SizedBox(width: 8), // Padding
-
-									// Text(unit, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
 									Padding
 									(
 										padding: EdgeInsets.only(left: padding ?? 30.0),
@@ -398,8 +674,6 @@ class _DietPageState extends State<DietPage>
 									)
 								],
 							),
-
-							// const SizedBox(height: 15)
 						],
 					),
 				),

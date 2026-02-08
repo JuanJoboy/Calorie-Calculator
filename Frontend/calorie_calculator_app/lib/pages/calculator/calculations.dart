@@ -110,8 +110,10 @@ class UsersTdee
 	final double bmr;
 	final double tdee;
 	final double weight;
+	final double age;
+	final bool male;
 
-	const UsersTdee({required this.id, required this.bmr, required this.tdee, required this.weight});
+	const UsersTdee({required this.id, required this.bmr, required this.tdee, required this.weight, required this.age, required this.male});
 
 	factory UsersTdee.fromMap(Map<String, dynamic> map, DatabaseHelper db)
 	{
@@ -121,6 +123,8 @@ class UsersTdee
 			bmr: (map[db.tdeeBMRColumnName] as num).toDouble(),
 			tdee: (map[db.tdeeTDEEColumnName] as num).toDouble(),
 			weight: (map[db.tdeeWeightColumnName] as num).toDouble(),
+			age: (map[db.tdeeAgeColumnName] as num).toDouble(),
+			male: (map[db.tdeeGenderColumnName]) == 1,
 		); 
 	}
 }
@@ -148,20 +152,20 @@ class UsersTdeeNotifier extends ChangeNotifier
 		
 		notifyListeners();
 	}
-
-	void uploadOrEditTdee(double bmr, double tdee, double weight) async
+ 
+	void uploadOrEditTdee(double bmr, double tdee, double weight, double age, bool male) async
 	{
 		final DatabaseHelper dbHelper = DatabaseHelper.instance;
 
     	if (usersTdee == null)
 		{
-			final int id = await dbHelper.addTDEE(bmr, tdee, weight);
-			usersTdee = UsersTdee(id: id, bmr: bmr, tdee: tdee, weight: weight);
+			final int id = await dbHelper.addTDEE(bmr, tdee, weight, age, male);
+			usersTdee = UsersTdee(id: id, bmr: bmr, tdee: tdee, weight: weight, age: age, male: male);
 		}
 		else
 		{
-			await dbHelper.updateTDEE(bmr, tdee, weight);
-			usersTdee = UsersTdee(id: 1, bmr: bmr, tdee: tdee, weight: weight);
+			await dbHelper.updateTDEE(bmr, tdee, weight, age, male);
+			usersTdee = UsersTdee(id: 1, bmr: bmr, tdee: tdee, weight: weight, age: age, male: male);
 		}
 
 		notifyListeners();

@@ -63,7 +63,6 @@ class _NutritionPageState extends State<NutritionPage>
 {
 	final TextEditingController weight = TextEditingController();
 	final TextEditingController tdee = TextEditingController();
-	final TextEditingController activityDuration = TextEditingController();
 
 	int isProteinSelected = 0;
 	double selectedProteinIntensity = ProteinIntensity.maintenance.value;
@@ -83,7 +82,6 @@ class _NutritionPageState extends State<NutritionPage>
 		super.dispose();
 		weight.dispose();
 		tdee.dispose();
-		activityDuration.dispose();
 	}
 
 	@override void initState()
@@ -95,7 +93,6 @@ class _NutritionPageState extends State<NutritionPage>
 
 		weight.text = _nutris.we;
 		tdee.text = _nutris.td;
-		activityDuration.text = _nutris.ad;
   	}
 
 	@override
@@ -117,8 +114,7 @@ class _NutritionPageState extends State<NutritionPage>
 						Utils.widgetPlusHelper(Utils.header("Today's Biometrics", 25, FontWeight.w600), HelpIcon(msg: "Input your current body weight, caloric intake for today, and the duration of the exercise you did into the text fields. If you didn't do any exercise today, leave it blank or enter 0.",), top: 45, right: 17.5),
 
 						textBox("Weight", "kg", weight, fieldToSave: 1, padding: 30),
-						textBox("TDEE", "kcal", tdee, fieldToSave: 2, padding: 45),
-						textBox("Activity Duration", "mins", activityDuration, fieldToSave: 3, padding: 50),
+						textBox("Total Calories Today", "kcal", tdee, fieldToSave: 2, padding: 45),
 
 						chips("Protein Intensity", "Select the amount of protein that you want in your diet. 'Aggressive Cut / Fat Loss' helps preserve lean mass during a deficit and increases satiety, while 'Maintenance' provides the baseline RDA for health.", ProteinIntensity.values, true),
 
@@ -242,7 +238,6 @@ class _NutritionPageState extends State<NutritionPage>
 														{
 															case 1: _nutris.updateControllers(weight: value);
 															case 2: _nutris.updateControllers(tdee: value);
-															case 3: _nutris.updateControllers(activityDuration: value);
 														}
 													},
 													inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))],
@@ -406,7 +401,7 @@ class _NutritionPageState extends State<NutritionPage>
 				elevation: 2,
 				child: ListenableBuilder
 				(
-					listenable: Listenable.merge([weight, tdee, activityDuration]),
+					listenable: Listenable.merge([weight, tdee]),
 					builder: (context, child)
 					{
 						return ElevatedButton
@@ -420,7 +415,7 @@ class _NutritionPageState extends State<NutritionPage>
 								await Navigator.push
 								(
 									context,
-									MaterialPageRoute(builder: (context) => Utils.switchPage(context, DietPage(weight: parseTextFields().$1, tdee: parseTextFields().$2, activityDuration: parseTextFields().$3, proteinIntensity: selectedProteinIntensity, fatIntake: selectedFatIntensity, fibre: chosenGender!.value,)))
+									MaterialPageRoute(builder: (context) => Utils.switchPage(context, DietPage.noActivity(weight: parseTextFields().$1, tdee: parseTextFields().$2, proteinIntensity: selectedProteinIntensity, fatIntake: selectedFatIntensity, fibre: chosenGender!.value,)))
 								);
 							},
 							child: const Text("Calculate Macros", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black))
@@ -431,13 +426,12 @@ class _NutritionPageState extends State<NutritionPage>
 		);
 	}
 	
-	(double, double, double) parseTextFields()
+	(double, int) parseTextFields()
 	{
 		final double weightNum = double.tryParse(weight.text.trim()) ?? 0;
-		final double tdeeNum = double.tryParse(tdee.text.trim()) ?? 0;
-		final double activityDurationNum = double.tryParse(activityDuration.text.trim()) ?? 0;
+		final int tdeeNum = int.tryParse(tdee.text.trim()) ?? 0;
 
-		return (weightNum, tdeeNum, activityDurationNum);
+		return (weightNum, tdeeNum);
 	}
 
 	bool areFieldsEmpty()
@@ -450,12 +444,10 @@ class NutritionFields extends ChangeNotifier
 {
 	String we = "";
 	String td = "";
-	String ad = "";
 
-	void updateControllers({String? weight, String? tdee, String? activityDuration})
+	void updateControllers({String? weight, String? tdee})
 	{
 		if(weight != null) we = weight;
 		if(tdee != null) td = tdee;
-		if(activityDuration != null) ad = activityDuration;
 	}
 }

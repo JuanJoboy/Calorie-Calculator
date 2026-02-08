@@ -1,7 +1,6 @@
 import 'package:calorie_calculator_app/utilities/colours.dart';
 import 'package:calorie_calculator_app/utilities/help.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:calorie_calculator_app/pages/calculator/calculations.dart';
 import 'package:calorie_calculator_app/pages/calculator/epoc.dart';
@@ -11,13 +10,53 @@ import 'package:provider/provider.dart';
 class BurnPage extends StatefulWidget
 {
 	final double bmr;
+	final double age;
+	final bool male;
 	final double tdee;
 	final double personWeight;
+	final double additionalCalories;
+	final bool weeklyPlanner;
 	
-	const BurnPage({super.key, required this.bmr, required this.tdee, required this.personWeight});
+	const BurnPage({super.key, required this.bmr, required this.age, required this.male, required this.tdee, required this.personWeight, required this.additionalCalories, required this.weeklyPlanner});
+
+	const BurnPage.nonWeekly({super.key, required this.bmr, required this.age, required this.male, required this.tdee, required this.personWeight, this.additionalCalories = 0, required this.weeklyPlanner});
 
 	@override
 	State<BurnPage> createState() => _BurnPageState();
+}
+
+abstract interface class Nutrition
+{
+	double get value;
+	String get label;
+}
+
+enum ProteinIntensity implements Nutrition
+{
+	maintenance(value: 1.6, label: 'Maintenance / Moderate Activity'),
+	bulk(value: 1.9, label: 'Lean Bulk / Muscle Gain'),
+	cut(value: 2.2, label: 'Aggressive Cut / Fat Loss');
+
+	@override
+	final double value;
+	@override
+	final String label;
+
+	const ProteinIntensity({required this.value, required this.label});
+}
+
+enum FatIntensity implements Nutrition
+{
+	low(value: 0.20, label: 'Low Fat Diet'),
+	mid(value: 0.25, label: 'Balanced Fat Diet'),
+	high(value: 0.30, label: 'High Fat Diet');
+
+	@override
+	final double value;
+	@override
+	final String label;
+
+	const FatIntensity({required this.value, required this.label});
 }
 
 abstract interface class Intensity
@@ -116,20 +155,13 @@ enum HardMET implements Intensity
 
 enum Cardio
 {
-	run,
-	cycle
-}
+	run(value: 1, label: 'Running'),
+	cycle(value: 0.3, label: 'Cycling');
 
-extension CardioValues on Cardio
-{
-	double get caloricValue
-	{
-		switch (this)
-		{
-			case Cardio.run: return 1;
-			case Cardio.cycle: return 0.3;
-		}
-	}
+	final double value;
+	final String label;
+
+	const Cardio({required this.value, required this.label});
 }
 
 class _BurnPageState extends State<BurnPage>
@@ -149,6 +181,12 @@ class _BurnPageState extends State<BurnPage>
 	Cardio? chosenCardio;
 	Color? runColour;
 	Color? cycleColour;
+
+	int isProteinSelected = 0;
+	double selectedProteinIntensity = ProteinIntensity.maintenance.value;
+
+	int isFatSelected = 1;
+	double selectedFatIntensity = FatIntensity.mid.value;
 
 	late CalculationFields _calcs;
 
@@ -200,6 +238,7 @@ class _BurnPageState extends State<BurnPage>
 							met(),
 							switcher(),
 							cardio(),
+							nutrition(),
 							nextButton(),
 						],
 					),
@@ -544,7 +583,7 @@ class _BurnPageState extends State<BurnPage>
 					(
 						borderRadius: BorderRadiusGeometry.circular(25)
 					),
-					child: const Icon(Icons.run_circle_outlined, size: 80, color: Colors.black),
+					child: const Icon(Icons.directions_run_rounded, size: 80, color: Colors.black),
 				),
 			),
 		);
@@ -639,13 +678,14 @@ class _BurnPageState extends State<BurnPage>
 									final double sportBurn = metCalculator(sportDurationNum, 1);
 
 									final double activityBurn = extractCorrectActivity(weightLiftingBurn, sportBurn);
+									final (:name, :upper, :acc, :lower, :sport) = extractCorrectDuration(activityName, upperDurationNum, accDurationNum, lowerDurationNum, sportDurationNum);
 
-									final double cardioBurn = widget.personWeight * distanceNum * (chosenCardio?.caloricValue ?? 0);
+									final double cardioBurn = widget.personWeight * distanceNum * (chosenCardio?.value ?? 0);
 				
 									Navigator.push
 									(
 										context,
-										MaterialPageRoute(builder: (context) => Utils.switchPage(context, EPOCPage(personWeight: widget.personWeight, bmr: widget.bmr, tdee: widget.tdee, activityBurn: activityBurn, cardioBurn: cardioBurn))) // Takes you to the page that shows all the locations connected to the restaurant
+										MaterialPageRoute(builder: (context) => Utils.switchPage(context, EPOCPage(personWeight: widget.personWeight, age: widget.age, male: widget.male, bmr: widget.bmr, tdee: widget.tdee, activityBurn: activityBurn, cardioBurn: cardioBurn, additionalCalories: widget.additionalCalories, weeklyPlanner: widget.weeklyPlanner, cardioDistance: distanceNum, protein: selectedProteinIntensity, fat: selectedFatIntensity, metFactor: metFactor ?? 0, cardioFactor: chosenCardio?.value ?? 0, activityName: name ?? "", sportDuration: sport, upperDuration: upper, accessoryDuration: acc, lowerDuration: lower, cardioName: (chosenCardio?.label ?? "")))) // Takes you to the page that shows all the locations connected to the restaurant
 									);
 								},
 								child: const Text("Next", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black))
@@ -656,6 +696,80 @@ class _BurnPageState extends State<BurnPage>
 			),
 		);
 	}
+
+	Widget nutrition()
+	{
+		return widget.weeklyPlanner == true ? Column
+		(
+			children:
+			[
+				chips("Protein Intensity", "Select the amount of protein that you want in your diet. 'Aggressive Cut / Fat Loss' helps preserve lean mass during a deficit and increases satiety, while 'Maintenance' provides the baseline RDA for health.", ProteinIntensity.values, true),
+
+				chips("Fat Intake", "Select the amount of fat that you want in your diet. High Fat supports hormonal health and fat-soluble vitamin absorption (A, D, E, K), while Low Fat allows for higher carbohydrate volume to fuel high-intensity training.", FatIntensity.values, false),
+
+				const Padding(padding: EdgeInsets.only(bottom: 75.0))
+
+			]
+		) : const SizedBox();
+	}
+
+	Widget chips(String header, String helpMsg, List<Nutrition> intensity, bool isProtein)
+	{
+		return Column
+		(
+			children:
+			[
+				Utils.widgetPlusHelper(Utils.header(header, 25, FontWeight.w600), HelpIcon(msg: helpMsg), top: 45, right: 17.5),
+				
+				for(int i = 0; i < intensity.length; i++)
+					intensityChip(intensity[i], i, isProtein)
+			],
+		);
+	}
+
+	Widget intensityChip(Nutrition intensity, int index, bool isProtein)
+	{
+		return Padding
+		(
+			padding: const EdgeInsets.only(left: 20, right: 20, top: 30, bottom: 0),
+			child: ChoiceChip
+			(
+				label: Text(intensity.label, style: const TextStyle(color: Colors.black)),
+				selected: isProtein == true ? isProteinSelected == index : isFatSelected == index,
+				onSelected: (value)
+				{
+					setState(()
+					{
+						if(isProtein)
+						{
+							selectedProteinIntensity = intensity.value;
+							isProteinSelected = index;
+						}
+						else
+						{
+							selectedFatIntensity = intensity.value;
+							isFatSelected = index;
+						}
+					});
+				},
+				selectedColor: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+				backgroundColor: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
+				checkmarkColor: Colors.black,
+			),
+		);
+	}
+
+	({String? name, double upper, double acc, double lower, double sport}) extractCorrectDuration(String? name, double upper, double acc, double lower, double sport)
+	{
+		if((metFactor == EasyMET.weightLifting.value) || (metFactor == MidMET.weightLifting.value) || (metFactor == HardMET.weightLifting.value))
+		{
+			name = activityName?.split(":").first;
+			return (name: name, upper: upper, acc: acc, lower: lower, sport: 0);
+		}
+
+		return (name: name, upper: 0, acc: 0, lower: 0, sport: sport);
+	}
+
 
 	double extractCorrectActivity(double weight, double sport)
 	{

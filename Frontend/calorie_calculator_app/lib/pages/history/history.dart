@@ -1,6 +1,6 @@
+import 'package:calorie_calculator_app/main.dart';
 import 'package:calorie_calculator_app/utilities/utilities.dart';
 import 'package:flutter/material.dart';
-import 'package:calorie_calculator_app/database/database.dart';
 import 'package:calorie_calculator_app/pages/calculator/calculations.dart';
 import 'package:provider/provider.dart';
 
@@ -47,6 +47,8 @@ class _HistoryPageState extends State<HistoryPage>
 			[
 				Utils.header("BMR: $b	|	TDEE: $t", 30, FontWeight.bold),
 
+				darkModeButton(),
+
 				Expanded
 				(
 					child: list.calcList.isNotEmpty ? ListView.builder
@@ -59,21 +61,6 @@ class _HistoryPageState extends State<HistoryPage>
 						},
 					) : const Center(child: Text("No calcs have been lated :(")) // If the list isn't empty then only print this text
 				),
-
-				// ElevatedButton
-				// (
-				// 	onPressed: () async
-				// 	{
-				// 		final db = await DatabaseHelper.instance.database;
-				// 		db.delete("calcs");
-				// 		await db.delete("sqlite_sequence", where: "name = ?", whereArgs: ["calcs"]);
-				// 	},
-				// 	child: const Padding
-				// 	(
-				// 		padding: EdgeInsets.all(16.0),
-				// 		child: Icon(Icons.bedroom_baby)
-				// 	),
-				// )
 			],
 		);
 	}
@@ -107,7 +94,7 @@ class _HistoryPageState extends State<HistoryPage>
 					info("Cardio Burn: $cardio"),
 					info("EPOC: $epoc"),
 					info("Calories Burned: $diff"),
-					info("Total Calories Available: $total"),
+					info("Caloric Ceiling: $total"),
 				]
 			),
 		);
@@ -134,6 +121,43 @@ class _HistoryPageState extends State<HistoryPage>
 					child: Icon(Icons.minimize_outlined)
 				),
 			)
+		);
+	}
+
+	Widget darkModeButton()
+	{
+		return Switch
+		(
+			padding: const EdgeInsets.only(top: 30),
+			value: context.read<ThemeNotifier>().isLightMode,
+			onChanged: (newValue)
+			{
+				setState(()
+				{
+					context.read<ThemeNotifier>().isLightMode = newValue;
+					context.read<ThemeNotifier>().changeTheme();
+				});
+			},
+			thumbIcon: WidgetStateProperty.resolveWith<Icon?>((Set<WidgetState> states)
+			{
+				if(states.contains(WidgetState.selected))
+				{
+					return const Icon(Icons.nights_stay_rounded, size: 20);
+				}
+
+				return const Icon(Icons.sunny, size: 20);
+			}),
+			thumbColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states)
+			{
+				if(states.contains(WidgetState.selected))
+				{
+					return Colors.black;
+				}
+
+				return Colors.black;
+			}),
+			inactiveTrackColor: Colors.amber[300],
+			activeTrackColor: Colors.blue[200],
 		);
 	}
 }

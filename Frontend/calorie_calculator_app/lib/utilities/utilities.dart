@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 
 class Utils
 {
-	static Widget header(String text, double fontSize, FontWeight fontWeight)
+	static Widget header(String text, double fontSize, FontWeight fontWeight, {double? padding})
 	{
 		return Padding
 		(
-			padding: const EdgeInsets.only(top: 40),
+			padding: EdgeInsets.only(top: padding ?? 40),
 			child: Center
 			(
 				child: Text
@@ -18,6 +18,7 @@ class Utils
 						fontSize: fontSize,
 						fontWeight: fontWeight,
 					),
+					overflow: TextOverflow.fade,
 				),
 			),
 		);

@@ -1,4 +1,5 @@
 import 'package:calorie_calculator_app/utilities/colours.dart';
+import 'package:calorie_calculator_app/utilities/formulas.dart';
 import 'package:calorie_calculator_app/utilities/help.dart';
 import 'package:flutter/material.dart';
 import 'package:calorie_calculator_app/pages/calculator/results.dart';
@@ -7,15 +8,42 @@ import 'package:calorie_calculator_app/utilities/utilities.dart';
 class EPOCPage extends StatefulWidget
 {
 	final double personWeight;
+	final double age;
+	final bool male;
 	final double bmr;
 	final double tdee;
 	final double activityBurn;
 	final double cardioBurn;
+	final double additionalCalories;
+	final bool weeklyPlanner;
+	final double cardioDistance;
+	final double protein;
+	final double fat;
+	final double metFactor;
+	final double cardioFactor;
+	final String activityName;
+	final double sportDuration;
+	final double upperDuration;
+	final double accessoryDuration;
+	final double lowerDuration;
+	final String cardioName;
 	
-	const EPOCPage({super.key, required this.personWeight, required this.bmr, required this.tdee, required this.activityBurn, required this.cardioBurn});
+	const EPOCPage({super.key, required this.personWeight, required this.age, required this.male, required this.bmr, required this.tdee, required this.activityBurn, required this.cardioBurn, required this.additionalCalories, required this.weeklyPlanner, required this.cardioDistance, required this.protein, required this.fat, required this.metFactor, required this.cardioFactor, required this.activityName, required this.sportDuration, required this.upperDuration, required this.accessoryDuration, required this.lowerDuration, required this.cardioName});
 
 	@override
 	State<EPOCPage> createState() => _EPOCPageState();
+}
+
+enum Epoc
+{
+	low(value: 0.05, label: 'Light / Aerobic'),
+	mid(value: 0.10, label: 'Moderate / Anaerobic'),
+	high(value: 0.13, label: 'Vigorous / Maximal');
+
+	final double value;
+	final String label;
+
+	const Epoc({required this.value, required this.label});
 }
 
 class _EPOCPageState extends State<EPOCPage>
@@ -47,14 +75,14 @@ class _EPOCPageState extends State<EPOCPage>
 						[
 							Utils.widgetPlusHelper(Utils.header("Activity Intensity Level", 30, FontWeight.bold), HelpIcon(msg: "Select your Intensity based on RPE (Rate of Perceived Exertion). The more you exerted yourself, the higher your RPE.",), top: 50, right: 17.5),
 
-							Utils.header("Light / Aerobic", 25, FontWeight.w600),
-							button("RPE 1-4", "Breathing is easy;", "conversation is possible", 0.05, aeOutline, aeBackground),
+							Utils.header(Epoc.low.label, 25, FontWeight.w600),
+							button("RPE 1-4", "Breathing is easy;", "conversation is possible", Epoc.low.value, aeOutline, aeBackground),
 
-							Utils.header("Moderate / Anaerobic", 25, FontWeight.w600),
-							button("RPE 5-8", "Heavy lifting or fast pace;", "conversation is difficult", 0.10, anOutline, anBackground),
+							Utils.header(Epoc.mid.label, 25, FontWeight.w600),
+							button("RPE 5-8", "Heavy lifting or fast pace;", "conversation is difficult", Epoc.mid.value, anOutline, anBackground),
 							
-							Utils.header("Vigorous / Maximal", 25, FontWeight.w600),
-							button("RPE 9-10", "To failure, and gasping for air;", "conversation is impossible", 0.13, maOutline, maBackground),
+							Utils.header(Epoc.high.label, 25, FontWeight.w600),
+							button("RPE 9-10", "To failure, and gasping for air;", "conversation is impossible", Epoc.high.value, maOutline, maBackground),
 
 							const Padding(padding: EdgeInsetsGeometry.all(50))
 						],
@@ -123,13 +151,7 @@ class _EPOCPageState extends State<EPOCPage>
 									(
 										onPressed: ()
 										{
-											final double epoc = (widget.activityBurn + widget.cardioBurn) * epocFactor;
-
-											Navigator.push
-											(
-												context,
-												MaterialPageRoute(builder: (context) => Utils.switchPage(context, ResultsPage(personWeight: widget.personWeight, bmr: widget.bmr, tdee: widget.tdee, activityBurn: widget.activityBurn, cardioBurn: widget.cardioBurn, epoc: epoc))) // Takes you to the page that shows all the locations connected to the restaurant
-											);
+											processInfo(epocFactor);
 										},
 										child: const Text("Next", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black))
 ,
@@ -160,5 +182,51 @@ class _EPOCPageState extends State<EPOCPage>
 				),
 			),
 		);
+	}
+
+	void processInfo(double epocFactor)
+	{
+		final double epoc = (widget.activityBurn + widget.cardioBurn) * epocFactor;
+
+		if(widget.weeklyPlanner)
+		{
+			calculate(epocFactor, epoc);
+		}
+		else
+		{
+			Navigator.push
+			(
+				context,
+				MaterialPageRoute(builder: (context) => Utils.switchPage(context, ResultsPage(personWeight: widget.personWeight, age: widget.age, male: widget.male, bmr: widget.bmr, tdee: widget.tdee, activityBurn: widget.activityBurn, cardioBurn: widget.cardioBurn, epoc: epoc))) // Takes you to the page that shows all the locations connected to the restaurant
+			);
+		}
+	}
+
+	void calculate(double epocFactor, double epocCalories)
+	{
+		// Do all the calculations then post it
+
+		// Activity Duration
+		final double activityDuration = widget.sportDuration + widget.upperDuration + widget.accessoryDuration + widget.lowerDuration;
+
+		// Calories
+		final double total = CalorieMath.totalCaloriesToday(widget.tdee, widget.activityBurn, widget.cardioBurn, epocCalories, additionalCalories: widget.additionalCalories);
+
+		final (:bmr, :tdee, :activity, :cardio, :epoc, totalCal: roundedTotal, :totalBurn) = CalorieMath.roundValues(widget.bmr, widget.tdee, widget.activityBurn, widget.cardioBurn, epocCalories, total);
+
+		// Protein
+		final int protein = NutritionMath.protein(widget.personWeight, widget.protein);
+
+		// Fats
+		final (:totalFat, :saturatedFat, :unsaturatedFat, :omega3, :omega6, :cholesterol) = NutritionMath.fat(widget.tdee, widget.fat, widget.male);
+
+		// Carbs
+		final (:totalCarb, :solubleFibre, :insolubleFibre, :sugar) = NutritionMath.carb(widget.tdee, protein, totalFat, widget.male == true ? 30 : 25);
+
+		// Water
+		final (:minBaseWater, :maxBaseWater, :minExerciseWater, :maxExerciseWater) = NutritionMath.water(widget.personWeight, activityDuration, widget.metFactor, widget.cardioDistance, widget.cardioFactor);
+
+		Navigator.of(context).pop();
+		Navigator.of(context).pop();
 	}
 }

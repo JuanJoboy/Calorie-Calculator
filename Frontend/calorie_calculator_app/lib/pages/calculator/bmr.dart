@@ -1,10 +1,9 @@
 import 'package:calorie_calculator_app/main.dart';
-import 'package:calorie_calculator_app/pages/history/history.dart';
+import 'package:calorie_calculator_app/pages/planner/week.dart';
 import 'package:calorie_calculator_app/utilities/colours.dart';
 import 'package:calorie_calculator_app/utilities/help.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:calorie_calculator_app/database/database.dart';
 import 'package:calorie_calculator_app/pages/calculator/burn.dart';
 import 'package:calorie_calculator_app/pages/calculator/calculations.dart';
 import 'package:calorie_calculator_app/utilities/utilities.dart';
@@ -14,8 +13,9 @@ class CalculatorPage extends StatefulWidget
 {
 	final String title;
 	final bool isDedicatedBMRPage;
+	final bool weeklyPlanner;
 
-	const CalculatorPage({super.key, required this.title, required this.isDedicatedBMRPage});
+	const CalculatorPage({super.key, required this.title, required this.isDedicatedBMRPage, required this.weeklyPlanner});
 
 	@override
 	State<CalculatorPage> createState() => _BMRPageState();
@@ -79,6 +79,8 @@ class _BMRPageState extends State<CalculatorPage>
 
 	bool get tdeeIsNull => _tdeeNotifier.usersTdee == null; // Checks to see if usersTdee is null or not
 
+	double sliderNumber = 0;
+
 	@override
 	void dispose()
 	{
@@ -113,6 +115,23 @@ class _BMRPageState extends State<CalculatorPage>
 			_tdeeNotifier.loadTdee();
 		}
 
+		if(widget.weeklyPlanner)
+		{
+			return Scaffold
+			(
+				backgroundColor: Utils.getBackgroundColor(Theme.of(context)),
+				appBar: AppBar(title: const Text("")),
+				body: mainBody()
+			);
+		}
+		else
+		{
+			return mainBody();
+		}
+	}
+
+	Widget mainBody()
+	{
 		return SingleChildScrollView
 		(
 			physics: const BouncingScrollPhysics(),
@@ -170,7 +189,11 @@ class _BMRPageState extends State<CalculatorPage>
 							]
 						),
 
-						buttonsThatProcessInfo()
+						widget.weeklyPlanner == true ? caloricSlider() : SizedBox(),
+
+						buttonsThatProcessInfo(),
+
+						widget.weeklyPlanner == true ? const Padding(padding: EdgeInsetsGeometry.only(top: 100)) : const Padding(padding: EdgeInsetsGeometry.only(top: 40))
 					],
 				),
 			),
@@ -404,27 +427,73 @@ class _BMRPageState extends State<CalculatorPage>
 		);
 	}
 
+	Widget caloricSlider()
+	{
+		return Column
+		(
+			children:
+			[
+				Utils.widgetPlusHelper(Utils.header("Calorie Slider", 25, FontWeight.w600), HelpIcon(msg: "Use the slider below to indicate if your cutting (sliding to the left) or bulking (sliding to the right). The number chosen will reflect the amount of calories that need to be uneaten / consumed everyday over the course of a week. If you just want to maintain your current weight instead, leave it on 0.",), top: 45, right: 17.5),
+
+				Padding
+				(
+					padding: const EdgeInsets.all(30.0),
+					child: Slider
+					(
+						value: sliderNumber,
+						min: -1000,
+						max: 1000,
+						divisions: 20,
+						onChanged: (newValue)
+						{
+							setState(()
+							{
+								sliderNumber = newValue;  
+							});
+						},
+						label: sliderNumber.toString(),
+						thumbColor: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+						activeColor: Theme.of(context).extension<AppColours>()!.femaleSeColour!,
+						inactiveColor: Theme.of(context).extension<AppColours>()!.maleSeColour!,
+					),
+				)
+			],
+		);
+	}
+
 	Widget buttonsThatProcessInfo()
 	{
-		if(widget.isDedicatedBMRPage)
+		if(widget.weeklyPlanner)
 		{
-			return nextButton("Upload TDEE", areFieldsEmpty);
+			return rowOfButtons();
 		}
 		else
 		{
-			return Row
-			(
-				mainAxisAlignment: MainAxisAlignment.center,
-				children:
-				[
-					const Padding(padding: EdgeInsetsGeometry.only(top: 100)),
-					nextButton("Next", areFieldsEmpty, isNextButton: true),
-
-					const Padding(padding: EdgeInsetsGeometry.only(left: 15, right: 15)),
-					nextButton("Stick with ${(_tdeeNotifier.usersTdee?.tdee)?.round() ?? 0.round()} TDEE", tdeeDoesNotExist, isNextButton: false, moreWidth: 170),
-				]
-			);
+			if(widget.isDedicatedBMRPage)
+			{
+				return nextButton("Upload TDEE", areFieldsEmpty);
+			}
+			else
+			{
+				return rowOfButtons();
+			}
 		}
+	}
+
+	Widget rowOfButtons()
+	{
+		return Row
+		(
+			mainAxisAlignment: MainAxisAlignment.center,
+			children:
+			[
+				const Padding(padding: EdgeInsetsGeometry.only(top: 100)),
+				nextButton("Next", areFieldsEmpty, isNextButton: true),
+
+				const Padding(padding: EdgeInsetsGeometry.only(left: 15, right: 15)),
+				nextButton("Stick with ${(_tdeeNotifier.usersTdee?.tdee)?.round() ?? 0.round()} TDEE", tdeeDoesNotExist, isNextButton: false, moreWidth: 170),
+			]
+		);
 	}
 
 	Widget nextButton(String nextText, bool Function() condition, {bool? isNextButton, double? moreWidth})
@@ -460,7 +529,7 @@ class _BMRPageState extends State<CalculatorPage>
 		);
 	}
 	
-	(double, double, double) calculateBodyInfo()
+	({double bmr, double ageNum, double tdee, double weightNum}) calculateBodyInfo()
 	{
 		final double weightNum = double.tryParse(weight.text.trim()) ?? 0;
 		final double heightNum = double.tryParse(height.text.trim()) ?? 0;
@@ -469,28 +538,19 @@ class _BMRPageState extends State<CalculatorPage>
 		final double bmr = (10 * weightNum) + (6.25 * heightNum) - (5 * ageNum) + chosenGender!.caloricValue;
 		final double tdee = bmr * selectedTdee;
 
-		return (bmr, tdee, weightNum);
+		return (bmr: bmr, ageNum: ageNum, tdee: tdee, weightNum: weightNum);
 	}
 
 	void processInfo({bool? isNextButton}) async
 	{
-		if(widget.isDedicatedBMRPage)
-		{
-			setState(()
-			{
-				_tdeeNotifier.uploadOrEditTdee(calculateBodyInfo().$1, calculateBodyInfo().$2, calculateBodyInfo().$3); // Forces a rebuild of the page which ensures that the bmrExists variable is refreshed and sees the new value instead of being on the stale old value
-			});
-
-			context.read<NavigationNotifier>().changeIndex(3);
-		}
-		else
+		if(widget.weeklyPlanner)
 		{
 			if(isNextButton! == true)
 			{
 				await Navigator.push
 				(
 					context,
-					MaterialPageRoute(builder: (context) => Utils.switchPage(context, BurnPage(bmr: calculateBodyInfo().$1, tdee: calculateBodyInfo().$2, personWeight: calculateBodyInfo().$3)))
+					MaterialPageRoute(builder: (context) => Utils.switchPage(context, WeekPage(bmr: calculateBodyInfo().bmr, age: calculateBodyInfo().ageNum, male: chosenGender == Gender.male, tdee: calculateBodyInfo().tdee, personWeight: calculateBodyInfo().weightNum, additionalCalories: sliderNumber)))
 				);
 			}
 			else
@@ -498,8 +558,39 @@ class _BMRPageState extends State<CalculatorPage>
 				await Navigator.push
 				(
 					context,
-					MaterialPageRoute(builder: (context) => Utils.switchPage(context, BurnPage(bmr: _tdeeNotifier.usersTdee!.bmr, tdee: _tdeeNotifier.usersTdee!.tdee, personWeight: _tdeeNotifier.usersTdee!.weight)))
+					MaterialPageRoute(builder: (context) => Utils.switchPage(context, WeekPage(bmr: _tdeeNotifier.usersTdee!.bmr, age: _tdeeNotifier.usersTdee!.age, male: _tdeeNotifier.usersTdee!.male, tdee: _tdeeNotifier.usersTdee!.tdee, personWeight: _tdeeNotifier.usersTdee!.weight, additionalCalories: sliderNumber)))
 				);
+			}
+		}
+		else
+		{
+			if(widget.isDedicatedBMRPage)
+			{
+				setState(()
+				{
+					_tdeeNotifier.uploadOrEditTdee(calculateBodyInfo().bmr, calculateBodyInfo().tdee, calculateBodyInfo().weightNum, calculateBodyInfo().ageNum, chosenGender == Gender.male); // Forces a rebuild of the page which ensures that the bmrExists variable is refreshed and sees the new value instead of being on the stale old value
+				});
+
+				context.read<NavigationNotifier>().changeIndex(3);
+			}
+			else
+			{
+				if(isNextButton! == true)
+				{
+					await Navigator.push
+					(
+						context,
+						MaterialPageRoute(builder: (context) => Utils.switchPage(context, BurnPage.nonWeekly(bmr: calculateBodyInfo().bmr, age: calculateBodyInfo().ageNum, male: chosenGender == Gender.male, tdee: calculateBodyInfo().tdee, personWeight: calculateBodyInfo().weightNum, weeklyPlanner: widget.weeklyPlanner)))
+					);
+				}
+				else
+				{
+					await Navigator.push
+					(
+						context,
+						MaterialPageRoute(builder: (context) => Utils.switchPage(context, BurnPage.nonWeekly(bmr: _tdeeNotifier.usersTdee!.bmr, age: _tdeeNotifier.usersTdee!.age, male: _tdeeNotifier.usersTdee!.male, tdee: _tdeeNotifier.usersTdee!.tdee, personWeight: _tdeeNotifier.usersTdee!.weight, weeklyPlanner: widget.weeklyPlanner)))
+					);
+				}
 			}
 		}
 	}

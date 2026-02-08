@@ -1,5 +1,7 @@
 // import "package:english_words/english_words.dart"; // Imports a utility package containing thousands of common English words and functions to manipulate them. Used here to generate random WordPair objects.
 import "package:calorie_calculator_app/pages/nutrition/nutrition.dart";
+import "package:calorie_calculator_app/pages/planner/folder_data.dart";
+import "package:calorie_calculator_app/pages/planner/planner.dart";
 import "package:calorie_calculator_app/utilities/colours.dart";
 import "package:flutter/material.dart"; // The core Flutter framework. It provides "Material Design" widgets (buttons, cards, scaffolds) and the engine for rendering the UI.
 import "package:calorie_calculator_app/pages/calculator/bmr.dart";
@@ -7,7 +9,8 @@ import "package:calorie_calculator_app/pages/calculator/calculations.dart";
 import "package:calorie_calculator_app/pages/history/history.dart";
 import "package:calorie_calculator_app/pages/information/information.dart";
 import "package:calorie_calculator_app/utilities/utilities.dart";
-import "package:provider/provider.dart"; // A state management package. It allows data (like the list of favorites) to be shared across different screens without manually passing it through every constructor.
+import "package:provider/provider.dart";
+import "package:shared_preferences/shared_preferences.dart"; // A state management package. It allows data (like the list of favorites) to be shared across different screens without manually passing it through every constructor.
 // import 'package:google_fonts/google_fonts.dart';
 
 // TODO: Add try catches, better error handling, comments explaining everything, test cases / test units
@@ -19,6 +22,8 @@ void main()
 		(
 			providers:
 			[
+				ChangeNotifierProvider(create: (context) => FolderNotifier()),
+				ChangeNotifierProvider(create: (context) => ThemeNotifier()..init()),
 				ChangeNotifierProvider(create: (context) => NutritionFields()),
 				ChangeNotifierProvider(create: (context) => NavigationNotifier()),
 				ChangeNotifierProvider(create: (context) => CalculationFields()),
@@ -61,43 +66,57 @@ class MyApp extends StatelessWidget
 						backgroundColour: lightSeed,
 						secondaryColour: Color.fromARGB(255, 255, 205, 205),
 						tertiaryColour: Color.fromARGB(255, 255, 241, 241),
-						maleUnColour: Color.fromRGBO(227, 242, 253, 1),
-						maleSeColour: Color.fromRGBO(144, 202, 249, 1),
-						femaleUnColour: Color.fromRGBO(252, 228, 236, 1),
-						femaleSeColour: Color.fromRGBO(244, 143, 177, 1),
-						runUnColour: Color.fromRGBO(232, 245, 233, 1),
-						runSeColour: Color.fromRGBO(165, 214, 167, 1),
-						cycleUnColour: Color.fromRGBO(255, 253, 231, 1),
-						cycleSeColour: Color.fromRGBO(255, 245, 157, 1),
-    					aerobicOutlineColour: Color.fromRGBO(232, 245, 233, 1),
-    					aerobicBackgroundColour: Color.fromRGBO(165, 214, 167, 1),
-    					anaerobicOutlineColour: Color.fromRGBO(255, 243, 224, 1),
-    					anaerobicBackgroundColour: Color.fromRGBO(255, 204, 128, 1),
-    					maximalOutlineColour: Color.fromRGBO(255, 235, 238, 1),
-    					maximalBackgroundColour: Color.fromRGBO(239, 154, 154, 1),
+						maleUnColour: Color.fromARGB(255, 227, 242, 253),
+						maleSeColour: Color.fromARGB(255, 144, 202, 249),
+						femaleUnColour: Color.fromARGB(255, 252, 228, 236),
+						femaleSeColour: Color.fromARGB(255, 244, 143, 177),
+						runUnColour: Color.fromARGB(255, 232, 245, 233),
+						runSeColour: Color.fromARGB(255, 165, 214, 167),
+						cycleUnColour: Color.fromARGB(255, 255, 253, 231),
+						cycleSeColour: Color.fromARGB(255, 255, 245, 157),
+						aerobicOutlineColour: Color.fromARGB(255, 232, 245, 233),
+						aerobicBackgroundColour: Color.fromARGB(255, 165, 214, 167),
+						anaerobicOutlineColour: Color.fromARGB(255, 255, 243, 224),
+						anaerobicBackgroundColour: Color.fromARGB(255, 255, 204, 128),
+						maximalOutlineColour: Color.fromARGB(255, 255, 235, 238),
+						maximalBackgroundColour: Color.fromARGB(255, 239, 154, 154),
 					)
 				]
 			),
-			// // Dark Theme
-			// darkTheme: ThemeData
-			// (
-			// 	useMaterial3: true,
-			// 	scaffoldBackgroundColor: darkSeed,
-			// 	colorScheme: ColorScheme.fromSeed
-			// 	(
-			// 		brightness: Brightness.dark,
-			// 		seedColor: darkSeed,
-			// 	),
-			// 	extensions: 
-			// 	[
-			// 		const AppColours
-			// 		(
-			// 			backgroundColour: darkSeed,
-			// 			secondaryColour: Color.fromARGB(255, 255, 205, 205),
-			// 			tertiaryColour: Color.fromARGB(255, 140, 110, 110)
-			// 		)
-			// 	]
-			// ),
+			// Dark Theme
+			darkTheme: ThemeData
+			(
+				useMaterial3: true,
+				scaffoldBackgroundColor: darkSeed,
+				colorScheme: ColorScheme.fromSeed
+				(
+					brightness: Brightness.dark,
+					seedColor: darkSeed,
+				),
+				extensions: 
+				[
+					const AppColours
+					(
+						backgroundColour: darkSeed,
+						secondaryColour: Color.fromARGB(255, 255, 205, 205),
+						tertiaryColour: Color.fromARGB(255, 140, 110, 110),
+						maleUnColour: Color.fromARGB(255, 45, 55, 65),
+						maleSeColour: Color.fromARGB(255, 100, 140, 180),
+						femaleUnColour: Color.fromARGB(255, 65, 45, 55),
+						femaleSeColour: Color.fromARGB(255, 180, 110, 135),
+						runUnColour: Color.fromARGB(255, 45, 60, 48),
+						runSeColour: Color.fromARGB(255, 110, 150, 115),
+						aerobicOutlineColour: Color.fromARGB(255, 45, 60, 48),
+						aerobicBackgroundColour: Color.fromARGB(255, 110, 150, 115),
+						cycleUnColour: Color.fromARGB(255, 65, 60, 40),
+						cycleSeColour: Color.fromARGB(255, 190, 170, 90),
+						anaerobicOutlineColour: Color.fromARGB(255, 75, 55, 40),
+						anaerobicBackgroundColour: Color.fromARGB(255, 200, 130, 80),
+						maximalOutlineColour: Color.fromARGB(255, 80, 40, 45),
+						maximalBackgroundColour: Color.fromARGB(255, 180, 90, 100),
+					)
+				]
+			),
 			builder: (context, child)
 			{
 				// Makes the app look the same everywhere, and it won't adapt to people's phones settings
@@ -111,7 +130,7 @@ class MyApp extends StatelessWidget
 					child: child!
 				);
 			},
-			themeMode: ThemeMode.light, // Auto sets to the device's setting
+			themeMode: context.watch<ThemeNotifier>().themeMode,
 			home: const MyHomePage(), // The home page is immediately set to the feed because the index is set to 0 immediately
 		);
 	}
@@ -130,8 +149,7 @@ class _MyHomePageState extends State<MyHomePage>
 	@override
 	Widget build(BuildContext context)
 	{
-		final NavigationNotifier navNotifier = context.watch<NavigationNotifier>();
-		int selectedIndex = navNotifier.selectedIndex;
+		int selectedIndex = context.watch<NavigationNotifier>().selectedIndex;
 
 		final ColoredBox mainArea = Utils.switchPage(context, getCurrentPage(selectedIndex));
 
@@ -153,11 +171,12 @@ class _MyHomePageState extends State<MyHomePage>
 		return switch(selectedIndex)
 		{
 			0 => const InformationPage(),
-			1 => const CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: true),
-			2 => const CalculatorPage(title: "Daily Calorie Calculator", isDedicatedBMRPage: false),
+			1 => const CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: true, weeklyPlanner: false),
+			2 => const CalculatorPage(title: "Daily Calorie Calculator", isDedicatedBMRPage: false, weeklyPlanner: false),
 			3 => const HistoryPage(),
 			4 => const NutritionPage(),
-			_ => const CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: true),
+			5 => const PlannerPage(),
+			_ => const CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: true, weeklyPlanner: false),
 		};
 	}
 
@@ -173,6 +192,7 @@ class _MyHomePageState extends State<MyHomePage>
 				navItem(Icons.calculate_outlined),
 				navItem(Icons.history_rounded),
 				navItem(Icons.food_bank),
+				navItem(Icons.calendar_month_outlined),
 			],
 
 			currentIndex: context.read<NavigationNotifier>().selectedIndex, // Sets the page to the feed page on start up
@@ -205,6 +225,51 @@ class NavigationNotifier extends ChangeNotifier
 	void changeIndex(int newIndex)
 	{
 		selectedIndex = newIndex;
+		notifyListeners();
+	}
+}
+
+class ThemeNotifier extends ChangeNotifier
+{
+	ThemeMode themeMode = ThemeMode.light;
+	bool isLightMode = false;
+	final String modeName = "isLightMode";
+
+	Future<void> init() async
+	{
+		await loadTheme();
+		notifyListeners();
+	}
+
+	void changeTheme()
+	{
+		if(isLightMode == true)
+		{
+			themeMode = ThemeMode.dark;
+		}
+		else
+		{
+			themeMode = ThemeMode.light;
+		}
+
+		saveTheme();
+
+		notifyListeners();
+	}
+
+	Future<void> saveTheme() async
+	{
+		SharedPreferences preferences = await SharedPreferences.getInstance();
+		preferences.setBool(modeName, isLightMode);
+	}
+
+	Future<void> loadTheme() async
+	{
+		SharedPreferences preferences = await SharedPreferences.getInstance();
+		isLightMode = preferences.getBool(modeName) ?? false;
+
+		isLightMode == false ? themeMode = ThemeMode.light : themeMode = ThemeMode.dark;
+
 		notifyListeners();
 	}
 }
