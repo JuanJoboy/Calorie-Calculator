@@ -10,9 +10,28 @@ class CalorieMath
 		return total;
 	}
 
+	static double totalCaloriesBurnedToday(double activity, double cardio, double epoc)
+	{
+		final double total = activity + cardio + epoc;
+
+		return total;
+	}
+
 	static ({int bmr, int tdee, int activity, int cardio, int epoc, int totalCal, int totalBurn}) roundValues(double bmr, double tdee, double activity, double cardio, double epoc, double total)
 	{
-		return (bmr: bmr.round(), tdee: tdee.round(), activity: activity.round(), cardio: cardio.round(), epoc: epoc.round(), totalCal: total.round(), totalBurn: (total - tdee).round());
+		return (bmr: bmr.round(), tdee: tdee.round(), activity: activity.round(), cardio: cardio.round(), epoc: epoc.round(), totalCal: total.round(), totalBurn: totalCaloriesBurnedToday(activity, cardio, epoc).round());
+	}
+
+	static double totalDuration(int sportDuration, int upperDuration, int accessoryDuration, int lowerDuration)
+	{
+		final double activityDuration = (sportDuration + upperDuration + accessoryDuration + lowerDuration).toDouble();
+
+		return activityDuration;
+	}
+
+	static ({int sportDuration, int upperDuration, int accessoryDuration, int lowerDuration}) roundedDurations(double sportDuration, double upperDuration, double accessoryDuration, double lowerDuration)
+	{
+		return (sportDuration: sportDuration.round(), upperDuration: upperDuration.round(), accessoryDuration: accessoryDuration.round(), lowerDuration: lowerDuration.round());
 	}
 }
 
@@ -60,8 +79,8 @@ class NutritionMath
 
 		final double distanceWater = waterDistanceScaler(cardioDistance, cardioFactor);
 
-		final double minExerciseWater = minDurationWater + distanceWater;
-		final double maxExerciseWater = maxDurationWater + distanceWater;
+		final double minExerciseWater = double.parse((minDurationWater + distanceWater).toStringAsFixed(2));
+		final double maxExerciseWater = double.parse((maxDurationWater + distanceWater).toStringAsFixed(2));
 
 		return (minBaseWater: minBaseWater, maxBaseWater: maxBaseWater, minExerciseWater: minExerciseWater, maxExerciseWater: maxExerciseWater);
 	}

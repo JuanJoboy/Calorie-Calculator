@@ -4,7 +4,7 @@ import 'package:sqflite/sqflite.dart';
 class DatabaseHelper
 {
 	static Database? _db;
-	static const int _currentVersion = 5;
+	static const int _currentVersion = 1;
 	static final DatabaseHelper instance = DatabaseHelper._constructor(); // Makes a singleton
 
 	// Single Calculation Table
@@ -154,90 +154,16 @@ class DatabaseHelper
 							$dailyEntriesProteinIntensityColumnName REAL NOT NULL,
 							$dailyEntriesFatIntakeColumnName REAL NOT NULL,
 							UNIQUE($dailyEntriesWeeklyPlanIDColumnName, $dailyEntriesDayIDColumnName),
-							FOREIGN KEY ($dailyEntriesWeeklyPlanIDColumnName) REFERENCES $weeklyPlansTableName ($weeklyPlansIDColumnName) ON DELETE CASCADE ON UPDATE CASCADE
+							FOREIGN KEY ($dailyEntriesWeeklyPlanIDColumnName)
+								REFERENCES $weeklyPlansTableName ($weeklyPlansIDColumnName)
+								ON DELETE CASCADE
+								ON UPDATE CASCADE
 						)
 					'''
 				);
 			},
 			onUpgrade: (db, oldVersion, newVersion) async
 			{
-				if (oldVersion < 2)
-				{
-					await db.execute("ALTER TABLE $calcsTableName ADD COLUMN $calcsWeightColumnName REAL NOT NULL DEFAULT 0.0");
-				}
-				if (oldVersion < 3)
-				{
-					await db.execute
-					(
-						'''
-							CREATE TABLE $tdeeTableName (
-								$tdeeIDColumnName INTEGER PRIMARY KEY DEFAULT 1,
-								$tdeeTDEEColumnName REAL NOT NULL,
-								$tdeeBMRColumnName REAL NOT NULL,
-								$tdeeWeightColumnName REAL NOT NULL
-							)
-						'''
-					);
-				}
-				if (oldVersion < 4)
-				{
-					// Check if column exists before adding to prevent crashes on "dirty" databases
-					var tableInfo = await db.rawQuery("PRAGMA table_info($tdeeTableName)");
-					var hasAge = tableInfo.any((column) => column['name'] == tdeeAgeColumnName);
-					
-					if (!hasAge)
-					{
-						await db.execute("ALTER TABLE $tdeeTableName ADD COLUMN $tdeeAgeColumnName REAL NOT NULL DEFAULT 0.0");
-						await db.execute("ALTER TABLE $tdeeTableName ADD COLUMN $tdeeGenderColumnName INTEGER NOT NULL DEFAULT 1");
-					}
-				}
-				if(oldVersion < 5)
-				{
-					db.execute
-					(
-						'''
-							CREATE TABLE $weeklyPlansTableName (
-								$weeklyPlansIDColumnName INTEGER PRIMARY KEY AUTOINCREMENT,
-								$weeklyPlansFolderNameColumnName TEXT NOT NULL
-							)
-						'''
-					);
-
-					db.execute
-					(
-						'''
-							CREATE TABLE $dailyEntriesTableName (
-								$dailyEntriesIDColumnName INTEGER PRIMARY KEY AUTOINCREMENT,
-								$dailyEntriesWeeklyPlanIDColumnName INTEGER NOT NULL,
-								$dailyEntriesDayIDColumnName INTEGER NOT NULL,
-								$dailyEntriesWeightColumnName REAL NOT NULL,
-								$dailyEntriesAgeColumnName REAL NOT NULL,
-								$dailyEntriesMaleColumnName INTEGER NOT NULL,
-								$dailyEntriesAdditionalCaloriesColumnName REAL NOT NULL,
-								$dailyEntriesBMRColumnName REAL NOT NULL,
-								$dailyEntriesTDEEColumnName REAL NOT NULL,
-								$dailyEntriesActivityFactorColumnName REAL NOT NULL,
-								$dailyEntriesActivityNameColumnName TEXT NOT NULL,
-								$dailyEntriesActivityBurnColumnName REAL NOT NULL,
-								$dailyEntriesSportDurationColumnName REAL NOT NULL,
-								$dailyEntriesUpperDurationColumnName REAL NOT NULL,
-								$dailyEntriesAccessoriesDurationColumnName REAL NOT NULL,
-								$dailyEntriesLowerDurationColumnName REAL NOT NULL,
-								$dailyEntriesCardioFactorColumnName REAL NOT NULL,
-								$dailyEntriesCardioNameColumnName TEXT NOT NULL,
-								$dailyEntriesCardioBurnColumnName REAL NOT NULL,
-								$dailyEntriesCardioDistanceColumnName REAL NOT NULL,
-								$dailyEntriesEpocFactorColumnName REAL NOT NULL,
-								$dailyEntriesEpocNameColumnName TEXT NOT NULL,
-								$dailyEntriesEpocBurnColumnName REAL NOT NULL,
-								$dailyEntriesProteinIntensityColumnName REAL NOT NULL,
-								$dailyEntriesFatIntakeColumnName REAL NOT NULL,
-								UNIQUE($dailyEntriesWeeklyPlanIDColumnName, $dailyEntriesDayIDColumnName),
-								FOREIGN KEY ($dailyEntriesWeeklyPlanIDColumnName) REFERENCES $weeklyPlansTableName ($weeklyPlansIDColumnName) ON DELETE CASCADE ON UPDATE CASCADE
-							)
-						'''
-					);
-				}
 			}
 		);
 	}
@@ -309,6 +235,123 @@ class DatabaseHelper
 			}, // New info being updated
 			where: "$tdeeIDColumnName = ?",
 			whereArgs: [1],
+			conflictAlgorithm: ConflictAlgorithm.replace
+		);
+	}
+
+	Future<int> addWeeklyPlan(String folderName) async
+	{
+		final db = await database;
+
+		return await db.insert
+		(
+			weeklyPlansTableName,
+			{
+				weeklyPlansFolderNameColumnName: folderName,
+			}
+		);
+	}
+
+	Future<int> updateWeeklyPlan(String folderName, int id) async
+	{
+		final db = await database;
+
+		return await db.update
+		(
+			weeklyPlansTableName,
+			{
+				weeklyPlansFolderNameColumnName: folderName,
+			},
+			where: "$weeklyPlansIDColumnName = ?",
+			whereArgs: [id],
+			conflictAlgorithm: ConflictAlgorithm.replace
+		);
+	}
+
+	Future<int> deleteWeeklyPlan(int id) async
+	{
+		final db = await database;
+
+		return await db.delete
+		(
+			weeklyPlansTableName,
+			where: "$weeklyPlansIDColumnName = ?",
+			whereArgs: [id],
+		);
+	}
+
+	Future<int> addDailyEntry({required int? weeklyPlanId, required int dayId, required double weight, required double age, required bool isMale, required double additionalCalories, required double bmr, required double tdee, required double activityFactor, required String activityName, required double activityBurn, required double sportDuration, required double upperDuration, required double accessoriesDuration, required double lowerDuration, required double cardioFactor, required String cardioName, required double cardioBurn, required double cardioDistance, required double epocFactor, required String epocName, required double epocBurn, required double proteinIntensity, required double fatIntake}) async
+    {
+        final db = await database;
+
+        return await db.insert
+        (
+            dailyEntriesTableName,
+            {
+                dailyEntriesWeeklyPlanIDColumnName: weeklyPlanId,
+                dailyEntriesDayIDColumnName: dayId,
+                dailyEntriesWeightColumnName: weight,
+                dailyEntriesAgeColumnName: age,
+                dailyEntriesMaleColumnName: isMale ? 1 : 0,
+                dailyEntriesAdditionalCaloriesColumnName: additionalCalories,
+                dailyEntriesBMRColumnName: bmr,
+                dailyEntriesTDEEColumnName: tdee,
+                dailyEntriesActivityFactorColumnName: activityFactor,
+                dailyEntriesActivityNameColumnName: activityName,
+                dailyEntriesActivityBurnColumnName: activityBurn,
+                dailyEntriesSportDurationColumnName: sportDuration,
+                dailyEntriesUpperDurationColumnName: upperDuration,
+                dailyEntriesAccessoriesDurationColumnName: accessoriesDuration,
+                dailyEntriesLowerDurationColumnName: lowerDuration,
+                dailyEntriesCardioFactorColumnName: cardioFactor,
+                dailyEntriesCardioNameColumnName: cardioName,
+                dailyEntriesCardioBurnColumnName: cardioBurn,
+                dailyEntriesCardioDistanceColumnName: cardioDistance,
+                dailyEntriesEpocFactorColumnName: epocFactor,
+                dailyEntriesEpocNameColumnName: epocName,
+                dailyEntriesEpocBurnColumnName: epocBurn,
+                dailyEntriesProteinIntensityColumnName: proteinIntensity,
+                dailyEntriesFatIntakeColumnName: fatIntake
+            },
+			conflictAlgorithm: ConflictAlgorithm.replace
+        );
+    }
+
+	Future<int> updateDailyEntry({required int? id, required int? weeklyPlanId, required int dayId, required double weight, required double age, required bool isMale, required double additionalCalories, required double bmr, required double tdee, required double activityFactor, required String activityName, required double activityBurn, required double sportDuration, required double upperDuration, required double accessoriesDuration, required double lowerDuration, required double cardioFactor, required String cardioName, required double cardioBurn, required double cardioDistance, required double epocFactor, required String epocName, required double epocBurn, required double proteinIntensity, required double fatIntake}) async
+	{
+		final db = await database;
+
+		return await db.update
+        (
+            dailyEntriesTableName,
+            {
+                dailyEntriesWeeklyPlanIDColumnName: weeklyPlanId,
+                dailyEntriesDayIDColumnName: dayId,
+                dailyEntriesWeightColumnName: weight,
+                dailyEntriesAgeColumnName: age,
+                dailyEntriesMaleColumnName: isMale ? 1 : 0,
+                dailyEntriesAdditionalCaloriesColumnName: additionalCalories,
+                dailyEntriesBMRColumnName: bmr,
+                dailyEntriesTDEEColumnName: tdee,
+                dailyEntriesActivityFactorColumnName: activityFactor,
+                dailyEntriesActivityNameColumnName: activityName,
+                dailyEntriesActivityBurnColumnName: activityBurn,
+                dailyEntriesSportDurationColumnName: sportDuration,
+                dailyEntriesUpperDurationColumnName: upperDuration,
+                dailyEntriesAccessoriesDurationColumnName: accessoriesDuration,
+                dailyEntriesLowerDurationColumnName: lowerDuration,
+                dailyEntriesCardioFactorColumnName: cardioFactor,
+                dailyEntriesCardioNameColumnName: cardioName,
+                dailyEntriesCardioBurnColumnName: cardioBurn,
+                dailyEntriesCardioDistanceColumnName: cardioDistance,
+                dailyEntriesEpocFactorColumnName: epocFactor,
+                dailyEntriesEpocNameColumnName: epocName,
+                dailyEntriesEpocBurnColumnName: epocBurn,
+                dailyEntriesProteinIntensityColumnName: proteinIntensity,
+                dailyEntriesFatIntakeColumnName: fatIntake
+            },
+			where: "$dailyEntriesIDColumnName = ?",
+			whereArgs: [id],
 			conflictAlgorithm: ConflictAlgorithm.replace
 		);
 	}

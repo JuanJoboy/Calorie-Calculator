@@ -1,4 +1,5 @@
 import 'package:calorie_calculator_app/main.dart';
+import 'package:calorie_calculator_app/pages/planner/save_plan.dart';
 import 'package:calorie_calculator_app/pages/planner/week.dart';
 import 'package:calorie_calculator_app/utilities/colours.dart';
 import 'package:calorie_calculator_app/utilities/help.dart';
@@ -14,8 +15,10 @@ class CalculatorPage extends StatefulWidget
 	final String title;
 	final bool isDedicatedBMRPage;
 	final bool weeklyPlanner;
+	final int? weeklyPlanId;
 
-	const CalculatorPage({super.key, required this.title, required this.isDedicatedBMRPage, required this.weeklyPlanner});
+	const CalculatorPage({super.key, required this.title, required this.isDedicatedBMRPage, required this.weeklyPlanner, required this.weeklyPlanId});
+	const CalculatorPage.notAWeeklyPlanner({super.key, required this.title, required this.isDedicatedBMRPage, required this.weeklyPlanner, this.weeklyPlanId});
 
 	@override
 	State<CalculatorPage> createState() => _BMRPageState();
@@ -550,7 +553,7 @@ class _BMRPageState extends State<CalculatorPage>
 				await Navigator.push
 				(
 					context,
-					MaterialPageRoute(builder: (context) => Utils.switchPage(context, WeekPage(bmr: calculateBodyInfo().bmr, age: calculateBodyInfo().ageNum, male: chosenGender == Gender.male, tdee: calculateBodyInfo().tdee, personWeight: calculateBodyInfo().weightNum, additionalCalories: sliderNumber)))
+					MaterialPageRoute(builder: (context) => Utils.switchPage(context, SavePlanPage(bmr: calculateBodyInfo().bmr, age: calculateBodyInfo().ageNum, male: chosenGender == Gender.male, tdee: calculateBodyInfo().tdee, personWeight: calculateBodyInfo().weightNum, additionalCalories: sliderNumber, weeklyPlanId: widget.weeklyPlanId)))
 				);
 			}
 			else
@@ -558,7 +561,7 @@ class _BMRPageState extends State<CalculatorPage>
 				await Navigator.push
 				(
 					context,
-					MaterialPageRoute(builder: (context) => Utils.switchPage(context, WeekPage(bmr: _tdeeNotifier.usersTdee!.bmr, age: _tdeeNotifier.usersTdee!.age, male: _tdeeNotifier.usersTdee!.male, tdee: _tdeeNotifier.usersTdee!.tdee, personWeight: _tdeeNotifier.usersTdee!.weight, additionalCalories: sliderNumber)))
+					MaterialPageRoute(builder: (context) => Utils.switchPage(context, SavePlanPage(bmr: _tdeeNotifier.usersTdee!.bmr, age: _tdeeNotifier.usersTdee!.age, male: _tdeeNotifier.usersTdee!.male, tdee: _tdeeNotifier.usersTdee!.tdee, personWeight: _tdeeNotifier.usersTdee!.weight, additionalCalories: sliderNumber, weeklyPlanId: widget.weeklyPlanId)))
 				);
 			}
 		}

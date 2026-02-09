@@ -1,9 +1,10 @@
+import 'package:calorie_calculator_app/pages/planner/folder_data.dart';
 import 'package:calorie_calculator_app/utilities/colours.dart';
-import 'package:calorie_calculator_app/utilities/formulas.dart';
 import 'package:calorie_calculator_app/utilities/help.dart';
 import 'package:flutter/material.dart';
 import 'package:calorie_calculator_app/pages/calculator/results.dart';
 import 'package:calorie_calculator_app/utilities/utilities.dart';
+import 'package:provider/provider.dart';
 
 class EPOCPage extends StatefulWidget
 {
@@ -27,8 +28,10 @@ class EPOCPage extends StatefulWidget
 	final double accessoryDuration;
 	final double lowerDuration;
 	final String cardioName;
+	final int? weeklyPlanId;
+	final int dayId;
 	
-	const EPOCPage({super.key, required this.personWeight, required this.age, required this.male, required this.bmr, required this.tdee, required this.activityBurn, required this.cardioBurn, required this.additionalCalories, required this.weeklyPlanner, required this.cardioDistance, required this.protein, required this.fat, required this.metFactor, required this.cardioFactor, required this.activityName, required this.sportDuration, required this.upperDuration, required this.accessoryDuration, required this.lowerDuration, required this.cardioName});
+	const EPOCPage({super.key, required this.personWeight, required this.age, required this.male, required this.bmr, required this.tdee, required this.activityBurn, required this.cardioBurn, required this.additionalCalories, required this.weeklyPlanner, required this.cardioDistance, required this.protein, required this.fat, required this.metFactor, required this.cardioFactor, required this.activityName, required this.sportDuration, required this.upperDuration, required this.accessoryDuration, required this.lowerDuration, required this.cardioName, required this.weeklyPlanId, required this.dayId});
 
 	@override
 	State<EPOCPage> createState() => _EPOCPageState();
@@ -48,6 +51,16 @@ enum Epoc
 
 class _EPOCPageState extends State<EPOCPage>
 {
+	late DailyEntryNotifier _entry;
+
+	@override void initState()
+	{
+    	super.initState();
+
+		final DailyEntryNotifier entry = context.read<DailyEntryNotifier>();
+		_entry = entry;
+  	}
+
 	@override
 	Widget build(BuildContext context)
 	{
@@ -149,9 +162,9 @@ class _EPOCPageState extends State<EPOCPage>
 									color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
 									child: ElevatedButton
 									(
-										onPressed: ()
+										onPressed: () async
 										{
-											processInfo(epocFactor);
+											await processInfo(epocFactor, subtitle1);
 										},
 										child: const Text("Next", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black))
 ,
@@ -184,13 +197,13 @@ class _EPOCPageState extends State<EPOCPage>
 		);
 	}
 
-	void processInfo(double epocFactor)
+	Future<void> processInfo(double epocFactor, String subtitle1) async
 	{
 		final double epoc = (widget.activityBurn + widget.cardioBurn) * epocFactor;
 
 		if(widget.weeklyPlanner)
 		{
-			calculate(epocFactor, epoc);
+			await calculate(epocFactor, epoc, subtitle1);
 		}
 		else
 		{
@@ -202,31 +215,23 @@ class _EPOCPageState extends State<EPOCPage>
 		}
 	}
 
-	void calculate(double epocFactor, double epocCalories)
+	Future<void> calculate(double epocFactor, double epocCalories, String subtitle1) async
 	{
 		// Do all the calculations then post it
+		subtitle1 = subtitle1.split(";").first;
 
-		// Activity Duration
-		final double activityDuration = widget.sportDuration + widget.upperDuration + widget.accessoryDuration + widget.lowerDuration;
+		final existing = _entry.dailyEntries[widget.dayId];
 
-		// Calories
-		final double total = CalorieMath.totalCaloriesToday(widget.tdee, widget.activityBurn, widget.cardioBurn, epocCalories, additionalCalories: widget.additionalCalories);
+		// Check if the existing entry belongs to the current plan.
+		// If it doesn't match, this is a new plan/entry context, so id must be null.
+		int? validId = (existing.weeklyPlanId == widget.weeklyPlanId) ? existing.id : null;
 
-		final (:bmr, :tdee, :activity, :cardio, :epoc, totalCal: roundedTotal, :totalBurn) = CalorieMath.roundValues(widget.bmr, widget.tdee, widget.activityBurn, widget.cardioBurn, epocCalories, total);
+		await _entry.uploadOrEditDailyEntry(id: validId, weeklyPlanId: widget.weeklyPlanId, dayId: widget.dayId, weight: widget.personWeight, age: widget.age, isMale: widget.male, additionalCalories: widget.additionalCalories, bmr: widget.bmr, tdee: widget.tdee, activityFactor: widget.metFactor, activityName: widget.activityName, activityBurn: widget.activityBurn, sportDuration: widget.sportDuration, upperDuration: widget.upperDuration, accessoriesDuration: widget.accessoryDuration, lowerDuration: widget.lowerDuration, cardioFactor: widget.cardioFactor, cardioName: widget.cardioName, cardioBurn: widget.cardioBurn, cardioDistance: widget.cardioDistance, epocFactor: epocFactor, epocName: subtitle1, epocBurn: epocCalories, proteinIntensity: widget.protein, fatIntake: widget.fat);
 
-		// Protein
-		final int protein = NutritionMath.protein(widget.personWeight, widget.protein);
-
-		// Fats
-		final (:totalFat, :saturatedFat, :unsaturatedFat, :omega3, :omega6, :cholesterol) = NutritionMath.fat(widget.tdee, widget.fat, widget.male);
-
-		// Carbs
-		final (:totalCarb, :solubleFibre, :insolubleFibre, :sugar) = NutritionMath.carb(widget.tdee, protein, totalFat, widget.male == true ? 30 : 25);
-
-		// Water
-		final (:minBaseWater, :maxBaseWater, :minExerciseWater, :maxExerciseWater) = NutritionMath.water(widget.personWeight, activityDuration, widget.metFactor, widget.cardioDistance, widget.cardioFactor);
-
-		Navigator.of(context).pop();
-		Navigator.of(context).pop();
+		if(mounted)
+		{
+			Navigator.of(context).pop();
+			Navigator.of(context).pop();
+		}
 	}
 }

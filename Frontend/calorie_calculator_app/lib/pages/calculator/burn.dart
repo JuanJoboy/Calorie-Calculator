@@ -16,10 +16,12 @@ class BurnPage extends StatefulWidget
 	final double personWeight;
 	final double additionalCalories;
 	final bool weeklyPlanner;
+	final int? weeklyPlanId;
+	final int dayId;
 	
-	const BurnPage({super.key, required this.bmr, required this.age, required this.male, required this.tdee, required this.personWeight, required this.additionalCalories, required this.weeklyPlanner});
+	const BurnPage({super.key, required this.bmr, required this.age, required this.male, required this.tdee, required this.personWeight, required this.additionalCalories, required this.weeklyPlanner, required this.weeklyPlanId, required this.dayId});
 
-	const BurnPage.nonWeekly({super.key, required this.bmr, required this.age, required this.male, required this.tdee, required this.personWeight, this.additionalCalories = 0, required this.weeklyPlanner});
+	const BurnPage.nonWeekly({super.key, required this.bmr, required this.age, required this.male, required this.tdee, required this.personWeight, this.additionalCalories = 0, required this.weeklyPlanner, this.weeklyPlanId, this.dayId = 0});
 
 	@override
 	State<BurnPage> createState() => _BurnPageState();
@@ -215,6 +217,7 @@ class _BurnPageState extends State<BurnPage>
 		accessoriesDuration.text = _calcs.ac;
 		lowerDuration.text = _calcs.lo;
 		distance.text = _calcs.d;
+		metFactor = _calcs.met;
   	}
 
 	@override
@@ -340,6 +343,7 @@ class _BurnPageState extends State<BurnPage>
 								setState(()
 								{
 									metFactor = newValue;
+									_calcs.updateControllers(metFactor: metFactor);
 									activityName = text;
 								});
 							},
@@ -583,7 +587,11 @@ class _BurnPageState extends State<BurnPage>
 					(
 						borderRadius: BorderRadiusGeometry.circular(25)
 					),
-					child: const Icon(Icons.directions_run_rounded, size: 80, color: Colors.black),
+					child: const Padding
+					(
+						padding: EdgeInsets.all(8.0),
+						child: Icon(Icons.directions_run_rounded, size: 60, color: Colors.black),
+					),
 				),
 			),
 		);
@@ -681,11 +689,13 @@ class _BurnPageState extends State<BurnPage>
 									final (:name, :upper, :acc, :lower, :sport) = extractCorrectDuration(activityName, upperDurationNum, accDurationNum, lowerDurationNum, sportDurationNum);
 
 									final double cardioBurn = widget.personWeight * distanceNum * (chosenCardio?.value ?? 0);
-				
+
+									_calcs.resetControllers();
+
 									Navigator.push
 									(
 										context,
-										MaterialPageRoute(builder: (context) => Utils.switchPage(context, EPOCPage(personWeight: widget.personWeight, age: widget.age, male: widget.male, bmr: widget.bmr, tdee: widget.tdee, activityBurn: activityBurn, cardioBurn: cardioBurn, additionalCalories: widget.additionalCalories, weeklyPlanner: widget.weeklyPlanner, cardioDistance: distanceNum, protein: selectedProteinIntensity, fat: selectedFatIntensity, metFactor: metFactor ?? 0, cardioFactor: chosenCardio?.value ?? 0, activityName: name ?? "", sportDuration: sport, upperDuration: upper, accessoryDuration: acc, lowerDuration: lower, cardioName: (chosenCardio?.label ?? "")))) // Takes you to the page that shows all the locations connected to the restaurant
+										MaterialPageRoute(builder: (context) => Utils.switchPage(context, EPOCPage(personWeight: widget.personWeight, age: widget.age, male: widget.male, bmr: widget.bmr, tdee: widget.tdee, activityBurn: activityBurn, cardioBurn: cardioBurn, additionalCalories: widget.additionalCalories, weeklyPlanner: widget.weeklyPlanner, cardioDistance: distanceNum, protein: selectedProteinIntensity, fat: selectedFatIntensity, metFactor: metFactor ?? 0, cardioFactor: chosenCardio?.value ?? 0, activityName: name ?? "", sportDuration: sport, upperDuration: upper, accessoryDuration: acc, lowerDuration: lower, cardioName: (chosenCardio?.label ?? ""), weeklyPlanId: widget.weeklyPlanId, dayId: widget.dayId))) // Takes you to the page that shows all the locations connected to the restaurant
 									);
 								},
 								child: const Text("Next", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black))

@@ -1,19 +1,16 @@
-import 'package:calorie_calculator_app/main.dart';
-import 'package:calorie_calculator_app/pages/calculator/bmr.dart';
-import 'package:calorie_calculator_app/pages/history/history.dart';
 import 'package:calorie_calculator_app/pages/nutrition/diet.dart';
+import 'package:calorie_calculator_app/pages/planner/folder_data.dart';
 import 'package:calorie_calculator_app/utilities/colours.dart';
-import 'package:calorie_calculator_app/utilities/help.dart';
+import 'package:calorie_calculator_app/utilities/formulas.dart';
 import 'package:flutter/material.dart';
-import 'package:calorie_calculator_app/database/database.dart';
-import 'package:calorie_calculator_app/pages/calculator/burn.dart';
-import 'package:calorie_calculator_app/pages/calculator/calculations.dart';
 import 'package:calorie_calculator_app/utilities/utilities.dart';
 import 'package:provider/provider.dart';
 
 class DaysPage extends StatefulWidget
 {
-	const DaysPage({super.key});
+	final int weeklyPlanId;
+
+	const DaysPage({super.key, required this.weeklyPlanId});
 
 	@override
 	State<DaysPage> createState() => _DaysPageState();
@@ -21,55 +18,107 @@ class DaysPage extends StatefulWidget
 
 class _DaysPageState extends State<DaysPage>
 {
+@override
+  void initState() {
+    super.initState();
+    // Use addPostFrameCallback to ensure the provider is called after the first build start
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<DailyEntryNotifier>().loadEntries(widget.weeklyPlanId);
+    });
+  }
+
 	@override
 	Widget build(BuildContext context)
 	{
+		final notifier = context.watch<DailyEntryNotifier>();
+
 		return Scaffold
 		(
 			backgroundColor: Utils.getBackgroundColor(Theme.of(context)),
 			appBar: AppBar(title: const Text("Days")),
-			body: SingleChildScrollView
+			body: Center
 			(
-				physics: const BouncingScrollPhysics(),
-				child: Center
+				child: notifier.isLoading ? Center(child: CircularProgressIndicator()) : Column
 				(
-					child: Column
-					(
-						mainAxisAlignment: MainAxisAlignment.center,
-						crossAxisAlignment: CrossAxisAlignment.center,
-						children:
-						[
-							const Padding(padding: EdgeInsetsGeometry.only(top: 40)),
+					mainAxisAlignment: MainAxisAlignment.center,
+					crossAxisAlignment: CrossAxisAlignment.center,
+					children:
+					[
+						const Padding(padding: EdgeInsetsGeometry.only(top: 40)),
 
-							button("Monday"),
-							button("Tuesday"),
-							button("Wednesday"),
-							button("Thursday"),
-							button("Friday"),
-							button("Saturday"),
-							button("Sunday"),
+						Expanded
+						(
+							child: ListView.builder
+							(
+								physics: const BouncingScrollPhysics(),
+								itemCount: notifier.dailyEntries.length,
+								itemBuilder: (context, index)
+								{
+									return button(notifier.dailyEntries, index);
+								},
+							)
+						),
 
-							const Padding(padding: EdgeInsetsGeometry.only(top: 100))
-						]
-					)
+						const Padding(padding: EdgeInsetsGeometry.only(top: 100))
+					]
 				)
 			)
 		);
 	}
-	
-	Widget button(String text)
+
+	String whatDayIsIt(int index)
 	{
-		final String caloriesBurned = "1234";
-		final String caloricCeiling = "9999";
-		final String protein = "165g";
-		final String fat = "72g";
-		final String carbs = "480g";
+		return switch (index)
+		{
+			0 => "Monday",
+			1 => "Tuesday",
+			2 => "Wednesday",
+			3 => "Thursday",
+			4 => "Friday",
+			5 => "Saturday",
+			6 => "Sunday",
+			_   => "Today",
+		};
+	}
+	
+	Widget button(List<DailyEntry> list, int index)
+	{
+		final String text = whatDayIsIt(index);
+
+		final double weight = list[index].weight;
+		final bool isMale = list[index].isMale;
+		final double additionalCalories = list[index].additionalCalories;
+		final double tdee = list[index].tdee;
+		final double activityBurn = list[index].activityBurn;
+		final double cardioBurn = list[index].cardioBurn;
+		final double epocBurn = list[index].epocBurn;
+		final double proteinIntensity = list[index].proteinIntensity;
+		final double fatIntake = list[index].fatIntake;
+
+		// Calories
+		final int total = CalorieMath.totalCaloriesToday(tdee, activityBurn, cardioBurn, epocBurn, additionalCalories: additionalCalories).round();
+		final int totalBurn = CalorieMath.totalCaloriesBurnedToday(activityBurn, cardioBurn, epocBurn).round();
+
+		// Protein
+		final int proteinNumber = NutritionMath.protein(weight, proteinIntensity);
+
+		// Fats
+		final (:totalFat, :saturatedFat, :unsaturatedFat, :omega3, :omega6, :cholesterol) = NutritionMath.fat(tdee, fatIntake, isMale);
+
+		// Carbs
+		final (:totalCarb, :solubleFibre, :insolubleFibre, :sugar) = NutritionMath.carb(tdee, proteinNumber, totalFat, isMale ? 30 : 25);
+
+		final String caloriesBurned = "$totalBurn";
+		final String caloricCeiling = "$total";
+		final String protein = "${proteinNumber}g";
+		final String fat = "${totalFat}g";
+		final String carbs = "${totalCarb}g";
 
 		return GestureDetector
 		(
 			onTap: () async
 			{
-				goToNextPage();
+				goToNextPage(list, index);
 			},
 			child: Padding
 			(
@@ -144,22 +193,28 @@ class _DaysPageState extends State<DaysPage>
 						mainAxisAlignment: MainAxisAlignment.center,
 						children:
 						[
-							Column
+							Expanded
 							(
-								children:
-								[
-									paddedText(header1, size: 21, weight: FontWeight.w700),
-									paddedText(text1),
-								]
+								child: Column
+								(
+									children:
+									[
+										paddedText(header1, size: 21, weight: FontWeight.w700),
+										paddedText(text1),
+									]
+								),
 							),
 
-							Column
+							Expanded
 							(
-								children:
-								[
-									paddedText(header2, size: 21, weight: FontWeight.w700),
-									paddedText(text2),
-								]
+								child: Column
+								(
+									children:
+									[
+										paddedText(header2, size: 21, weight: FontWeight.w700),
+										paddedText(text2),
+									]
+								),
 							),
 
 							const Padding(padding: EdgeInsetsGeometry.only(bottom: 75))
@@ -210,28 +265,59 @@ class _DaysPageState extends State<DaysPage>
 		return Padding
 		(
 			padding: EdgeInsets.symmetric(horizontal: horizontal ?? 10.0, vertical: vertical ?? 5),
-			child: Text(text, style: TextStyle(fontSize: size ?? 20, fontWeight: weight ?? FontWeight.w500)),
+			child: Text(text, overflow: TextOverflow.fade, maxLines: 1, style: TextStyle(fontSize: size ?? 20, fontWeight: weight ?? FontWeight.w500))
 		);
 	}
 
 	Widget paddedColumn(String header, String text)
 	{
-		return Padding
+		return Expanded
 		(
-			padding: const EdgeInsets.symmetric(horizontal: 20.0),
-			child: Column
+			child: Padding
 			(
-				children:
-				[
-					paddedText(header, size: 21, weight: FontWeight.w700),
-					paddedText(text),
-				]
-			),
+				padding: EdgeInsets.symmetric(horizontal: 10.0),
+				child: Column
+				(
+					children:
+					[
+						paddedText(header, size: 21, weight: FontWeight.w700),
+						paddedText(text),
+					]
+				),
+			)
 		);
 	}
 
-	void goToNextPage() async
+	void goToNextPage(List<DailyEntry> list, int index) async
 	{
+		final double weight = list[index].weight;
+		final bool isMale = list[index].isMale;
+		final double additionalCalories = list[index].additionalCalories;
+		final double bmr = list[index].bmr;
+		final double tdee = list[index].tdee;
+		final double activityFactor = list[index].activityFactor;
+		final String activityName = list[index].activityName;
+		final double activityBurn = list[index].activityBurn;
+		final double sportDuration = list[index].sportDuration;
+		final double upperDuration = list[index].upperDuration;
+		final double accessoriesDuration = list[index].accessoriesDuration;
+		final double lowerDuration = list[index].lowerDuration;
+		final double cardioFactor = list[index].cardioFactor;
+		final String cardioName = list[index].cardioName;
+		final double cardioBurn = list[index].cardioBurn;
+		final double cardioDistance = list[index].cardioDistance;
+		final String epocName = list[index].epocName;
+		final double epocBurn = list[index].epocBurn;
+		final double proteinIntensity = list[index].proteinIntensity;
+		final double fatIntake = list[index].fatIntake;
+
+		// Calories
+		final double total = CalorieMath.totalCaloriesToday(tdee, activityBurn, cardioBurn, epocBurn, additionalCalories: additionalCalories);
+
+		final (tdee: roundedTdee, :activity, :cardio, :epoc, totalCal: roundedTotal, :totalBurn, bmr: roundedBmr) = CalorieMath.roundValues(bmr, tdee, activityBurn, cardioBurn, epocBurn, total);
+
+		final (sportDuration: roundedSportDuration, upperDuration: roundedUpperDuration, accessoryDuration: roundedAccessoryDuration, lowerDuration: roundedLowerDuration) = CalorieMath.roundedDurations(sportDuration, upperDuration, accessoriesDuration, lowerDuration);
+
 		await Navigator.push
 		(
 			context,
@@ -240,29 +326,28 @@ class _DaysPageState extends State<DaysPage>
 				builder: (context) => Utils.switchPage
 				(
 					context,
-					const DietPage
+					DietPage
 					(
-						weight: 85.5,
-						tdee: 2500,
-						metFactor: 10,
-						activityName: "Weights",
-						activityBurn: 300,
-						cardioFactor: 10,
-						sportDuration: 60,
-						upperDuration: 45,
-						accessoryDuration: 15,
-						lowerDuration: 1,
-						cardioName: "Running",
-						cardioDistance: 5.0,
-						cardioBurn: 400,
-						epocBurn: 50,
-						epocIntensity: "High",
-						totalCaloriesBurned: 750,
-						caloricCeiling: 3200,
-						proteinIntensity: 2.2,
-						fatIntake: 70.5,
-						fibre: 35.0,
-						activityDuration: 100,
+						weight: weight,
+						tdee: roundedTdee,
+						metFactor: activityFactor,
+						activityName: activityName,
+						activityBurn: activity,
+						cardioFactor: cardioFactor,
+						sportDuration: roundedSportDuration,
+						upperDuration: roundedUpperDuration,
+						accessoryDuration: roundedAccessoryDuration,
+						lowerDuration: roundedLowerDuration,
+						cardioName: cardioName,
+						cardioDistance: cardioDistance,
+						cardioBurn: cardio,
+						epocBurn: epoc,
+						epocIntensity: epocName,
+						totalCaloriesBurned: totalBurn,
+						caloricCeiling: roundedTotal,
+						proteinIntensity: proteinIntensity,
+						fatIntake: fatIntake,
+						fibre: isMale == true ? 30.0 : 25.0,
 						weeklyPlanner: true,
 					),
 				),

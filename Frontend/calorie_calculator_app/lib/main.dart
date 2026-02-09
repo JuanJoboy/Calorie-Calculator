@@ -22,12 +22,14 @@ void main()
 		(
 			providers:
 			[
+				ChangeNotifierProvider(create: (context) => DailyEntryNotifier()),
+				ChangeNotifierProvider(create: (context) => WeeklyPlanNotifier()..init()),
 				ChangeNotifierProvider(create: (context) => FolderNotifier()),
 				ChangeNotifierProvider(create: (context) => ThemeNotifier()..init()),
 				ChangeNotifierProvider(create: (context) => NutritionFields()),
 				ChangeNotifierProvider(create: (context) => NavigationNotifier()),
 				ChangeNotifierProvider(create: (context) => CalculationFields()),
-				ChangeNotifierProvider(create: (context) => AllCalculations()..init()), // The ..init() triggers the load
+				ChangeNotifierProvider(create: (context) => AllCalculations()..init()),
 				ChangeNotifierProvider(create: (context) => UsersTdeeNotifier()..init()) // The ..init() triggers the load
 			],
 
@@ -171,12 +173,12 @@ class _MyHomePageState extends State<MyHomePage>
 		return switch(selectedIndex)
 		{
 			0 => const InformationPage(),
-			1 => const CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: true, weeklyPlanner: false),
-			2 => const CalculatorPage(title: "Daily Calorie Calculator", isDedicatedBMRPage: false, weeklyPlanner: false),
+			1 => const CalculatorPage.notAWeeklyPlanner(title: "TDEE Calculator", isDedicatedBMRPage: true, weeklyPlanner: false),
+			2 => const CalculatorPage.notAWeeklyPlanner(title: "Daily Calorie Calculator", isDedicatedBMRPage: false, weeklyPlanner: false),
 			3 => const HistoryPage(),
 			4 => const NutritionPage(),
 			5 => const PlannerPage(),
-			_ => const CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: true, weeklyPlanner: false),
+			_ => const CalculatorPage.notAWeeklyPlanner(title: "TDEE Calculator", isDedicatedBMRPage: true, weeklyPlanner: false),
 		};
 	}
 

@@ -27,7 +27,6 @@ class DietPage extends StatefulWidget
 	final double proteinIntensity;
 	final double fatIntake;
 	final double fibre;
-	final double activityDuration;
 	final bool weeklyPlanner;
 
 	const DietPage({
@@ -52,7 +51,6 @@ class DietPage extends StatefulWidget
 		required this.proteinIntensity,
 		required this.fatIntake,
 		required this.fibre,
-		required this.activityDuration,
 		required this.weeklyPlanner,
 	});
 
@@ -78,7 +76,6 @@ class DietPage extends StatefulWidget
 		required this.proteinIntensity,
 		required this.fatIntake,
 		required this.fibre,
-		this.activityDuration = 0,
 		this.weeklyPlanner = false,
 	});
 
@@ -287,7 +284,9 @@ class _DietPageState extends State<DietPage>
 		final (:totalCarb, :solubleFibre, :insolubleFibre, :sugar) = NutritionMath.carb(widget.tdee.roundToDouble(), protein, totalFat, widget.fibre);
 
 		// Water
-		final (:minBaseWater, :maxBaseWater, :minExerciseWater, :maxExerciseWater) = NutritionMath.water(widget.weight, widget.activityDuration, widget.metFactor, widget.cardioDistance, widget.cardioFactor);
+		final double activityDuration = CalorieMath.totalDuration(widget.sportDuration, widget.upperDuration, widget.accessoryDuration, widget.lowerDuration);
+
+		final (:minBaseWater, :maxBaseWater, :minExerciseWater, :maxExerciseWater) = NutritionMath.water(widget.weight, activityDuration, widget.metFactor, widget.cardioDistance, widget.cardioFactor);
 
 		final bool noActivity = widget.metFactor == 0 && widget.cardioFactor == 0;
 
@@ -351,13 +350,13 @@ class _DietPageState extends State<DietPage>
 					key: const ValueKey(3),
 					children:
 					[
-						micronutrients("Water Soluble", WaterSoluble.values),
+						micronutrients("Water Soluble", WaterSoluble.values, activityDuration),
 						
-						micronutrients("Fat Soluble", FatSoluble.values),
+						micronutrients("Fat Soluble", FatSoluble.values, activityDuration),
 						
-						micronutrients("Electrolytes", Electrolytes.values),
+						micronutrients("Electrolytes", Electrolytes.values, activityDuration),
 
-						micronutrients("Trace Minerals", TraceMinerals.values),
+						micronutrients("Trace Minerals", TraceMinerals.values, activityDuration),
 					],
 				);
 		}
@@ -550,7 +549,7 @@ class _DietPageState extends State<DietPage>
 		);
 	}
 
-	Widget micronutrients(String header, List<Micronutrient> micros)
+	Widget micronutrients(String header, List<Micronutrient> micros, double activityDuration)
 	{
 		return Padding
 		(
@@ -577,7 +576,7 @@ class _DietPageState extends State<DietPage>
 						displayInfo
 						(
 							micro.label,
-							(NutritionMath.electrolyteCalculator(micro, widget.fibre == 30, widget.activityDuration, widget.metFactor, widget.cardioDistance, widget.cardioFactor)).toString(),
+							(NutritionMath.electrolyteCalculator(micro, widget.fibre == 30, activityDuration, widget.metFactor, widget.cardioDistance, widget.cardioFactor)).toString(),
 							micro.unit,
 							padding: micro.unit == "mg" ? 35 : 45,
 							width: 100

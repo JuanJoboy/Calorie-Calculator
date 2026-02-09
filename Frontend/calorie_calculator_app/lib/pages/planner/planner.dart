@@ -1,14 +1,8 @@
-import 'package:calorie_calculator_app/main.dart';
 import 'package:calorie_calculator_app/pages/calculator/bmr.dart';
-import 'package:calorie_calculator_app/pages/history/history.dart';
 import 'package:calorie_calculator_app/pages/planner/days.dart';
+import 'package:calorie_calculator_app/pages/planner/folder_data.dart';
 import 'package:calorie_calculator_app/utilities/colours.dart';
-import 'package:calorie_calculator_app/utilities/help.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:calorie_calculator_app/database/database.dart';
-import 'package:calorie_calculator_app/pages/calculator/burn.dart';
-import 'package:calorie_calculator_app/pages/calculator/calculations.dart';
 import 'package:calorie_calculator_app/utilities/utilities.dart';
 import 'package:provider/provider.dart';
 
@@ -22,38 +16,42 @@ class PlannerPage extends StatefulWidget
 
 class _PlannerPageState extends State<PlannerPage>
 {
+	late WeeklyPlanNotifier _list;
+
 	@override
 	Widget build(BuildContext context)
 	{
+		final WeeklyPlanNotifier list = context.watch<WeeklyPlanNotifier>();
+		_list = list;
+
 		return Column
 		(
 			children:
 			[
 				Utils.header("Weekly Planner", 30, FontWeight.bold),
 
-				weeklyPlans(List.empty(), 0),
-
-				// Expanded
-				// (
-				// 	child: list.calcList.isNotEmpty ? ListView.builder
-				// 	(
-				// 		physics: const BouncingScrollPhysics(),
-				// 		itemCount: list.calcList.length,
-				// 		itemBuilder: (context, index)
-				// 		{
-				// 			return weeklyPlans(list.calcList, index);
-				// 		},
-				// 	) : const Center(child: Text("No weeks have been planned :("))
-				// ),
+				Expanded
+				(
+					child: list.weeklyPlans.isNotEmpty ? ListView.builder
+					(
+						physics: const BouncingScrollPhysics(),
+						itemCount: list.weeklyPlans.length,
+						itemBuilder: (context, index)
+						{
+							return weeklyPlans(list.weeklyPlans, index);
+						},
+					) : const Center(child: Text("No plans have been made :("))
+				),
 
 				newPlanButton()
 			],
 		);
 	}
 
-	Widget weeklyPlans(List<Object> a, int index)
+	Widget weeklyPlans(List<WeeklyPlan> plans, int index)
 	{
-		final String title = "Upper + Cardio";
+		final String title = plans[index].folderName;
+		final int? id = plans[index].id;
 
 		return Padding
 		(
@@ -110,9 +108,9 @@ class _PlannerPageState extends State<PlannerPage>
 								mainAxisAlignment: MainAxisAlignment.center,
 								children:
 								[
-									iconButton(Icons.remove_red_eye_rounded, 1),
-									iconButton(Icons.edit, 2),
-									iconButton(Icons.delete, 3)
+									iconButton(Icons.remove_red_eye_rounded, 1, id),
+									iconButton(Icons.edit, 2, id),
+									iconButton(Icons.delete, 3, id)
 								],
 							)
 						],
@@ -122,7 +120,7 @@ class _PlannerPageState extends State<PlannerPage>
 		);
 	}
 
-	Widget iconButton(IconData icon, int action)
+	Widget iconButton(IconData icon, int action, int? id)
 	{
 		return Padding
 		(
@@ -133,23 +131,23 @@ class _PlannerPageState extends State<PlannerPage>
 				{
 					if(action == 1)
 					{
-						await Navigator.push
-						(
-							context,
-							MaterialPageRoute(builder: (context) => Scaffold // ChoiceChips in the bmr page need a scaffold at the root, so i need this here
+						if(mounted)
+						{
+							await Navigator.push
 							(
-								body: Utils.switchPage(context, const DaysPage())
-							))
-						);
+								context,
+								MaterialPageRoute(builder: (context) => Utils.switchPage(context, DaysPage(weeklyPlanId: id!)))
+							);
+						}
 					}
 					else if(action == 2)
 					{
 						await Navigator.push
 						(
 							context,
-							MaterialPageRoute(builder: (context) => Scaffold // ChoiceChips in the bmr page need a scaffold at the root, so i need this here
+							MaterialPageRoute(builder: (context) => Scaffold
 							(
-								body: Utils.switchPage(context, const CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: false, weeklyPlanner: true))
+								body: Utils.switchPage(context, CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: false, weeklyPlanner: true, weeklyPlanId: id!))
 							))
 						);
 					}
@@ -157,7 +155,7 @@ class _PlannerPageState extends State<PlannerPage>
 					{
 						setState(()
 						{
-							delete();
+							delete(id!);
 						});
 					}
 				},
@@ -186,7 +184,7 @@ class _PlannerPageState extends State<PlannerPage>
 		);
 	}
 
-	void delete()
+	void delete(int id)
 	{
 		showDialog
 		(
@@ -201,12 +199,16 @@ class _PlannerPageState extends State<PlannerPage>
 					[
 						TextButton
 						(
-							onPressed: () => Navigator.pop(dialogueContext), // Closes without action
-							child: const Text("Yes", style: TextStyle(fontSize: 20))
+							onPressed: ()
+							{
+								Navigator.pop(dialogueContext); // Closes without action
+								_list.deleteWeeklyPlan(id);
+							},
+							child: const Text("Yes", style: TextStyle(fontSize: 20)),
 						),
 						TextButton
 						(
-							onPressed: () => Navigator.pop(dialogueContext), // Closes without action
+							onPressed: () => Navigator.pop(dialogueContext),
 							child: const Text("No", style: TextStyle(fontSize: 20))
 						),
 					],
@@ -219,7 +221,7 @@ class _PlannerPageState extends State<PlannerPage>
 	{
 		return Padding
 		(
-			padding: const EdgeInsets.symmetric(vertical: 40.0),
+			padding: const EdgeInsets.symmetric(vertical: 10.0),
 			child: SizedBox
 			(
 				height: 60,
@@ -241,7 +243,7 @@ class _PlannerPageState extends State<PlannerPage>
 								context,
 								MaterialPageRoute(builder: (context) => Scaffold // ChoiceChips in the bmr page need a scaffold at the root, so i need this here
 								(
-									body: Utils.switchPage(context, const CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: false, weeklyPlanner: true))
+									body: Utils.switchPage(context, const CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: false, weeklyPlanner: true, weeklyPlanId: null))
 								))
 							);
 						},
