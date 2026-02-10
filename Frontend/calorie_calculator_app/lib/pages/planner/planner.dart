@@ -238,14 +238,19 @@ class _PlannerPageState extends State<PlannerPage>
 						),
 						onPressed: () async
 						{
-							await Navigator.push
-							(
-								context,
-								MaterialPageRoute(builder: (context) => Scaffold // ChoiceChips in the bmr page need a scaffold at the root, so i need this here
+							int id = await _list.createWeeklyPlanShell();
+
+							if(mounted)
+							{
+								await Navigator.push
 								(
-									body: Utils.switchPage(context, const CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: false, weeklyPlanner: true, weeklyPlanId: null))
-								))
-							);
+									context,
+									MaterialPageRoute(builder: (context) => Scaffold // ChoiceChips in the bmr page need a scaffold at the root, so i need this here
+									(
+										body: Utils.switchPage(context, CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: false, weeklyPlanner: true, weeklyPlanId: id))
+									))
+								);
+							}
 						},
 						child: const Text("Create New Plan", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black))
 					)

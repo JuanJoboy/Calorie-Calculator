@@ -23,13 +23,18 @@ class WeekPage extends StatefulWidget
 
 class _WeekPageState extends State<WeekPage>
 {
+	final TextEditingController folderName = TextEditingController();
+
 	late FolderNotifier _folder;
+	late WeeklyPlanNotifier _plan;
+
 	bool _isSaving = false;
 
 	@override
 	void dispose()
 	{
 		super.dispose();
+		folderName.dispose();
 	}
 
 	@override void initState()
@@ -38,12 +43,17 @@ class _WeekPageState extends State<WeekPage>
 
 		final FolderNotifier folder = context.read<FolderNotifier>();
 		_folder = folder;
+
+		final WeeklyPlanNotifier plan = context.read<WeeklyPlanNotifier>();
+		_plan = plan;
+
+		folderName.text = _folder.name;
   	}
 
 	@override
 	Widget build(BuildContext context)
 	{
-		return PopScope
+		return PopScope // Theres a popScope in BMR page but its good here cause if the user exits here, then the plan is still deleted. And the deleteWeeklyPlan() method has safeguards to prevent deleting the same plan twice.
 		(
 			canPop: false, // Prevent immediate pop
 			onPopInvokedWithResult: (didPop, result) async
@@ -65,7 +75,7 @@ class _WeekPageState extends State<WeekPage>
 			child: Scaffold
 			(
 				backgroundColor: Utils.getBackgroundColor(Theme.of(context)),
-				appBar: AppBar(title: const Text("Days")),
+				appBar: AppBar(title: const Text("Input Weekly Plan")),
 				body: SingleChildScrollView
 				(
 					physics: const BouncingScrollPhysics(),
@@ -79,6 +89,8 @@ class _WeekPageState extends State<WeekPage>
 							[
 								const Padding(padding: EdgeInsetsGeometry.only(top: 40)),
 
+								textBox(),
+
 								button("Monday", dayId: 0),
 								button("Tuesday", dayId: 1),
 								button("Wednesday", dayId: 2),
@@ -87,7 +99,7 @@ class _WeekPageState extends State<WeekPage>
 								button("Saturday", dayId: 5),
 								button("Sunday", dayId: 6),
 
-								button("Save Week", saveWeek: true),
+								button("Save Plan", saveWeek: true),
 
 								const Padding(padding: EdgeInsetsGeometry.only(top: 100))
 							]
@@ -95,6 +107,101 @@ class _WeekPageState extends State<WeekPage>
 					)
 				)
 			)
+		);
+	}
+
+	Widget textBox()
+	{
+		return Padding
+		(
+			padding: const EdgeInsets.only(top: 20.0, left: 10, right: 10),
+			child: SizedBox
+			(
+				height: 200,
+				width: double.infinity,
+				child: Card
+				(
+					color: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
+					shape: RoundedRectangleBorder
+					(
+						side: BorderSide
+						(
+							color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+							width: 6
+						),
+						borderRadius: BorderRadiusGeometry.circular(20)
+					),
+					child: Column
+					(
+						children:
+						[
+							const Padding
+							(
+								padding: EdgeInsets.only(top: 15.0),
+								child: Text
+								(
+									"Weekly Plan Name",
+									style: TextStyle
+									(
+										fontSize: 30,
+										fontWeight: FontWeight.w500
+									)
+								),
+							),
+				
+							Row
+							(
+								mainAxisAlignment: MainAxisAlignment.center,
+								crossAxisAlignment: CrossAxisAlignment.center,
+								children:
+								[
+									Padding
+									(
+										padding: const EdgeInsets.only(top: 30.0),
+										child: SizedBox
+										(
+											height: 60,
+											width: 250,
+											child: Card
+											(
+												shape: RoundedRectangleBorder
+												(
+													side: BorderSide
+													(
+														color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+														width: 2
+													),
+													borderRadius: BorderRadiusGeometry.circular(100)
+												),
+												color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+												child: TextField
+												(
+													textAlign: TextAlign.center,
+													decoration: const InputDecoration
+													(
+														hintText: "...",
+														border: InputBorder.none,
+													),
+													style: const TextStyle
+													(
+														fontSize: 25,
+														color: Colors.black
+													),
+													controller: folderName,
+													onChanged: (value)
+													{
+														_folder.updateControllers(folderName: value);
+													},
+												),
+											),
+										),
+									),
+								],
+							)
+						],
+					),
+				),
+			),
 		);
 	}
 	
@@ -168,7 +275,10 @@ class _WeekPageState extends State<WeekPage>
 		else
 		{
 			_isSaving = true;
-			_folder.name = "";
+
+			final String name = folderName.text.trim() == "" ? "New Weekly Plan" : folderName.text.trim();
+
+			await _plan.uploadOrEditWeeklyPlan(name, widget.weeklyPlanId);
 
 			if(mounted)
 			{

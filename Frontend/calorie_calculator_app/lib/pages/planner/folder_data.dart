@@ -82,7 +82,17 @@ class WeeklyPlanNotifier extends ChangeNotifier
 
 	void deleteWeeklyPlan(int id) async
 	{
-		WeeklyPlan plan = weeklyPlans.firstWhere((p) => p.id == id);
+		WeeklyPlan plan = weeklyPlans.firstWhere
+		(
+			(p) => p.id == id,
+			orElse: () => const WeeklyPlan(id: -1, folderName: "")
+		);
+
+		if(plan.id == -1)
+		{
+			return; // Prevents deleting that fake plan and causing any errors.
+		}
+
 		final DatabaseHelper dbHelper = DatabaseHelper.instance;
 
 		if(plan.id != null)
@@ -91,6 +101,57 @@ class WeeklyPlanNotifier extends ChangeNotifier
 		}
 
 		weeklyPlans.remove(plan);
+		notifyListeners();
+	}
+}
+
+class WeeklyTdee
+{
+	final int? id;
+	final int? weeklyPlanId;
+	final double weight;
+	final double age;
+	final bool isMale;
+	final double additionalCalories;
+	final double bmr;
+	final double tdee;
+
+	const WeeklyTdee
+	({
+		required this.id,
+		required this.weeklyPlanId,
+		required this.weight,
+		required this.age,
+		required this.isMale,
+		required this.additionalCalories,
+		required this.bmr,
+		required this.tdee,
+	});
+
+	factory WeeklyTdee.fromMap(Map<String, dynamic> map, DatabaseHelper db)
+	{
+		return WeeklyTdee
+		(
+			id: map[db.dailyEntriesIDColumnName],
+			weeklyPlanId: map[db.dailyEntriesWeeklyPlanIDColumnName],
+			weight: (map[db.weeklyTdeeWeightColumnName] as num).toDouble(),
+			age: (map[db.weeklyTdeeAgeColumnName] as num).toDouble(),
+			isMale: map[db.weeklyTdeeMaleColumnName] == 1,
+			additionalCalories: (map[db.weeklyTdeeAdditionalCaloriesColumnName] as num).toDouble(),
+			bmr: (map[db.weeklyTdeeBMRColumnName] as num).toDouble(),
+			tdee: (map[db.weeklyTdeeTDEEColumnName] as num).toDouble(),
+		);
+	}
+}
+
+class WeeklyTdeeNotifier extends ChangeNotifier
+{
+	Future<void> uploadOrEditWeeklyTdee({required int? weeklyPlanId, required double weight, required double age, required bool isMale, required double additionalCalories, required double bmr, required double tdee}) async
+	{
+		final DatabaseHelper dbHelper = DatabaseHelper.instance;
+
+		await dbHelper.addWeeklyTdee(weeklyPlanId: weeklyPlanId, weight: weight, age: age, isMale: isMale, additionalCalories: additionalCalories, bmr: bmr, tdee: tdee);
+
 		notifyListeners();
 	}
 }
@@ -157,12 +218,12 @@ class DailyEntry
         this.id, // It's null so the row doesn't exist in the database yet, so it's safe to create. It won't override any other days 
         this.weeklyPlanId,
         required this.dayId,
-        this.weight = 0.0,
-        this.age = 0.0,
-        this.isMale = true,
-        this.additionalCalories = 0.0,
-        this.bmr = 0.0,
-        this.tdee = 0.0,
+        this.weight = 0.0, // Take from weekly_tdee table
+        this.age = 0.0, // Take from weekly_tdee table
+        this.isMale = true, // Take from weekly_tdee table
+        this.additionalCalories = 0.0, // Take from weekly_tdee table
+        this.bmr = 0.0, // Take from weekly_tdee table
+        this.tdee = 0.0, // Take from weekly_tdee table
         this.activityFactor = 0.0,
         this.activityName = "",
         this.activityBurn = 0.0,
@@ -177,8 +238,8 @@ class DailyEntry
         this.epocFactor = 0.0,
         this.epocName = "",
         this.epocBurn = 0.0,
-        this.proteinIntensity = 0.0,
-        this.fatIntake = 0.0,
+        this.proteinIntensity = 1.6,
+        this.fatIntake = 0.25,
     });
 
 	factory DailyEntry.fromMap(Map<String, dynamic> map, DatabaseHelper db)
@@ -188,12 +249,12 @@ class DailyEntry
 			id: map[db.dailyEntriesIDColumnName],
 			weeklyPlanId: map[db.dailyEntriesWeeklyPlanIDColumnName],
 			dayId: map[db.dailyEntriesDayIDColumnName],
-			weight: (map[db.dailyEntriesWeightColumnName] as num).toDouble(),
-			age: (map[db.dailyEntriesAgeColumnName] as num).toDouble(),
-			isMale: map[db.dailyEntriesMaleColumnName] == 1,
-			additionalCalories: (map[db.dailyEntriesAdditionalCaloriesColumnName] as num).toDouble(),
-			bmr: (map[db.dailyEntriesBMRColumnName] as num).toDouble(),
-			tdee: (map[db.dailyEntriesTDEEColumnName] as num).toDouble(),
+			weight: (map["weekly_weight"] as num).toDouble(),
+			age: (map["weekly_age"] as num).toDouble(),
+			isMale: map["weekly_male"] == 1,
+			additionalCalories: (map["weekly_additional"] as num).toDouble(),
+			bmr: (map["weekly_bmr"] as num).toDouble(),
+			tdee: (map["weekly_tdee"] as num).toDouble(),
 			activityFactor: (map[db.dailyEntriesActivityFactorColumnName] as num).toDouble(),
 			activityName: map[db.dailyEntriesActivityNameColumnName] as String,
 			activityBurn: (map[db.dailyEntriesActivityBurnColumnName] as num).toDouble(),
@@ -228,40 +289,40 @@ class DailyEntryNotifier extends ChangeNotifier
 
 	bool isLoading = false;
 
-Future<void> loadEntries(int weeklyPlanId) async {
-  final dbInstance = DatabaseHelper.instance;
-  final db = await dbInstance.database;
-  isLoading = true;
-  notifyListeners();
+	Future<void> loadEntries(int weeklyPlanId) async
+	{
+		final dbInstance = DatabaseHelper.instance;
+		final db = await dbInstance.database;
+		isLoading = true;
+		notifyListeners();
 
-  // Reset to empty/fresh state
-  dailyEntries = List.generate(7, (index) => DailyEntry.freshDay(dayId: index), growable: false);
+		// Reset to empty/fresh state
+		dailyEntries = List.generate(7, (index) => DailyEntry.freshDay(dayId: index), growable: false);
 
-  // Debug: See what is actually in the DB
-  final List<Map<String, dynamic>> allRows = await db.query(dbInstance.dailyEntriesTableName);
-  print("--- DB DEBUG ---");
-  print("Total rows in table: ${allRows.length}");
-  for (var row in allRows) {
-     print("Entry ID: ${row[dbInstance.dailyEntriesIDColumnName]}, PlanID: ${row[dbInstance.dailyEntriesWeeklyPlanIDColumnName]}, Day: ${row[dbInstance.dailyEntriesDayIDColumnName]}");
-  }
+		// Debug: See what is actually in the DB
+		final List<Map<String, dynamic>> allRows = await db.query(dbInstance.dailyEntriesTableName);
+		print("--- DB DEBUG ---");
+		print("Total rows in table: ${allRows.length}");
 
-  // Perform specific query
-  final List<Map<String, dynamic>> maps = await db.query(
-    dbInstance.dailyEntriesTableName, 
-    where: "${dbInstance.dailyEntriesWeeklyPlanIDColumnName} = ?", 
-    whereArgs: [weeklyPlanId]
-  );
+		for (var row in allRows)
+		{
+			print("Entry ID: ${row[dbInstance.dailyEntriesIDColumnName]}, PlanID: ${row[dbInstance.dailyEntriesWeeklyPlanIDColumnName]}, Day: ${row[dbInstance.dailyEntriesDayIDColumnName]}");
+		}
 
-  print("Rows found for Plan $weeklyPlanId: ${maps.length}");
+		// Perform specific query
+		final List<Map<String, dynamic>> maps = await dbInstance.joinWeeklyTdeeToDailyEntry(weeklyPlanId);
 
-  for (Map<String, dynamic> map in maps) {
-    final DailyEntry entry = DailyEntry.fromMap(map, dbInstance);
-    dailyEntries[entry.dayId] = entry;
-  }
+		print("Rows found for Plan $weeklyPlanId: ${maps.length}");
 
-  isLoading = false;
-  notifyListeners();
-}
+		for (Map<String, dynamic> map in maps)
+		{
+			final DailyEntry entry = DailyEntry.fromMap(map, dbInstance);
+			dailyEntries[entry.dayId] = entry;
+		}
+
+		isLoading = false;
+		notifyListeners();
+	}
  
 	Future<void> uploadOrEditDailyEntry({required int? id, required int? weeklyPlanId, required int dayId, required double weight, required double age, required bool isMale, required double additionalCalories, required double bmr, required double tdee, required double activityFactor, required String activityName, required double activityBurn, required double sportDuration, required double upperDuration, required double accessoriesDuration, required double lowerDuration, required double cardioFactor, required String cardioName, required double cardioBurn, required double cardioDistance, required double epocFactor, required String epocName, required double epocBurn, required double proteinIntensity, required double fatIntake}) async
 	{
@@ -271,13 +332,13 @@ Future<void> loadEntries(int weeklyPlanId) async {
 		
 		if(id != null)
 		{
-			await dbHelper.updateDailyEntry(id: id, weeklyPlanId: weeklyPlanId, dayId: dayId, weight: weight, age: age, isMale: isMale, additionalCalories: additionalCalories, bmr: bmr, tdee: tdee, activityFactor: activityFactor, activityName: activityName, activityBurn: activityBurn, sportDuration: sportDuration, upperDuration: upperDuration, accessoriesDuration: accessoriesDuration, lowerDuration: lowerDuration, cardioFactor: cardioFactor, cardioName: cardioName, cardioBurn: cardioBurn, cardioDistance: cardioDistance, epocFactor: epocFactor, epocName: epocName, epocBurn: epocBurn, proteinIntensity: proteinIntensity, fatIntake: fatIntake);
+			await dbHelper.updateDailyEntry(id: id, weeklyPlanId: weeklyPlanId, dayId: dayId, activityFactor: activityFactor, activityName: activityName, activityBurn: activityBurn, sportDuration: sportDuration, upperDuration: upperDuration, accessoriesDuration: accessoriesDuration, lowerDuration: lowerDuration, cardioFactor: cardioFactor, cardioName: cardioName, cardioBurn: cardioBurn, cardioDistance: cardioDistance, epocFactor: epocFactor, epocName: epocName, epocBurn: epocBurn, proteinIntensity: proteinIntensity, fatIntake: fatIntake);
 
 			dailyEntries[realIndex] = DailyEntry(id: id, weeklyPlanId: weeklyPlanId, dayId: dayId, weight: weight, age: age, isMale: isMale, additionalCalories: additionalCalories, bmr: bmr, tdee: tdee, activityFactor: activityFactor, activityName: activityName, activityBurn: activityBurn, sportDuration: sportDuration, upperDuration: upperDuration, accessoriesDuration: accessoriesDuration, lowerDuration: lowerDuration, cardioFactor: cardioFactor, cardioName: cardioName, cardioBurn: cardioBurn, cardioDistance: cardioDistance, epocFactor: epocFactor, epocName: epocName, epocBurn: epocBurn, proteinIntensity: proteinIntensity, fatIntake: fatIntake);
 		}
         else
         {
-            final int newId = await dbHelper.addDailyEntry(weeklyPlanId: weeklyPlanId, dayId: dayId, weight: weight, age: age, isMale: isMale, additionalCalories: additionalCalories, bmr: bmr, tdee: tdee, activityFactor: activityFactor, activityName: activityName, activityBurn: activityBurn, sportDuration: sportDuration, upperDuration: upperDuration, accessoriesDuration: accessoriesDuration, lowerDuration: lowerDuration, cardioFactor: cardioFactor, cardioName: cardioName, cardioBurn: cardioBurn, cardioDistance: cardioDistance, epocFactor: epocFactor, epocName: epocName, epocBurn: epocBurn, proteinIntensity: proteinIntensity, fatIntake: fatIntake);
+            final int newId = await dbHelper.addDailyEntry(weeklyPlanId: weeklyPlanId, dayId: dayId, activityFactor: activityFactor, activityName: activityName, activityBurn: activityBurn, sportDuration: sportDuration, upperDuration: upperDuration, accessoriesDuration: accessoriesDuration, lowerDuration: lowerDuration, cardioFactor: cardioFactor, cardioName: cardioName, cardioBurn: cardioBurn, cardioDistance: cardioDistance, epocFactor: epocFactor, epocName: epocName, epocBurn: epocBurn, proteinIntensity: proteinIntensity, fatIntake: fatIntake);
 
 			dailyEntries[realIndex] = DailyEntry(id: newId, weeklyPlanId: weeklyPlanId, dayId: dayId, weight: weight, age: age, isMale: isMale, additionalCalories: additionalCalories, bmr: bmr, tdee: tdee, activityFactor: activityFactor, activityName: activityName, activityBurn: activityBurn, sportDuration: sportDuration, upperDuration: upperDuration, accessoriesDuration: accessoriesDuration, lowerDuration: lowerDuration, cardioFactor: cardioFactor, cardioName: cardioName, cardioBurn: cardioBurn, cardioDistance: cardioDistance, epocFactor: epocFactor, epocName: epocName, epocBurn: epocBurn, proteinIntensity: proteinIntensity, fatIntake: fatIntake);
         }

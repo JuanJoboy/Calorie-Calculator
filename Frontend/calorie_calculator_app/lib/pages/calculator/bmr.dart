@@ -1,5 +1,5 @@
 import 'package:calorie_calculator_app/main.dart';
-import 'package:calorie_calculator_app/pages/planner/save_plan.dart';
+import 'package:calorie_calculator_app/pages/planner/folder_data.dart';
 import 'package:calorie_calculator_app/pages/planner/week.dart';
 import 'package:calorie_calculator_app/utilities/colours.dart';
 import 'package:calorie_calculator_app/utilities/help.dart';
@@ -79,10 +79,13 @@ class _BMRPageState extends State<CalculatorPage>
 
 	late CalculationFields _calcs;
 	late UsersTdeeNotifier _tdeeNotifier;
+	late WeeklyTdeeNotifier _weeklyTdee;
 
 	bool get tdeeIsNull => _tdeeNotifier.usersTdee == null; // Checks to see if usersTdee is null or not
 
 	double sliderNumber = 0;
+
+	bool _isSaving = false;
 
 	@override
 	void dispose()
@@ -100,6 +103,10 @@ class _BMRPageState extends State<CalculatorPage>
 
 		final CalculationFields list = context.read<CalculationFields>(); // Since there's no context available here, I just read, rather than making and adding the widget to the tree
 		_calcs = list;
+
+		final WeeklyTdeeNotifier weeklyTdee = context.read<WeeklyTdeeNotifier>();
+		_weeklyTdee = weeklyTdee;
+
 
 		// On the first go, it sets all the fields to blank, but then whenever the user goes to another page, and then back here, the page will rebuild with the previous values. This is so that the fields don't keep resetting
 		weight.text = _calcs.w;
@@ -120,11 +127,31 @@ class _BMRPageState extends State<CalculatorPage>
 
 		if(widget.weeklyPlanner)
 		{
-			return Scaffold
+			return PopScope
 			(
-				backgroundColor: Utils.getBackgroundColor(Theme.of(context)),
-				appBar: AppBar(title: const Text("")),
-				body: mainBody()
+				canPop: false, // Prevent immediate pop
+				onPopInvokedWithResult: (didPop, result) async
+				{
+					if (didPop) return;
+
+					// Delete the plan from DB since they are cancelling
+					if (widget.weeklyPlanId != null && !_isSaving)
+					{
+						final WeeklyPlanNotifier plan = context.read<WeeklyPlanNotifier>();
+						plan.deleteWeeklyPlan(widget.weeklyPlanId!);
+					}
+
+					if (context.mounted)
+					{
+						Navigator.pop(context);
+					}
+				},
+				child: Scaffold
+				(
+					backgroundColor: Utils.getBackgroundColor(Theme.of(context)),
+					appBar: AppBar(title: const Text("")),
+					body: mainBody()
+				)
 			);
 		}
 		else
@@ -192,7 +219,7 @@ class _BMRPageState extends State<CalculatorPage>
 							]
 						),
 
-						widget.weeklyPlanner == true ? caloricSlider() : SizedBox(),
+						widget.weeklyPlanner == true ? caloricSlider() : const SizedBox(),
 
 						buttonsThatProcessInfo(),
 
@@ -550,19 +577,31 @@ class _BMRPageState extends State<CalculatorPage>
 		{
 			if(isNextButton! == true)
 			{
-				await Navigator.push
-				(
-					context,
-					MaterialPageRoute(builder: (context) => Utils.switchPage(context, SavePlanPage(bmr: calculateBodyInfo().bmr, age: calculateBodyInfo().ageNum, male: chosenGender == Gender.male, tdee: calculateBodyInfo().tdee, personWeight: calculateBodyInfo().weightNum, additionalCalories: sliderNumber, weeklyPlanId: widget.weeklyPlanId)))
-				);
+				final (:bmr, :ageNum, :tdee, :weightNum) = calculateBodyInfo();
+
+				await _weeklyTdee.uploadOrEditWeeklyTdee(weeklyPlanId: widget.weeklyPlanId, weight: weightNum, age: ageNum, isMale: chosenGender == Gender.male, additionalCalories: sliderNumber, bmr: bmr, tdee: tdee);
+
+				if(mounted)
+				{
+					await Navigator.push
+					(
+						context,
+						MaterialPageRoute(builder: (context) => Utils.switchPage(context, WeekPage(bmr: bmr, age: ageNum, male: chosenGender == Gender.male, tdee: tdee, personWeight: weightNum, additionalCalories: sliderNumber, weeklyPlanId: widget.weeklyPlanId)))
+					);
+				}
 			}
 			else
 			{
-				await Navigator.push
-				(
-					context,
-					MaterialPageRoute(builder: (context) => Utils.switchPage(context, SavePlanPage(bmr: _tdeeNotifier.usersTdee!.bmr, age: _tdeeNotifier.usersTdee!.age, male: _tdeeNotifier.usersTdee!.male, tdee: _tdeeNotifier.usersTdee!.tdee, personWeight: _tdeeNotifier.usersTdee!.weight, additionalCalories: sliderNumber, weeklyPlanId: widget.weeklyPlanId)))
-				);
+				await _weeklyTdee.uploadOrEditWeeklyTdee(weeklyPlanId: widget.weeklyPlanId, weight: _tdeeNotifier.usersTdee!.weight, age: _tdeeNotifier.usersTdee!.age, isMale: _tdeeNotifier.usersTdee!.male, additionalCalories: sliderNumber, bmr: _tdeeNotifier.usersTdee!.bmr, tdee: _tdeeNotifier.usersTdee!.tdee);
+
+				if(mounted)
+				{
+					await Navigator.push
+					(
+						context,
+						MaterialPageRoute(builder: (context) => Utils.switchPage(context, WeekPage(bmr: _tdeeNotifier.usersTdee!.bmr, age: _tdeeNotifier.usersTdee!.age, male: _tdeeNotifier.usersTdee!.male, tdee: _tdeeNotifier.usersTdee!.tdee, personWeight: _tdeeNotifier.usersTdee!.weight, additionalCalories: sliderNumber, weeklyPlanId: widget.weeklyPlanId)))
+					);
+				}
 			}
 		}
 		else

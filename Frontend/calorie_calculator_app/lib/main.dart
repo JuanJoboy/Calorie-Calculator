@@ -22,6 +22,7 @@ void main()
 		(
 			providers:
 			[
+				ChangeNotifierProvider(create: (context) => WeeklyTdeeNotifier()),
 				ChangeNotifierProvider(create: (context) => DailyEntryNotifier()),
 				ChangeNotifierProvider(create: (context) => WeeklyPlanNotifier()..init()),
 				ChangeNotifierProvider(create: (context) => FolderNotifier()),

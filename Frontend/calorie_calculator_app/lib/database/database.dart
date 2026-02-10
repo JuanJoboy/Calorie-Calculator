@@ -33,17 +33,21 @@ class DatabaseHelper
 	final String weeklyPlansIDColumnName = "id";
 	final String weeklyPlansFolderNameColumnName = "folder_name";
 
+	// TDEE Stuff but only for the Weekly Planner
+	final String weeklyTdeeTableName = "weekly_tdee";
+	final String weeklyTdeeWeeklyPlanIDColumnName = "weekly_plan_id";
+	final String weeklyTdeeWeightColumnName = "weight";
+	final String weeklyTdeeAgeColumnName = "age";
+	final String weeklyTdeeMaleColumnName = "male";
+	final String weeklyTdeeAdditionalCaloriesColumnName = "additional_calories";
+	final String weeklyTdeeBMRColumnName = "bmr";
+	final String weeklyTdeeTDEEColumnName = "tdee";
+
 	// Day Table Within The Week-Folder
 	final String dailyEntriesTableName = "daily_entries";
 	final String dailyEntriesIDColumnName = "id";
 	final String dailyEntriesWeeklyPlanIDColumnName = "weekly_plan_id";
 	final String dailyEntriesDayIDColumnName = "day_of_the_week";
-	final String dailyEntriesWeightColumnName = "weight";
-	final String dailyEntriesAgeColumnName = "age";
-	final String dailyEntriesMaleColumnName = "male";
-	final String dailyEntriesAdditionalCaloriesColumnName = "additional_calories";
-	final String dailyEntriesBMRColumnName = "bmr";
-	final String dailyEntriesTDEEColumnName = "tdee";
 	final String dailyEntriesActivityFactorColumnName = "activity_factor";
 	final String dailyEntriesActivityNameColumnName = "activity_name";
 	final String dailyEntriesActivityBurnColumnName = "activity_burn";
@@ -127,16 +131,29 @@ class DatabaseHelper
 				db.execute
 				(
 					'''
+						CREATE TABLE $weeklyTdeeTableName (
+							$weeklyTdeeWeeklyPlanIDColumnName INTEGER PRIMARY KEY,
+							$weeklyTdeeWeightColumnName REAL NOT NULL,
+							$weeklyTdeeAgeColumnName REAL NOT NULL,
+							$weeklyTdeeMaleColumnName INTEGER NOT NULL,
+							$weeklyTdeeAdditionalCaloriesColumnName REAL NOT NULL,
+							$weeklyTdeeBMRColumnName REAL NOT NULL,
+							$weeklyTdeeTDEEColumnName REAL NOT NULL,
+							FOREIGN KEY ($weeklyTdeeWeeklyPlanIDColumnName)
+								REFERENCES $weeklyPlansTableName ($weeklyPlansIDColumnName)
+								ON DELETE CASCADE
+								ON UPDATE CASCADE
+						)
+					'''
+				);
+
+				db.execute
+				(
+					'''
 						CREATE TABLE $dailyEntriesTableName (
 							$dailyEntriesIDColumnName INTEGER PRIMARY KEY AUTOINCREMENT,
 							$dailyEntriesWeeklyPlanIDColumnName INTEGER NOT NULL,
 							$dailyEntriesDayIDColumnName INTEGER NOT NULL,
-							$dailyEntriesWeightColumnName REAL NOT NULL,
-							$dailyEntriesAgeColumnName REAL NOT NULL,
-							$dailyEntriesMaleColumnName INTEGER NOT NULL,
-							$dailyEntriesAdditionalCaloriesColumnName REAL NOT NULL,
-							$dailyEntriesBMRColumnName REAL NOT NULL,
-							$dailyEntriesTDEEColumnName REAL NOT NULL,
 							$dailyEntriesActivityFactorColumnName REAL NOT NULL,
 							$dailyEntriesActivityNameColumnName TEXT NOT NULL,
 							$dailyEntriesActivityBurnColumnName REAL NOT NULL,
@@ -280,7 +297,50 @@ class DatabaseHelper
 		);
 	}
 
-	Future<int> addDailyEntry({required int? weeklyPlanId, required int dayId, required double weight, required double age, required bool isMale, required double additionalCalories, required double bmr, required double tdee, required double activityFactor, required String activityName, required double activityBurn, required double sportDuration, required double upperDuration, required double accessoriesDuration, required double lowerDuration, required double cardioFactor, required String cardioName, required double cardioBurn, required double cardioDistance, required double epocFactor, required String epocName, required double epocBurn, required double proteinIntensity, required double fatIntake}) async
+	Future<int> addWeeklyTdee({required int? weeklyPlanId, required double weight, required double age, required bool isMale, required double additionalCalories, required double bmr, required double tdee}) async
+	{
+		final db = await database;
+
+        return await db.insert
+        (
+            weeklyTdeeTableName,
+            {
+                weeklyTdeeWeeklyPlanIDColumnName: weeklyPlanId,
+                weeklyTdeeWeightColumnName: weight,
+                weeklyTdeeAgeColumnName: age,
+                weeklyTdeeMaleColumnName: isMale ? 1 : 0,
+                weeklyTdeeAdditionalCaloriesColumnName: additionalCalories,
+                weeklyTdeeBMRColumnName: bmr,
+                weeklyTdeeTDEEColumnName: tdee,
+            },
+			conflictAlgorithm: ConflictAlgorithm.replace
+        );
+	}
+
+	Future<List<Map<String, Object?>>> joinWeeklyTdeeToDailyEntry(int weekId) async
+	{
+		final db = await database;
+
+		return await db.rawQuery
+		(
+			'''
+				SELECT $dailyEntriesTableName.*,
+					$weeklyTdeeTableName.$weeklyTdeeWeightColumnName AS weekly_weight, 
+					$weeklyTdeeTableName.$weeklyTdeeAgeColumnName AS weekly_age, 
+					$weeklyTdeeTableName.$weeklyTdeeMaleColumnName AS weekly_male, 
+					$weeklyTdeeTableName.$weeklyTdeeAdditionalCaloriesColumnName AS weekly_additional, 
+				    $weeklyTdeeTableName.$weeklyTdeeBMRColumnName AS weekly_bmr,
+				    $weeklyTdeeTableName.$weeklyTdeeTDEEColumnName AS weekly_tdee
+				FROM $dailyEntriesTableName
+				LEFT JOIN $weeklyTdeeTableName
+				ON $dailyEntriesTableName.$dailyEntriesWeeklyPlanIDColumnName = $weeklyTdeeTableName.$weeklyTdeeWeeklyPlanIDColumnName
+				WHERE $dailyEntriesTableName.$dailyEntriesWeeklyPlanIDColumnName = ?
+			''',
+			[weekId]
+		);
+	}
+
+	Future<int> addDailyEntry({required int? weeklyPlanId, required int dayId, required double activityFactor, required String activityName, required double activityBurn, required double sportDuration, required double upperDuration, required double accessoriesDuration, required double lowerDuration, required double cardioFactor, required String cardioName, required double cardioBurn, required double cardioDistance, required double epocFactor, required String epocName, required double epocBurn, required double proteinIntensity, required double fatIntake}) async
     {
         final db = await database;
 
@@ -290,12 +350,6 @@ class DatabaseHelper
             {
                 dailyEntriesWeeklyPlanIDColumnName: weeklyPlanId,
                 dailyEntriesDayIDColumnName: dayId,
-                dailyEntriesWeightColumnName: weight,
-                dailyEntriesAgeColumnName: age,
-                dailyEntriesMaleColumnName: isMale ? 1 : 0,
-                dailyEntriesAdditionalCaloriesColumnName: additionalCalories,
-                dailyEntriesBMRColumnName: bmr,
-                dailyEntriesTDEEColumnName: tdee,
                 dailyEntriesActivityFactorColumnName: activityFactor,
                 dailyEntriesActivityNameColumnName: activityName,
                 dailyEntriesActivityBurnColumnName: activityBurn,
@@ -317,7 +371,7 @@ class DatabaseHelper
         );
     }
 
-	Future<int> updateDailyEntry({required int? id, required int? weeklyPlanId, required int dayId, required double weight, required double age, required bool isMale, required double additionalCalories, required double bmr, required double tdee, required double activityFactor, required String activityName, required double activityBurn, required double sportDuration, required double upperDuration, required double accessoriesDuration, required double lowerDuration, required double cardioFactor, required String cardioName, required double cardioBurn, required double cardioDistance, required double epocFactor, required String epocName, required double epocBurn, required double proteinIntensity, required double fatIntake}) async
+	Future<int> updateDailyEntry({required int? id, required int? weeklyPlanId, required int dayId, required double activityFactor, required String activityName, required double activityBurn, required double sportDuration, required double upperDuration, required double accessoriesDuration, required double lowerDuration, required double cardioFactor, required String cardioName, required double cardioBurn, required double cardioDistance, required double epocFactor, required String epocName, required double epocBurn, required double proteinIntensity, required double fatIntake}) async
 	{
 		final db = await database;
 
@@ -327,12 +381,6 @@ class DatabaseHelper
             {
                 dailyEntriesWeeklyPlanIDColumnName: weeklyPlanId,
                 dailyEntriesDayIDColumnName: dayId,
-                dailyEntriesWeightColumnName: weight,
-                dailyEntriesAgeColumnName: age,
-                dailyEntriesMaleColumnName: isMale ? 1 : 0,
-                dailyEntriesAdditionalCaloriesColumnName: additionalCalories,
-                dailyEntriesBMRColumnName: bmr,
-                dailyEntriesTDEEColumnName: tdee,
                 dailyEntriesActivityFactorColumnName: activityFactor,
                 dailyEntriesActivityNameColumnName: activityName,
                 dailyEntriesActivityBurnColumnName: activityBurn,
