@@ -199,10 +199,10 @@ class _PlannerPageState extends State<PlannerPage>
 					[
 						TextButton
 						(
-							onPressed: ()
+							onPressed: () async
 							{
 								Navigator.pop(dialogueContext); // Closes without action
-								_list.deleteWeeklyPlan(id);
+								await _list.deleteWeeklyPlan(id);
 							},
 							child: const Text("Yes", style: TextStyle(fontSize: 20)),
 						),
@@ -238,8 +238,6 @@ class _PlannerPageState extends State<PlannerPage>
 						),
 						onPressed: () async
 						{
-							int id = await _list.createWeeklyPlanShell();
-
 							if(mounted)
 							{
 								await Navigator.push
@@ -247,7 +245,7 @@ class _PlannerPageState extends State<PlannerPage>
 									context,
 									MaterialPageRoute(builder: (context) => Scaffold // ChoiceChips in the bmr page need a scaffold at the root, so i need this here
 									(
-										body: Utils.switchPage(context, CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: false, weeklyPlanner: true, weeklyPlanId: id))
+										body: Utils.switchPage(context, const CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: false, weeklyPlanner: true, weeklyPlanId: null))
 									))
 								);
 							}

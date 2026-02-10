@@ -44,19 +44,10 @@ class WeeklyPlanNotifier extends ChangeNotifier
 		final db = await dbInstance.database;
 		final List<Map<String, dynamic>> weeklyPlansMap = await db.query(dbInstance.weeklyPlansTableName, orderBy: "${dbInstance.weeklyPlansIDColumnName} DESC");
 
-		if(weeklyPlansMap.isNotEmpty)
-		{
-			weeklyPlans = weeklyPlansMap.map((m) => WeeklyPlan.fromMap(m, dbInstance)).toList();
-		}
+		weeklyPlans = weeklyPlansMap.map((m) => WeeklyPlan.fromMap(m, dbInstance)).toList();
 		
 		notifyListeners();
 	}
- 
-    Future<int> createWeeklyPlanShell() async
-    {
-        final DatabaseHelper dbHelper = DatabaseHelper.instance;
-        return await uploadWeeklyPlan(dbHelper);
-    }
 
     Future<void> uploadOrEditWeeklyPlan(String folderName, int? weeklyPlanId) async
     {
@@ -68,19 +59,16 @@ class WeeklyPlanNotifier extends ChangeNotifier
             await dbHelper.updateWeeklyPlan(folderName, weeklyPlanId);
             weeklyPlans[realIndex] = WeeklyPlan(id: weeklyPlanId, folderName: folderName);
         }
+		else
+		{
+			final int id = await dbHelper.addWeeklyPlan("New Weekly Plan");
+			weeklyPlans.insert(0, WeeklyPlan(id: id, folderName: "New Weekly Plan"));
+		}
 
         notifyListeners();
     }
 
-    Future<int> uploadWeeklyPlan(DatabaseHelper dbHelper) async
-    {
-        final int id = await dbHelper.addWeeklyPlan("New Weekly Plan");
-        weeklyPlans.insert(0, WeeklyPlan(id: id, folderName: "New Weekly Plan"));
-
-        return id;
-    }
-
-	void deleteWeeklyPlan(int id) async
+	Future<void> deleteWeeklyPlan(int id) async
 	{
 		WeeklyPlan plan = weeklyPlans.firstWhere
 		(
@@ -103,11 +91,41 @@ class WeeklyPlanNotifier extends ChangeNotifier
 		weeklyPlans.remove(plan);
 		notifyListeners();
 	}
+
+	String getNameOfPlan(int weeklyPlanId)
+	{
+		if(weeklyPlanId == -1) return "Unknown Plan";
+
+		final WeeklyPlan plan = weeklyPlans.firstWhere
+		(
+			(p) => p.id == weeklyPlanId,
+			orElse: () => WeeklyPlan(id: weeklyPlanId, folderName: "Unknown Plan"),
+		);
+
+		return plan.folderName;
+	}
+
+	Future<int> newPeanutShellPlan(double weight, double age, bool isMale, double sliderNumber, double bmr, double tdee) async
+	{
+        final DatabaseHelper dbHelper = DatabaseHelper.instance;
+
+		int weeklyPlanId = await dbHelper.newPlanTransaction("New Weekly Plan", weight, age, isMale, sliderNumber, bmr, tdee);
+		await loadPlans();
+
+		return weeklyPlanId;
+	}
+
+	Future<void> updatePeanutShellPlan(int weeklyPlanId, double weight, double age, bool isMale, double sliderNumber, double bmr, double tdee) async
+	{
+        final DatabaseHelper dbHelper = DatabaseHelper.instance;
+
+		await dbHelper.editPlanTransaction(weeklyPlanId, getNameOfPlan(weeklyPlanId), weight, age, isMale, sliderNumber, bmr, tdee);
+		await loadPlans();
+	}
 }
 
 class WeeklyTdee
 {
-	final int? id;
 	final int? weeklyPlanId;
 	final double weight;
 	final double age;
@@ -118,7 +136,6 @@ class WeeklyTdee
 
 	const WeeklyTdee
 	({
-		required this.id,
 		required this.weeklyPlanId,
 		required this.weight,
 		required this.age,
@@ -132,8 +149,7 @@ class WeeklyTdee
 	{
 		return WeeklyTdee
 		(
-			id: map[db.dailyEntriesIDColumnName],
-			weeklyPlanId: map[db.dailyEntriesWeeklyPlanIDColumnName],
+			weeklyPlanId: map[db.weeklyTdeeWeeklyPlanIDColumnName],
 			weight: (map[db.weeklyTdeeWeightColumnName] as num).toDouble(),
 			age: (map[db.weeklyTdeeAgeColumnName] as num).toDouble(),
 			isMale: map[db.weeklyTdeeMaleColumnName] == 1,
@@ -141,18 +157,6 @@ class WeeklyTdee
 			bmr: (map[db.weeklyTdeeBMRColumnName] as num).toDouble(),
 			tdee: (map[db.weeklyTdeeTDEEColumnName] as num).toDouble(),
 		);
-	}
-}
-
-class WeeklyTdeeNotifier extends ChangeNotifier
-{
-	Future<void> uploadOrEditWeeklyTdee({required int? weeklyPlanId, required double weight, required double age, required bool isMale, required double additionalCalories, required double bmr, required double tdee}) async
-	{
-		final DatabaseHelper dbHelper = DatabaseHelper.instance;
-
-		await dbHelper.addWeeklyTdee(weeklyPlanId: weeklyPlanId, weight: weight, age: age, isMale: isMale, additionalCalories: additionalCalories, bmr: bmr, tdee: tdee);
-
-		notifyListeners();
 	}
 }
 

@@ -96,7 +96,7 @@ class AllCalculations extends ChangeNotifier
 		notifyListeners();
 	}
 
-	void uploadCalc(Calculation calc) async
+	Future<void> uploadCalc(Calculation calc) async
 	{
 		final DatabaseHelper dbHelper = DatabaseHelper.instance;
 		final int id = await dbHelper.addCalc(DateTime.now().toIso8601String(), calc.personWeight, calc.bmr, calc.tdee, calc.weightLiftingBurn, calc.cardioBurn, calc.epoc, calc.totalBurn);
@@ -106,7 +106,7 @@ class AllCalculations extends ChangeNotifier
 		notifyListeners();
 	}
 
-	void deleteCalc(int index) async
+	Future<void> deleteCalc(int index) async
 	{
 		final Calculation calc = calcList[index];
 		final DatabaseHelper dbHelper = DatabaseHelper.instance;
@@ -170,7 +170,7 @@ class UsersTdeeNotifier extends ChangeNotifier
 		notifyListeners();
 	}
  
-	void uploadOrEditTdee(double bmr, double tdee, double weight, double age, bool male) async
+	Future<void> uploadOrEditTdee(double bmr, double tdee, double weight, double age, bool male) async
 	{
 		final DatabaseHelper dbHelper = DatabaseHelper.instance;
 

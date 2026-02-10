@@ -75,7 +75,7 @@ class DatabaseHelper
 	Future<Database> getDatabase() async
 	{
 		final String databaseDirPath = await getDatabasesPath();
-		final String databasePath = join(databaseDirPath, "master_db.db");
+		final String databasePath = join(databaseDirPath, "master_db_v2.db"); // When in doubt regarding sql, its probably an onCreate issue or you can just rename the .db file to ensure that the old .db file isn't interfering.
 
 		return await openDatabase
 		(
@@ -85,9 +85,9 @@ class DatabaseHelper
 			{
 				await db.execute('PRAGMA foreign_keys = ON');
 			},
-			onCreate: (db, version)
+			onCreate: (db, version) async
 			{
-				db.execute
+				await db.execute
 				(
 					'''
 						CREATE TABLE $calcsTableName (
@@ -104,7 +104,7 @@ class DatabaseHelper
 					''',
 				);
 
-				db.execute
+				await db.execute
 				(
 					'''
 						CREATE TABLE $tdeeTableName (
@@ -118,7 +118,7 @@ class DatabaseHelper
 					'''
 				);
 
-				db.execute
+				await db.execute
 				(
 					'''
 						CREATE TABLE $weeklyPlansTableName (
@@ -128,7 +128,7 @@ class DatabaseHelper
 					'''
 				);
 
-				db.execute
+				await db.execute
 				(
 					'''
 						CREATE TABLE $weeklyTdeeTableName (
@@ -147,7 +147,7 @@ class DatabaseHelper
 					'''
 				);
 
-				db.execute
+				await db.execute
 				(
 					'''
 						CREATE TABLE $dailyEntriesTableName (
@@ -178,9 +178,6 @@ class DatabaseHelper
 						)
 					'''
 				);
-			},
-			onUpgrade: (db, oldVersion, newVersion) async
-			{
 			}
 		);
 	}
@@ -256,9 +253,9 @@ class DatabaseHelper
 		);
 	}
 
-	Future<int> addWeeklyPlan(String folderName) async
+	Future<int> addWeeklyPlan(String folderName, {DatabaseExecutor? txn}) async
 	{
-		final db = await database;
+		final db = txn ?? await database;
 
 		return await db.insert
 		(
@@ -269,9 +266,9 @@ class DatabaseHelper
 		);
 	}
 
-	Future<int> updateWeeklyPlan(String folderName, int id) async
+	Future<int> updateWeeklyPlan(String folderName, int id, {DatabaseExecutor? txn}) async
 	{
-		final db = await database;
+		final db = txn ?? await database;
 
 		return await db.update
 		(
@@ -285,9 +282,9 @@ class DatabaseHelper
 		);
 	}
 
-	Future<int> deleteWeeklyPlan(int id) async
+	Future<int> deleteWeeklyPlan(int id, {DatabaseExecutor? txn}) async
 	{
-		final db = await database;
+		final db = txn ?? await database;
 
 		return await db.delete
 		(
@@ -297,11 +294,11 @@ class DatabaseHelper
 		);
 	}
 
-	Future<int> addWeeklyTdee({required int? weeklyPlanId, required double weight, required double age, required bool isMale, required double additionalCalories, required double bmr, required double tdee}) async
+	Future<int> addWeeklyTdee({required int? weeklyPlanId, required double weight, required double age, required bool isMale, required double additionalCalories, required double bmr, required double tdee, DatabaseExecutor? txn}) async
 	{
-		final db = await database;
+		final db = txn ?? await database;
 
-        return await db.insert
+		return await db.insert
         (
             weeklyTdeeTableName,
             {
@@ -317,9 +314,9 @@ class DatabaseHelper
         );
 	}
 
-	Future<List<Map<String, Object?>>> joinWeeklyTdeeToDailyEntry(int weekId) async
+	Future<List<Map<String, Object?>>> joinWeeklyTdeeToDailyEntry(int weekId, {DatabaseExecutor? txn}) async
 	{
-		final db = await database;
+		final db = txn ?? await database;
 
 		return await db.rawQuery
 		(
@@ -340,11 +337,11 @@ class DatabaseHelper
 		);
 	}
 
-	Future<int> addDailyEntry({required int? weeklyPlanId, required int dayId, required double activityFactor, required String activityName, required double activityBurn, required double sportDuration, required double upperDuration, required double accessoriesDuration, required double lowerDuration, required double cardioFactor, required String cardioName, required double cardioBurn, required double cardioDistance, required double epocFactor, required String epocName, required double epocBurn, required double proteinIntensity, required double fatIntake}) async
+	Future<int> addDailyEntry({required int? weeklyPlanId, required int dayId, required double activityFactor, required String activityName, required double activityBurn, required double sportDuration, required double upperDuration, required double accessoriesDuration, required double lowerDuration, required double cardioFactor, required String cardioName, required double cardioBurn, required double cardioDistance, required double epocFactor, required String epocName, required double epocBurn, required double proteinIntensity, required double fatIntake, DatabaseExecutor? txn}) async
     {
-        final db = await database;
+        final db = txn ?? await database;
 
-        return await db.insert
+		return await db.insert
         (
             dailyEntriesTableName,
             {
@@ -371,9 +368,9 @@ class DatabaseHelper
         );
     }
 
-	Future<int> updateDailyEntry({required int? id, required int? weeklyPlanId, required int dayId, required double activityFactor, required String activityName, required double activityBurn, required double sportDuration, required double upperDuration, required double accessoriesDuration, required double lowerDuration, required double cardioFactor, required String cardioName, required double cardioBurn, required double cardioDistance, required double epocFactor, required String epocName, required double epocBurn, required double proteinIntensity, required double fatIntake}) async
+	Future<int> updateDailyEntry({required int? id, required int? weeklyPlanId, required int dayId, required double activityFactor, required String activityName, required double activityBurn, required double sportDuration, required double upperDuration, required double accessoriesDuration, required double lowerDuration, required double cardioFactor, required String cardioName, required double cardioBurn, required double cardioDistance, required double epocFactor, required String epocName, required double epocBurn, required double proteinIntensity, required double fatIntake, DatabaseExecutor? txn}) async
 	{
-		final db = await database;
+		final db = txn ?? await database;
 
 		return await db.update
         (
@@ -402,5 +399,38 @@ class DatabaseHelper
 			whereArgs: [id],
 			conflictAlgorithm: ConflictAlgorithm.replace
 		);
+	}
+
+	Future<int> newPlanTransaction(String folderName, double weight, double age, bool isMale, double sliderNumber, double bmr, double tdee) async
+	{
+		final db = await database;
+
+		int weeklyPlanId = -1;
+
+		await db.transaction((txn) async
+		{
+			weeklyPlanId = await addWeeklyPlan(folderName, txn: txn);
+
+			await addWeeklyTdee(weeklyPlanId: weeklyPlanId, weight: weight, age: age, isMale: isMale, additionalCalories: sliderNumber, bmr: bmr, tdee: tdee, txn: txn);
+
+			for(int i = 0; i < 7; i++)
+			{
+				await addDailyEntry(weeklyPlanId: weeklyPlanId, dayId: i, activityFactor: 0, activityName: "", activityBurn: 0, sportDuration: 0, upperDuration: 0, accessoriesDuration: 0, lowerDuration: 0, cardioFactor: 0, cardioName: "", cardioBurn: 0, cardioDistance: 0, epocFactor: 0, epocName: "", epocBurn: 0, proteinIntensity: 1.6, fatIntake: 0.25, txn: txn);
+			}
+		});
+
+		return weeklyPlanId;
+	}
+
+	Future<void> editPlanTransaction(int weeklyPlanId, String folderName, double weight, double age, bool isMale, double sliderNumber, double bmr, double tdee) async
+	{
+		final db = await database;
+
+		await db.transaction((txn) async
+		{
+			await updateWeeklyPlan(folderName, weeklyPlanId, txn: txn);
+
+			await addWeeklyTdee(weeklyPlanId: weeklyPlanId, weight: weight, age: age, isMale: isMale, additionalCalories: sliderNumber, bmr: bmr, tdee: tdee, txn: txn);
+		});
 	}
 }

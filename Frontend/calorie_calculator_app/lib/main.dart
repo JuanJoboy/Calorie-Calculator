@@ -1,4 +1,5 @@
 // import "package:english_words/english_words.dart"; // Imports a utility package containing thousands of common English words and functions to manipulate them. Used here to generate random WordPair objects.
+import "package:calorie_calculator_app/database/database.dart";
 import "package:calorie_calculator_app/pages/nutrition/nutrition.dart";
 import "package:calorie_calculator_app/pages/planner/folder_data.dart";
 import "package:calorie_calculator_app/pages/planner/planner.dart";
@@ -16,13 +17,14 @@ import "package:shared_preferences/shared_preferences.dart"; // A state manageme
 // TODO: Add try catches, better error handling, comments explaining everything, test cases / test units
 void main()
 {
+	WidgetsFlutterBinding.ensureInitialized();
+
 	runApp
 	(
 		MultiProvider // Allows me to have multiple ChangeNotifiers
 		(
 			providers:
 			[
-				ChangeNotifierProvider(create: (context) => WeeklyTdeeNotifier()),
 				ChangeNotifierProvider(create: (context) => DailyEntryNotifier()),
 				ChangeNotifierProvider(create: (context) => WeeklyPlanNotifier()..init()),
 				ChangeNotifierProvider(create: (context) => FolderNotifier()),

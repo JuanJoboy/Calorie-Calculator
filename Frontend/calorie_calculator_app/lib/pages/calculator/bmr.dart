@@ -79,7 +79,7 @@ class _BMRPageState extends State<CalculatorPage>
 
 	late CalculationFields _calcs;
 	late UsersTdeeNotifier _tdeeNotifier;
-	late WeeklyTdeeNotifier _weeklyTdee;
+	late WeeklyPlanNotifier _weeklyPlan;
 
 	bool get tdeeIsNull => _tdeeNotifier.usersTdee == null; // Checks to see if usersTdee is null or not
 
@@ -104,9 +104,11 @@ class _BMRPageState extends State<CalculatorPage>
 		final CalculationFields list = context.read<CalculationFields>(); // Since there's no context available here, I just read, rather than making and adding the widget to the tree
 		_calcs = list;
 
-		final WeeklyTdeeNotifier weeklyTdee = context.read<WeeklyTdeeNotifier>();
-		_weeklyTdee = weeklyTdee;
+		final WeeklyPlanNotifier weeklyPlan = context.read<WeeklyPlanNotifier>();
+		_weeklyPlan = weeklyPlan;
 
+		final UsersTdeeNotifier tdeeNotifier = context.read<UsersTdeeNotifier>();
+		_tdeeNotifier = tdeeNotifier;
 
 		// On the first go, it sets all the fields to blank, but then whenever the user goes to another page, and then back here, the page will rebuild with the previous values. This is so that the fields don't keep resetting
 		weight.text = _calcs.w;
@@ -117,14 +119,6 @@ class _BMRPageState extends State<CalculatorPage>
 	@override
 	Widget build(BuildContext context)
 	{
-		final UsersTdeeNotifier tdeeNotifier = context.read<UsersTdeeNotifier>();
-		_tdeeNotifier = tdeeNotifier;
-
-		if (_tdeeNotifier.usersTdee == null)
-		{
-			_tdeeNotifier.loadTdee();
-		}
-
 		if(widget.weeklyPlanner)
 		{
 			return PopScope
@@ -138,7 +132,7 @@ class _BMRPageState extends State<CalculatorPage>
 					if (widget.weeklyPlanId != null && !_isSaving)
 					{
 						final WeeklyPlanNotifier plan = context.read<WeeklyPlanNotifier>();
-						plan.deleteWeeklyPlan(widget.weeklyPlanId!);
+						await plan.deleteWeeklyPlan(widget.weeklyPlanId!);
 					}
 
 					if (context.mounted)
@@ -521,6 +515,7 @@ class _BMRPageState extends State<CalculatorPage>
 				nextButton("Next", areFieldsEmpty, isNextButton: true),
 
 				const Padding(padding: EdgeInsetsGeometry.only(left: 15, right: 15)),
+
 				nextButton("Stick with ${(_tdeeNotifier.usersTdee?.tdee)?.round() ?? 0.round()} TDEE", tdeeDoesNotExist, isNextButton: false, moreWidth: 170),
 			]
 		);
@@ -579,27 +574,43 @@ class _BMRPageState extends State<CalculatorPage>
 			{
 				final (:bmr, :ageNum, :tdee, :weightNum) = calculateBodyInfo();
 
-				await _weeklyTdee.uploadOrEditWeeklyTdee(weeklyPlanId: widget.weeklyPlanId, weight: weightNum, age: ageNum, isMale: chosenGender == Gender.male, additionalCalories: sliderNumber, bmr: bmr, tdee: tdee);
+				int trueWeeklyPlanId = widget.weeklyPlanId ?? await _weeklyPlan.newPeanutShellPlan(weightNum, ageNum, chosenGender == Gender.male, sliderNumber, bmr, tdee);
+
+				if(trueWeeklyPlanId == -1) return;
+
+				if(widget.weeklyPlanId != null)
+				{
+					await _weeklyPlan.updatePeanutShellPlan(widget.weeklyPlanId!, weightNum, ageNum, chosenGender == Gender.male, sliderNumber, bmr, tdee);
+				}
 
 				if(mounted)
 				{
 					await Navigator.push
 					(
 						context,
-						MaterialPageRoute(builder: (context) => Utils.switchPage(context, WeekPage(bmr: bmr, age: ageNum, male: chosenGender == Gender.male, tdee: tdee, personWeight: weightNum, additionalCalories: sliderNumber, weeklyPlanId: widget.weeklyPlanId)))
+						MaterialPageRoute(builder: (context) => Utils.switchPage(context, WeekPage(bmr: bmr, age: ageNum, male: chosenGender == Gender.male, tdee: tdee, personWeight: weightNum, additionalCalories: sliderNumber, weeklyPlanId: trueWeeklyPlanId)))
 					);
 				}
 			}
 			else
 			{
-				await _weeklyTdee.uploadOrEditWeeklyTdee(weeklyPlanId: widget.weeklyPlanId, weight: _tdeeNotifier.usersTdee!.weight, age: _tdeeNotifier.usersTdee!.age, isMale: _tdeeNotifier.usersTdee!.male, additionalCalories: sliderNumber, bmr: _tdeeNotifier.usersTdee!.bmr, tdee: _tdeeNotifier.usersTdee!.tdee);
+				UsersTdee user = _tdeeNotifier.usersTdee!;
+
+				int trueWeeklyPlanId = widget.weeklyPlanId ?? await _weeklyPlan.newPeanutShellPlan(user.weight, user.age, user.male, sliderNumber, user.bmr, user.tdee);
+				
+				if(trueWeeklyPlanId == -1) return;
+
+				if(widget.weeklyPlanId != null)
+				{
+					await _weeklyPlan.updatePeanutShellPlan(widget.weeklyPlanId!, user.weight, user.age, user.male, sliderNumber, user.bmr, user.tdee);
+				}
 
 				if(mounted)
 				{
 					await Navigator.push
 					(
 						context,
-						MaterialPageRoute(builder: (context) => Utils.switchPage(context, WeekPage(bmr: _tdeeNotifier.usersTdee!.bmr, age: _tdeeNotifier.usersTdee!.age, male: _tdeeNotifier.usersTdee!.male, tdee: _tdeeNotifier.usersTdee!.tdee, personWeight: _tdeeNotifier.usersTdee!.weight, additionalCalories: sliderNumber, weeklyPlanId: widget.weeklyPlanId)))
+						MaterialPageRoute(builder: (context) => Utils.switchPage(context, WeekPage(bmr: _tdeeNotifier.usersTdee!.bmr, age: _tdeeNotifier.usersTdee!.age, male: _tdeeNotifier.usersTdee!.male, tdee: _tdeeNotifier.usersTdee!.tdee, personWeight: _tdeeNotifier.usersTdee!.weight, additionalCalories: sliderNumber, weeklyPlanId: trueWeeklyPlanId)))
 					);
 				}
 			}
@@ -608,12 +619,12 @@ class _BMRPageState extends State<CalculatorPage>
 		{
 			if(widget.isDedicatedBMRPage)
 			{
-				setState(()
-				{
-					_tdeeNotifier.uploadOrEditTdee(calculateBodyInfo().bmr, calculateBodyInfo().tdee, calculateBodyInfo().weightNum, calculateBodyInfo().ageNum, chosenGender == Gender.male); // Forces a rebuild of the page which ensures that the bmrExists variable is refreshed and sees the new value instead of being on the stale old value
-				});
+				await _tdeeNotifier.uploadOrEditTdee(calculateBodyInfo().bmr, calculateBodyInfo().tdee, calculateBodyInfo().weightNum, calculateBodyInfo().ageNum, chosenGender == Gender.male); // Forces a rebuild of the page which ensures that the bmrExists variable is refreshed and sees the new value instead of being on the stale old value
 
-				context.read<NavigationNotifier>().changeIndex(3);
+				if(mounted)
+				{
+					context.read<NavigationNotifier>().changeIndex(3);
+				}
 			}
 			else
 			{

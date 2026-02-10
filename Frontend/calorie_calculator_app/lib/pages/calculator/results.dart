@@ -229,9 +229,9 @@ class _ResultsPageState extends State<ResultsPage>
 	{
 		Calculation calc = Calculation(id: null, date: DateTime.now().toIso8601String(), personWeight: weight, bmr: bmr, tdee: tdee, weightLiftingBurn: activityBurn, cardioBurn: cardioBurn, epoc: epoc, totalBurn: total);
 
-		_list.uploadCalc(calc);
+		await _list.uploadCalc(calc);
 
-		_usersNotifier.uploadOrEditTdee(bmr, tdee, weight, age, male);
+		await _usersNotifier.uploadOrEditTdee(bmr, tdee, weight, age, male);
 
 		resetControllers();
 	}

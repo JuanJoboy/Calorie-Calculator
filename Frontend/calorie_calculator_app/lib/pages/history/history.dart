@@ -24,13 +24,9 @@ class _HistoryPageState extends State<HistoryPage>
 	{
 		AllCalculations list = context.watch<AllCalculations>();
 		_list = list;
+
 		final UsersTdeeNotifier tdeeNotifier = context.watch<UsersTdeeNotifier>();
 		_tdeeNotifier = tdeeNotifier;
-
-		if (_tdeeNotifier.usersTdee == null)
-		{
-			_tdeeNotifier.loadTdee();
-		}
 
 		int? b = 0;
 		int? t = 0;
@@ -111,9 +107,9 @@ class _HistoryPageState extends State<HistoryPage>
 		(
 			child: ElevatedButton
 			(
-				onPressed: index == null ? null : ()
+				onPressed: index == null ? null : () async
 				{
-					_list.deleteCalc(index);
+					await _list.deleteCalc(index);
 				},
 				child: const Padding
 				(

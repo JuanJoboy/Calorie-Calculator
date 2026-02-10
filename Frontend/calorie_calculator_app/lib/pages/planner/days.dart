@@ -18,14 +18,17 @@ class DaysPage extends StatefulWidget
 
 class _DaysPageState extends State<DaysPage>
 {
-@override
-  void initState() {
-    super.initState();
-    // Use addPostFrameCallback to ensure the provider is called after the first build start
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DailyEntryNotifier>().loadEntries(widget.weeklyPlanId);
-    });
-  }
+	@override
+	void initState()
+	{
+		super.initState();
+
+		// Use addPostFrameCallback to ensure the provider is called after the first build start
+		WidgetsBinding.instance.addPostFrameCallback((_)
+		{
+			context.read<DailyEntryNotifier>().loadEntries(widget.weeklyPlanId);
+		});
+	}
 
 	@override
 	Widget build(BuildContext context)
@@ -38,7 +41,7 @@ class _DaysPageState extends State<DaysPage>
 			appBar: AppBar(title: const Text("Days")),
 			body: Center
 			(
-				child: notifier.isLoading ? Center(child: CircularProgressIndicator()) : Column
+				child: notifier.isLoading ? const Center(child: CircularProgressIndicator()) : Column
 				(
 					mainAxisAlignment: MainAxisAlignment.center,
 					crossAxisAlignment: CrossAxisAlignment.center,

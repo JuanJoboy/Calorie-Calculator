@@ -64,7 +64,7 @@ class _WeekPageState extends State<WeekPage>
 				if (widget.weeklyPlanId != null && !_isSaving)
 				{
 					final WeeklyPlanNotifier plan = context.read<WeeklyPlanNotifier>();
-					plan.deleteWeeklyPlan(widget.weeklyPlanId!);
+					await plan.deleteWeeklyPlan(widget.weeklyPlanId!);
 				}
 
 				if (context.mounted)
