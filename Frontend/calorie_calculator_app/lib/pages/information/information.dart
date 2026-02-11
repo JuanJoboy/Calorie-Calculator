@@ -1,13 +1,21 @@
+import 'package:calorie_calculator_app/main.dart';
 import 'package:calorie_calculator_app/utilities/colours.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:bulleted_list/bulleted_list.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class InformationPage extends StatelessWidget
+class InformationPage extends StatefulWidget
 {
 	const InformationPage({super.key});
 
+	@override
+	State<InformationPage> createState() => _InformationPageState();
+}
+
+class _InformationPageState extends State<InformationPage>
+{
 	@override
 	Widget build(BuildContext context)
 	{
@@ -20,7 +28,10 @@ class InformationPage extends StatelessWidget
 				(
 					children:
 					[
+						darkModeButton(),
+
 						disclaimer(),
+						
 						bmr(context),
 						tdee(context),
 						weightLiftingBurn(context),
@@ -1027,5 +1038,42 @@ class InformationPage extends StatelessWidget
 				);
 			}
 		}
+	}
+
+	Widget darkModeButton()
+	{
+		return Switch
+		(
+			padding: const EdgeInsets.only(top: 30),
+			value: context.read<ThemeNotifier>().isLightMode,
+			onChanged: (newValue)
+			{
+				setState(()
+				{
+					context.read<ThemeNotifier>().isLightMode = newValue;
+					context.read<ThemeNotifier>().changeTheme();
+				});
+			},
+			thumbIcon: WidgetStateProperty.resolveWith<Icon?>((Set<WidgetState> states)
+			{
+				if(states.contains(WidgetState.selected))
+				{
+					return const Icon(Icons.nights_stay_rounded, size: 20);
+				}
+
+				return const Icon(Icons.sunny, size: 20);
+			}),
+			thumbColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states)
+			{
+				if(states.contains(WidgetState.selected))
+				{
+					return Colors.black;
+				}
+
+				return Colors.black;
+			}),
+			inactiveTrackColor: Colors.amber[300],
+			activeTrackColor: Colors.blue[200],
+		);
 	}
 }

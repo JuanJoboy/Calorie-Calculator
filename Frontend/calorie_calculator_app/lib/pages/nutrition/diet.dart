@@ -288,7 +288,7 @@ class _DietPageState extends State<DietPage>
 
 		final (:minBaseWater, :maxBaseWater, :minExerciseWater, :maxExerciseWater) = NutritionMath.water(widget.weight, activityDuration, widget.metFactor, widget.cardioDistance, widget.cardioFactor);
 
-		final bool noActivity = widget.metFactor == 0 && widget.cardioFactor == 0;
+		final bool noActivity = widget.activityBurn == 0 && widget.cardioBurn == 0;
 
 		switch(activeView)
 		{
@@ -298,11 +298,11 @@ class _DietPageState extends State<DietPage>
 					key: const ValueKey(0),
 					children:
 					[
-						Utils.header(noActivity == true ? "Rest Day 😴" : "Activity", 30, FontWeight.bold),
+						Utils.header(noActivity == true ? "Rest Day 😴" : "Training Day 🔥", 30, FontWeight.bold),
 	
-						activityCard(widget.metFactor != 0, widget.activityName, widget.activityBurn),
+						activityCard(widget.activityBurn != 0, widget.activityName, widget.activityBurn),
 	
-						activityCard(widget.cardioFactor != 0, widget.cardioName, widget.cardioBurn),
+						activityCard(widget.cardioBurn != 0, widget.cardioName, widget.cardioBurn),
 
 						activityCard(!noActivity, "EPOC", widget.epocBurn),
 

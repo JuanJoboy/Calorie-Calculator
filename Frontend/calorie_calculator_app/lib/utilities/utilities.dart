@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 class Utils
 {
-	static Widget header(String text, double fontSize, FontWeight fontWeight, {double? padding})
+	static Widget header(String text, double fontSize, FontWeight fontWeight, {double? padding, Color? color})
 	{
 		return Padding
 		(
@@ -17,6 +17,7 @@ class Utils
 					(
 						fontSize: fontSize,
 						fontWeight: fontWeight,
+						color: color
 					),
 					overflow: TextOverflow.fade,
 				),

@@ -1,4 +1,5 @@
-import 'package:calorie_calculator_app/main.dart';
+import 'package:bulleted_list/bulleted_list.dart';
+import 'package:calorie_calculator_app/utilities/colours.dart';
 import 'package:calorie_calculator_app/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:calorie_calculator_app/pages/calculator/calculations.dart';
@@ -41,9 +42,11 @@ class _HistoryPageState extends State<HistoryPage>
 		(
 			children:
 			[
-				Utils.header("BMR: $b	|	TDEE: $t", 30, FontWeight.bold),
+				Utils.header("BMR: $b	|	TDEE: $t", 30, FontWeight.bold, padding: 50),
 
-				darkModeButton(),
+				Utils.header("All units in kcal", 15, FontWeight.bold, padding: 10, color: Colors.grey[500]),
+
+				const Padding(padding: EdgeInsetsGeometry.only(top: 20)),
 
 				Expanded
 				(
@@ -53,7 +56,7 @@ class _HistoryPageState extends State<HistoryPage>
 						itemCount: list.calcList.length,
 						itemBuilder: (context, index)
 						{
-							return calcWidget(list.calcList, index); // Displays all the calculations
+							return calorieCard(list.calcList, index); // Displays all the calculations
 						},
 					) : const Center(child: Text("No calcs have been lated :(")) // If the list isn't empty then only print this text
 				),
@@ -61,99 +64,189 @@ class _HistoryPageState extends State<HistoryPage>
 		);
 	}
 
-	Widget calcWidget(List<Calculation> list, int index)
+	Widget calorieCard(List<Calculation> list, int index)
 	{
 		final date = DateTime.parse(list[index].date);
 		final day = date.day;
 		final month = date.month;
 		final year = date.year;
-		final bmr = list[index].bmr.toInt();
-		final tdee = list[index].tdee.toInt();
-		final weight = list[index].weightLiftingBurn.toInt();
-		final cardio = list[index].cardioBurn.toInt();
-		final epoc = list[index].epoc.toInt();
-		final total = list[index].totalBurn.toInt();
-		final diff = total - tdee;
+		final bmr = list[index].bmr.round();
+		final tdee = list[index].tdee.round();
+		final activityBurn = list[index].weightLiftingBurn.round();
+		final cardioBurn = list[index].cardioBurn.round();
+		final epocBurn = list[index].epoc.round();
+		final ceiling = list[index].totalBurn.round();
+		final totalBurn = activityBurn + cardioBurn + epocBurn;
 
-		return Card
+		final bool noActivity = activityBurn == 0 && cardioBurn == 0;
+
+		return Padding
 		(
-			child: Column
+			padding: const EdgeInsets.only(top: 20.0, bottom: 20),
+			child: LayoutBuilder
 			(
-				mainAxisSize: MainAxisSize.min,
-				children:
-				[
-					button(index),
-					info("$day/$month/$year"),
-					info("BMR: $bmr"),
-					info("TDEE: $tdee"),
-					info("Weight Lifting Burn: $weight"),
-					info("Cardio Burn: $cardio"),
-					info("EPOC: $epoc"),
-					info("Calories Burned: $diff"),
-					info("Caloric Ceiling: $total"),
-				]
-			),
+				builder: (context, constraints)
+				{
+					return SizedBox
+					(
+						width: constraints.maxWidth - 10,
+						child: Card
+						(
+							color: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
+							shape: RoundedRectangleBorder
+							(
+								side: BorderSide
+								(
+									color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+									width: 4
+								),
+								borderRadius: BorderRadiusGeometry.circular(20)
+							),
+							child: Column
+							(
+								mainAxisAlignment: MainAxisAlignment.center,
+								crossAxisAlignment: CrossAxisAlignment.center,
+								children:
+								[
+									Utils.header(noActivity == true ? "Rest Day 😴" : "Training Day 🔥", 30, FontWeight.bold),
+
+									const Padding(padding: EdgeInsetsGeometry.only(top: 15)),
+
+									Container
+									(
+										padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+										decoration: BoxDecoration
+										(
+											color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+											borderRadius: BorderRadius.circular(20),
+										),
+										child: Text
+										(
+											"$day / $month / $year",
+											style: TextStyle(
+											fontSize: 16,
+											fontWeight: FontWeight.w600,
+											color: Theme.of(context).hintColor,
+											),
+										)
+									),
+
+									const Padding(padding: EdgeInsetsGeometry.only(top: 20)),
+
+									dotPoint("BMR", bmr, Icons.monitor_heart_rounded, Theme.of(context).extension<AppColours>()!.maleSeColour!),
+									dotPoint("Base TDEE", tdee, Icons.self_improvement_rounded, Theme.of(context).extension<AppColours>()!.maleSeColour!),
+									dotPoint("Activity Burn", activityBurn, Icons.whatshot_rounded, Colors.deepOrange[400]!),
+									dotPoint("Cardio Burn", cardioBurn, Icons.whatshot_rounded, Colors.deepOrange[400]!),
+									dotPoint("EPOC", epocBurn, Icons.whatshot_rounded, Colors.deepOrange[400]!),
+									dotPoint("Total Calories Burned", totalBurn, Icons.workspace_premium_rounded, Colors.deepOrange[400]!),
+									dotPoint("Caloric Ceiling", ceiling, Icons.vertical_align_top, Theme.of(context).extension<AppColours>()!.femaleSeColour!),
+
+									deleteButton(index),
+
+									const Padding(padding: EdgeInsetsGeometry.only(top: 30)),
+								],
+							),
+						)
+					);
+				}
+			)
 		);
 	}
 
-	Widget info(String text)
+	Widget deleteButton(int index)
 	{
-		return Text(text);
-	}
-
-	Widget button(int? index)
-	{
-		return Card
+		return Padding
 		(
-			child: ElevatedButton
+			padding: const EdgeInsets.symmetric(horizontal: 10.0),
+			child: GestureDetector
 			(
-				onPressed: index == null ? null : () async
+				onTap: ()
 				{
-					await _list.deleteCalc(index);
+					setState(()
+					{
+						showDialog
+						(
+							context: context,
+							builder: (BuildContext dialogueContext)
+							{
+								return AlertDialog
+								(
+									title: const Text("Confirm Action"),
+									content: const Text("Do you want to delete this calculation?", style: TextStyle(fontSize: 20)),
+									actions:
+									[
+										TextButton
+										(
+											onPressed: () async
+											{
+												Navigator.pop(dialogueContext); // Closes without action
+												await _list.deleteCalc(index);
+											},
+											child: const Text("Yes", style: TextStyle(fontSize: 20)),
+										),
+										TextButton
+										(
+											onPressed: () => Navigator.pop(dialogueContext),
+											child: const Text("No", style: TextStyle(fontSize: 20))
+										),
+									],
+								);
+							}
+						);
+					});
 				},
-				child: const Padding
+				child: SizedBox
 				(
-					padding: EdgeInsets.all(16.0),
-					child: Icon(Icons.minimize_outlined)
+					child: Card
+					(
+						shape: RoundedRectangleBorder
+						(
+							side: BorderSide
+							(
+								color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+								width: 2
+							),
+							borderRadius: BorderRadiusGeometry.circular(20)
+						),
+						color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+						child: const Padding
+						(
+							padding: EdgeInsets.all(8.0),
+							child: Icon(Icons.delete, size: 35),
+						),
+					),
 				),
 			)
 		);
 	}
 
-	Widget darkModeButton()
+	Widget dotPoint(String boldText, int value, IconData icon, Color color)
 	{
-		return Switch
+		return BulletedList
 		(
-			padding: const EdgeInsets.only(top: 30),
-			value: context.read<ThemeNotifier>().isLightMode,
-			onChanged: (newValue)
-			{
-				setState(()
-				{
-					context.read<ThemeNotifier>().isLightMode = newValue;
-					context.read<ThemeNotifier>().changeTheme();
-				});
-			},
-			thumbIcon: WidgetStateProperty.resolveWith<Icon?>((Set<WidgetState> states)
-			{
-				if(states.contains(WidgetState.selected))
-				{
-					return const Icon(Icons.nights_stay_rounded, size: 20);
-				}
+			listItems: [richText(boldText, value, padding: 15)],
+			style: const TextStyle(fontSize: 20, color: Colors.black),
+			bullet: Icon(icon, size: 30, color: color)
+		);
+	}
 
-				return const Icon(Icons.sunny, size: 20);
-			}),
-			thumbColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states)
-			{
-				if(states.contains(WidgetState.selected))
-				{
-					return Colors.black;
-				}
-
-				return Colors.black;
-			}),
-			inactiveTrackColor: Colors.amber[300],
-			activeTrackColor: Colors.blue[200],
+	Widget richText(String boldText, int value, {double? padding})
+	{
+		return Padding
+		(
+			padding: EdgeInsets.symmetric(vertical: padding ?? 5.0),
+			child: Text.rich
+			(
+				TextSpan
+				(
+					style: const TextStyle(fontSize: 20),
+					children:
+					[
+						TextSpan(text: '''$boldText: ''', style: const TextStyle(fontWeight: FontWeight.w500)),
+						TextSpan(text: "$value")
+					]
+				)
+			),
 		);
 	}
 }
