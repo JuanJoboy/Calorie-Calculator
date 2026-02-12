@@ -1,5 +1,8 @@
 import 'package:calorie_calculator_app/main.dart';
+import 'package:calorie_calculator_app/pages/information/bmr_info.dart';
 import 'package:calorie_calculator_app/utilities/colours.dart';
+import 'package:calorie_calculator_app/utilities/hyperlinker.dart';
+import 'package:calorie_calculator_app/utilities/utilities.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:bulleted_list/bulleted_list.dart';
@@ -28,11 +31,12 @@ class _InformationPageState extends State<InformationPage>
 				(
 					children:
 					[
-						darkModeButton(),
+						title(),
 
 						disclaimer(),
-						
-						bmr(context),
+
+						infoSquare("Basal Metabolic Rate (BMR)", const BMRInfo()),
+
 						tdee(context),
 						weightLiftingBurn(context),
 						cardioBurn(context),
@@ -49,6 +53,27 @@ class _InformationPageState extends State<InformationPage>
 		);
   	}
 
+	Widget title()
+	{
+		return Column
+		(
+			mainAxisAlignment: MainAxisAlignment.center,
+			crossAxisAlignment: CrossAxisAlignment.center,
+			children:
+			[
+				Utils.header("How It's Calculated", 30, FontWeight.bold),
+				
+				Text("Concepts and Formulas", style: TextStyle(fontSize: 16, color: Theme.of(context).hintColor, fontWeight: FontWeight.w400)),
+				
+				const SizedBox(height: 20),
+				
+				darkModeButton(),
+				
+				const Divider(indent: 50, endIndent: 50, height: 40),
+			],
+		);
+	}
+
 	Widget disclaimer()
 	{
 		return Padding
@@ -58,7 +83,7 @@ class _InformationPageState extends State<InformationPage>
 			(
 				height: 300,
 				width: 380,
-
+				
 				child: Card
 				(
 					color: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
@@ -95,7 +120,7 @@ class _InformationPageState extends State<InformationPage>
 								child: Padding
 								(
 									padding: EdgeInsets.all(8.0),
-									child: Text("The caloric data provided are simply mathematical estimations, not clinical measurements. Individual factors (genetics, body composition, hormonal health, etc) are too variable and are beyond the scope of this calculator. This means that these figures serve as a guide rather than an absolute value. The same goes with the nutritional information, they're based on the standards for a healthy adult, not an elderly person or a child. So use these results at your own discretion. For precise nutritional or medical planning, consult a certified professional.", style: TextStyle(color: Color.fromARGB(255, 255, 17, 0)),),
+									child: Text("The caloric data provided are simply mathematical estimations, not clinical measurements. Individual factors (genetics, body composition, hormonal health, etc) are too variable and are beyond the scope of this calculator. This means that these figures serve as a guide rather than an absolute value. The same goes with the nutritional information, they're based on the standards for a healthy adult, not an elderly person or a child. So use these results at your own discretion. For precise nutritional or medical planning, consult a certified professional.", style: TextStyle(color: Color.fromARGB(255, 255, 17, 0))),
 								)
 							),
 						],
@@ -105,55 +130,41 @@ class _InformationPageState extends State<InformationPage>
 		);
 	}
 
-	Widget bmr(BuildContext context)
+	Widget infoSquare(String title, Widget infoPage)
 	{
-		return Card
+		return Padding
 		(
-			child: Column
+			padding: const EdgeInsets.only(top: 20.0),
+			child: SizedBox
 			(
-				children:
-				[
-					const Text('''1. Basal Metabolic Rate (BMR)'''),
-
-					const Text.rich
-					(
-						TextSpan
+				height: 300,
+				width: 380,
+				
+				child: GestureDetector
+				(
+					onTap: () async
+					{
+						await Navigator.push
 						(
-							children:
-							[
-								TextSpan(text: "Definition: ", style: TextStyle(fontWeight: FontWeight.bold)),
-								TextSpan(text: '''Your "Coma" burn; the energy required to maintain basic life functions at rest.'''),
-							]
-						)
-					),
-					
-					const BulletedList
+							context,
+							MaterialPageRoute(builder: (context) => Utils.switchPage(context, infoPage))
+						);
+					},
+					child: Card
 					(
-						listItems: ['''Male Formula: (10 * Weight in kg) + (6.25 * Height in cm) - (5 * Age in years) + 5''', '''Example (70kg | 180cm | 25 years | Male): (10 * 70) + (6.25 * 180) - (5 * 25) + 5 = 1705''', '''Female Formula: (10 * Weight in kg) + (6.25 * Height in cm) - (5 * Age in years) - 161''', '''Example (65kg | 165cm | 25 years | Female): (10 * 65) + (6.25 * 165) - (5 * 25) - 161 = 1395'''],
-					),
-					
-					Text.rich
-					(
-						TextSpan
+						color: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
+						shape: RoundedRectangleBorder
 						(
-							children:
-							[
-								const TextSpan(text: "Note: ", style: TextStyle(fontWeight: FontWeight.bold)),
-								const TextSpan(text: "The "),
-								hyperlinkText("Mifflin-St Jeor Equation", "https://pubmed.ncbi.nlm.nih.gov/2305711/", context),
-								const TextSpan(text: " is the current clinical gold standard for estimating "),
-								hyperlinkText("BMR", "https://www.healthline.com/health/how-to-calculate-your-basal-metabolic-rate", context),
-								const TextSpan(text: ". Established in 1990, it replaced the older "),
-								const TextSpan(text: "Harris-Benedict Equation ", style: TextStyle(fontStyle: FontStyle.italic)),
-								const TextSpan(text: "because it more accurately reflects modern body compositions and sedentary lifestyles. While highly reliable for the average population, it may underestimate needs for highly muscular individuals or overestimate for those with high body fat percentages, as muscle tissue is more metabolically active than fat. Which is where the "),
-								const TextSpan(text: "Katch-McArdle Equation ", style: TextStyle(fontStyle: FontStyle.italic)),
-								const TextSpan(text: "comes in handy. However for simplicity and to accommodate the general population, the "),
-								const TextSpan(text: "Mifflin-St Jeor Equation ", style: TextStyle(fontStyle: FontStyle.italic)),
-								const TextSpan(text: "is used in the app."),
-							]
-						)
-					),					
-				],
+							side: BorderSide
+							(
+								color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+								width: 2
+							),
+							borderRadius: BorderRadiusGeometry.circular(20)
+						),
+						child: Text(title),
+					),
+				)
 			),
 		);
 	}
@@ -176,7 +187,7 @@ class _InformationPageState extends State<InformationPage>
 							[
 								const TextSpan(text: "Definition: ", style: TextStyle(fontWeight: FontWeight.bold)),
 								const TextSpan(text: "The total number of calories you burn in a given day. Your "),
-								hyperlinkText("TDEE is the sum of four metabolic components:", "https://steelfitusa.com/blogs/health-and-wellness/calculate-tdee", context)
+								HyperLinker.hyperlinkText("TDEE is the sum of four metabolic components:", "https://steelfitusa.com/blogs/health-and-wellness/calculate-tdee", context)
 							]
 						)
 					),
@@ -200,7 +211,7 @@ class _InformationPageState extends State<InformationPage>
 							children:
 							[
 								const TextSpan(text: '''Choose a '''),
-								hyperlinkText("Physical Activity Level (PAL) ", "https://www.fao.org/4/y5686e/y5686e07.htm", context),
+								HyperLinker.hyperlinkText("Physical Activity Level (PAL) ", "https://www.fao.org/4/y5686e/y5686e07.htm", context),
 								const TextSpan(text: '''based solely on your job and general movement outside of the gym:''')
 							]
 						)
@@ -246,7 +257,7 @@ class _InformationPageState extends State<InformationPage>
 								const TextSpan(text: "The "),
 								const TextSpan(text: "1.2 ", style: TextStyle(fontWeight: FontWeight.bold)),
 								const TextSpan(text: "is a standardized constant used in the Mifflin St-Jeor and Harris-Benedict equations to account for the ~20% of energy that your body uses for Thermic Effect of Food (~10%) and "),
-								hyperlinkText("Non-Exercise Activity Thermogenesis", "https://pubmed.ncbi.nlm.nih.gov/12468415/", context),
+								HyperLinker.hyperlinkText("Non-Exercise Activity Thermogenesis", "https://pubmed.ncbi.nlm.nih.gov/12468415/", context),
 								const TextSpan(text: " (~10%)."),
 							]
 						)
@@ -275,7 +286,7 @@ class _InformationPageState extends State<InformationPage>
 							children:
 							[
 								const TextSpan(text: "Definition: The cells in your muscles use oxygen to help create the energy needed to move your muscles. One "),
-								hyperlinkText("MET", "https://www.healthline.com/health/what-are-mets", context),
+								HyperLinker.hyperlinkText("MET", "https://www.healthline.com/health/what-are-mets", context),
 								const TextSpan(text: " is defined as the consumption of 3.5 milliliters of oxygen per kilogram of body weight per minute. So, for example, if you weigh 70kg, you consume about 245 milliliters of oxygen per minute while you're at rest (70 kg x 3.5 mL). And with this factor, the intensity of a physical activity can be measured. So if an exercise has a MET of 5, then it means that you are using 5x the energy you normally consume at rest."),
 							]
 						)
@@ -294,10 +305,10 @@ class _InformationPageState extends State<InformationPage>
 							children:
 							[
 								const TextSpan(text: "For the MET formula to work, it assumes constant work, so the above formula works well for sports and other "),
-								hyperlinkText("continuous activities", "https://media.hypersites.com/clients/1235/filemanager/MHC/METs.pdf", context),
+								HyperLinker.hyperlinkText("continuous activities", "https://media.hypersites.com/clients/1235/filemanager/MHC/METs.pdf", context),
 								const TextSpan(text: " where you can easily track how long you actually did an activity for. For activities that incorporate lots of rest (like weightlifting), then multiplying by 0.8 creates a leniency factor to accommodate for the rest periods."),
 								const TextSpan(text: "Additionally for weightlifting, some parts of your body will burn more calories than other parts. "),
-								hyperlinkText("Doing a bicep curl will use significantly less energy than a full body squat.", "https://pmc.ncbi.nlm.nih.gov/articles/PMC5524349/", context),
+								HyperLinker.hyperlinkText("Doing a bicep curl will use significantly less energy than a full body squat.", "https://pmc.ncbi.nlm.nih.gov/articles/PMC5524349/", context),
 								const TextSpan(text: " So for simplicity, this app splits up every muscle group into 3 sections"),
 							]
 						)
@@ -345,9 +356,9 @@ class _InformationPageState extends State<InformationPage>
 							children:
 							[
 								const TextSpan(text: "Note: When running, the main 2 factors that are taken into consideration when burning calories are your body weight and how far you traveled. Naturally, as you increase speed and deal with air resistance, your caloric expenditure increases, however since those are too variable and are tedious to consistently measure. It's easier to just use the aforementioned variables. "),
-								hyperlinkText("MET values do exist for cardio-based activities", "https://media.hypersites.com/clients/1235/filemanager/MHC/METs.pdf", context),
+								HyperLinker.hyperlinkText("MET values do exist for cardio-based activities", "https://media.hypersites.com/clients/1235/filemanager/MHC/METs.pdf", context),
 								const TextSpan(text: ", however since MET assumes constant movement, they wouldn't work as well for people who like to take rest breaks. Especially when running on a treadmill at a flat incline where the "),
-								hyperlinkText("energy cost per kilometer is 1 kcal/kg", "https://journals.physiology.org/doi/abs/10.1152/jappl.1963.18.2.367", context),
+								HyperLinker.hyperlinkText("energy cost per kilometer is 1 kcal/kg", "https://journals.physiology.org/doi/abs/10.1152/jappl.1963.18.2.367", context),
 								const TextSpan(text: ", the below formulas show that difference is negligible enough to ignore. In fact, if you run in the open or on an incline, that 1 kcal/kg would increase and more closely resemble the MET formula's result."),
 							]
 						)
@@ -365,7 +376,7 @@ class _InformationPageState extends State<InformationPage>
 							children:
 							[
 								const TextSpan(text: "Since "),
-								hyperlinkText("cycling is more efficient", "https://en.wikipedia.org/wiki/Bicycle_performance", context),
+								HyperLinker.hyperlinkText("cycling is more efficient", "https://en.wikipedia.org/wiki/Bicycle_performance", context),
 								const TextSpan(text: " due to mechanical assistance and weight support, the cycled distance roughly has to be 3x the distance ran to achieve the same caloric expenditure."),
 							]
 						)
@@ -398,7 +409,7 @@ class _InformationPageState extends State<InformationPage>
 							children:
 							[
 								const TextSpan(text: '''How it Works: During exercise, you create an "oxygen debt." Post-workout, '''),
-								hyperlinkText("the body consumes more oxygen than usual to:", "https://blog.nasm.org/excess-post-exercise-oxygen-consumption", context),
+								HyperLinker.hyperlinkText("the body consumes more oxygen than usual to:", "https://blog.nasm.org/excess-post-exercise-oxygen-consumption", context),
 							]
 						)
 					),
@@ -414,7 +425,7 @@ class _InformationPageState extends State<InformationPage>
 						(
 							children:
 							[
-								hyperlinkText("There are 3 tiers that an EPOC can be", "https://pubmed.ncbi.nlm.nih.gov/17101527/", context),
+								HyperLinker.hyperlinkText("There are 3 tiers that an EPOC can be", "https://pubmed.ncbi.nlm.nih.gov/17101527/", context),
 								const TextSpan(text: ''', and they are determined by the exercise intensity rather than duration:'''),
 							]
 						)
@@ -549,7 +560,7 @@ class _InformationPageState extends State<InformationPage>
 							children:
 							[
 								const TextSpan(text: '''To double check this value, go to '''),
-								hyperlinkText("BMR Calculator", "https://www.calculator.net/bmr-calculator.html?cage=25&csex=m&cheightfeet=5&cheightinch=10&cpound=160&cheightmeter=180&ckg=70&cmop=0&coutunit=c&cformula=m&cfatpct=20&ctype=metric&x=Calculate", context),
+								HyperLinker.hyperlinkText("BMR Calculator", "https://www.calculator.net/bmr-calculator.html?cage=25&csex=m&cheightfeet=5&cheightinch=10&cpound=160&cheightmeter=180&ckg=70&cmop=0&coutunit=c&cformula=m&cfatpct=20&ctype=metric&x=Calculate", context),
 								const TextSpan(text: ''' and put in a 25 year old Male that weighs 70kg and is 180cm tall. And you'll see that the value provided here is very close to the value associated with "Intense exercise 6-7 times/week". Which makes sense, because if you did this intense workout every single day, you definitely would need around 3,000 calories everyday to retain basic bodily functions.'''),
 							]
 						)
@@ -743,9 +754,9 @@ class _InformationPageState extends State<InformationPage>
 								const TextSpan(text: '''How to Lose 450g per Week''', style: TextStyle(fontSize: 20, fontWeight: .bold)),
 								const TextSpan(text: '''\nTo lose 450g of fat, you must create a cumulative weekly deficit of 3,500 calories. This means your body must burn 3,500 more calories than it consumes over 7 days.'''),
 								const TextSpan(text: '''\nWhen the body lacks 500 calories from food to perform its daily functions, it triggers '''),
-								hyperlinkText("lipolysis", "https://www.revitalizemedspa.ca/what-is-lipolysis-understanding-the-science-behind-fat-burning", context),
+								HyperLinker.hyperlinkText("lipolysis", "https://www.revitalizemedspa.ca/what-is-lipolysis-understanding-the-science-behind-fat-burning", context),
 								const TextSpan(text: ''' (breaking down stored fat) to make up the energy difference. For high-intensity athletes, managing '''),
-								hyperlinkText("glycogen levels", "https://inscyd.com/article/muscle-glycogen-and-exercise-all-you-need-to-know/", context),
+								HyperLinker.hyperlinkText("glycogen levels", "https://inscyd.com/article/muscle-glycogen-and-exercise-all-you-need-to-know/", context),
 								const TextSpan(text: ''' is critical to avoid getting fatigued easily.''')
 							]
 						)
@@ -777,7 +788,7 @@ class _InformationPageState extends State<InformationPage>
 							children:
 							[
 								const TextSpan(text: '''Protein is extremely important to eat, as it's what keeps your body physically fit. It's also the most expensive macro to digest, meaning you burn more calories just processing it, and it keeps you full longer during a cut. It also plays a role in '''),
-								hyperlinkText("bone strength and cellular function and other bodily functions.", "https://www.healthline.com/nutrition/10-reasons-to-eat-more-protein", context),
+								HyperLinker.hyperlinkText("bone strength and cellular function and other bodily functions.", "https://www.healthline.com/nutrition/10-reasons-to-eat-more-protein", context),
 								const TextSpan(text: '''When losing weight, it's better to lean towards the higher end of the 1.6g - 2.2g scale, as that will help prevent your body from burning your own muscle for energy.''')
 							]
 						)
@@ -792,7 +803,7 @@ class _InformationPageState extends State<InformationPage>
 							children:
 							[
 								const TextSpan(text: '''Fats are essential for hormone production and '''),
-								hyperlinkText("absorbing fat-soluble vitamins found vegetables, like Vitamin A, D, E, and K.", "https://www.healthline.com/nutrition/fat-soluble-vitamins", context),
+								HyperLinker.hyperlinkText("absorbing fat-soluble vitamins found vegetables, like Vitamin A, D, E, and K.", "https://www.healthline.com/nutrition/fat-soluble-vitamins", context),
 							]
 						)
 					),
@@ -807,9 +818,9 @@ class _InformationPageState extends State<InformationPage>
 							children:
 							[
 								const TextSpan(text: '''Dropping below 20% for extended periods can lead to '''),
-								hyperlinkText("hormonal disruption", "https://www.baptisthealth.com/blog/endocrinology/how-diet-affects-hormones", context),
+								HyperLinker.hyperlinkText("hormonal disruption", "https://www.baptisthealth.com/blog/endocrinology/how-diet-affects-hormones", context),
 								const TextSpan(text: ''' and '''),
-								hyperlinkText("brain fog", "https://thejemfoundation.com/why-your-brain-needs-fat/#:~:text=Fats%2C%20Mood%2C%20and%20Mental%20Health,%2C%20anxiety%2C%20and%20brain%20fog.", context),
+								HyperLinker.hyperlinkText("brain fog", "https://thejemfoundation.com/why-your-brain-needs-fat/#:~:text=Fats%2C%20Mood%2C%20and%20Mental%20Health,%2C%20anxiety%2C%20and%20brain%20fog.", context),
 								const TextSpan(text: '''; and going above 30% would create unnecessarily high-fat diets that cut into your protein and carbohydrate intakes.''')
 							]
 						)
@@ -822,9 +833,9 @@ class _InformationPageState extends State<InformationPage>
 							children:
 							[
 								const TextSpan(text: '''Now to break it down even further, for Saturated Fats, '''),
-								hyperlinkText("you shouldn't consume any more than 10%", "https://www.healthline.com/nutrition/how-much-fat-to-eat#how-much-is-healthy", context),
+								HyperLinker.hyperlinkText("you shouldn't consume any more than 10%", "https://www.healthline.com/nutrition/how-much-fat-to-eat#how-much-is-healthy", context),
 								const TextSpan(text: ''' of your Total Calories. However, that also doesn't mean that you should try eat 0%. Saturated Fat is a precursor to cholesterol, which is a '''),
-								hyperlinkText("building block of vitamin D, hormones, and fat-dissolving bile acids.", "https://www.health.harvard.edu/heart-health/how-its-made-cholesterol-production-in-your-body", context),
+								HyperLinker.hyperlinkText("building block of vitamin D, hormones, and fat-dissolving bile acids.", "https://www.health.harvard.edu/heart-health/how-its-made-cholesterol-production-in-your-body", context),
 							]
 						)
 					),
@@ -839,11 +850,11 @@ class _InformationPageState extends State<InformationPage>
 						(
 							children:
 							[
-								hyperlinkText("To meet your fat goals", "https://www.myjuniper.com/blog/how-much-fat-per-day", context),
+								HyperLinker.hyperlinkText("To meet your fat goals", "https://www.myjuniper.com/blog/how-much-fat-per-day", context),
 								const TextSpan(text: ''', foods with higher '''),
-								hyperlinkText("Monounsaturated Fats", "https://blog.nasm.org/healthy-fats-foods", context),
+								HyperLinker.hyperlinkText("Monounsaturated Fats", "https://blog.nasm.org/healthy-fats-foods", context),
 								const TextSpan(text: ''' (Avocados, almonds, cashews, etc) and '''),
-								hyperlinkText("Polyunsaturated Fats", "https://blog.nasm.org/healthy-fats-foods", context),
+								HyperLinker.hyperlinkText("Polyunsaturated Fats", "https://blog.nasm.org/healthy-fats-foods", context),
 								const TextSpan(text: ''' (Oily fish (salmon, sardines, mackerel), walnuts, flaxseeds, etc) should be eaten.'''),
 							]
 						)
@@ -865,9 +876,9 @@ class _InformationPageState extends State<InformationPage>
 							children:
 							[
 								const TextSpan(text: '''To break it down further, your carbs should also contain a mix of '''),
-								hyperlinkText("soluble and insoluble fibre", "https://www.healthline.com/health/soluble-vs-insoluble-fiber", context),
+								HyperLinker.hyperlinkText("soluble and insoluble fibre", "https://www.healthline.com/health/soluble-vs-insoluble-fiber", context),
 								const TextSpan(text: ''', and you should aim to get '''),
-								hyperlinkText("25 to 30 grams of fibre per day.", "https://my.clevelandclinic.org/health/articles/15416-carbohydrates", context),
+								HyperLinker.hyperlinkText("25 to 30 grams of fibre per day.", "https://my.clevelandclinic.org/health/articles/15416-carbohydrates", context),
 							]
 						)
 					),
@@ -884,10 +895,10 @@ class _InformationPageState extends State<InformationPage>
 							children:
 							[
 								const TextSpan(text: '''And in regards to the other carbohydrate, Sugar is the only nutrient where the optimal intake can be 0g. Your body has no biological requirement for added sugar (unless you suffer from a medical condition). This is because your liver can do a process called '''),
-								hyperlinkText("Gluconeogenesis", "https://teachmephysiology.com/biochemistry/atp-production/gluconeogenesis/", context),
+								HyperLinker.hyperlinkText("Gluconeogenesis", "https://teachmephysiology.com/biochemistry/atp-production/gluconeogenesis/", context),
 								const TextSpan(text: ''', where it converts non-carbohydrate sources into glucose to maintain your sugar levels.'''),
 								const TextSpan(text: '''So if there's no floor for how much I should consume, then what's the ceiling? According to the WHO, you should cut off your sugar intake around '''),
-								hyperlinkText("the 10% mark of your Total Calories.", "https://www.healthdirect.gov.au/sugar", context),
+								HyperLinker.hyperlinkText("the 10% mark of your Total Calories.", "https://www.healthdirect.gov.au/sugar", context),
 							]
 						)
 					),
@@ -906,7 +917,7 @@ class _InformationPageState extends State<InformationPage>
 							children:
 							[
 								const TextSpan(text: '''In order to get every micro needed for your body, it's important to eat a balanced diet with foods from different sources. However if you can't eat from a wide range of foods, Multivitamin Tablets provide many micros needed. An issue with them though is that they don't contain the full matrix of complimentary structures that vegetables contain when you digest them. Nutrients in a whole-food matrix are released slower and absorbed more completely than the flash flood of nutrients from a pill, which often just results in it being flushed away in your urine. Additionally, some vitamins like A, D, E, and K need fat in order to be absorbed, so its always good to eat them with a fatty food. But if vegetables are unaccessible, it's still a good option. For more information, '''),
-								hyperlinkText("refer to this website.", "https://www.healthline.com/nutrition/micronutrients", context),
+								HyperLinker.hyperlinkText("refer to this website.", "https://www.healthline.com/nutrition/micronutrients", context),
 							]
 						)
 					),
@@ -919,7 +930,7 @@ class _InformationPageState extends State<InformationPage>
 						(
 							children:
 							[
-								hyperlinkText("Water intake", "https://www.nuffieldhealth.com/article/how-much-water-should-you-drink-per-day", context),
+								HyperLinker.hyperlinkText("Water intake", "https://www.nuffieldhealth.com/article/how-much-water-should-you-drink-per-day", context),
 								const TextSpan(text: ''' depends on 2 factors: body weight and activity level.'''),
 							]
 						)
@@ -938,7 +949,7 @@ class _InformationPageState extends State<InformationPage>
 							children:
 							[
 								const TextSpan(text: '''For every 1g of glycogen in your muscles, '''),
-								hyperlinkText("your body needs around 3g of water", "https://pubmed.ncbi.nlm.nih.gov/25911631/", context),
+								HyperLinker.hyperlinkText("your body needs around 3g of water", "https://pubmed.ncbi.nlm.nih.gov/25911631/", context),
 								const TextSpan(text: '''. If you are dehydrated your muscles won't be saturated properly and will be flat and weaker than normal.'''),
 							]
 						)
@@ -951,7 +962,7 @@ class _InformationPageState extends State<InformationPage>
 							children:
 							[
 								const TextSpan(text: '''Additionally, the '''),
-								hyperlinkText("synovial fluid", "https://blog.rheosense.com/news/synovial-fluids-and-the-importance-of-viscosity-a-comprehensive-guide", context),
+								HyperLinker.hyperlinkText("synovial fluid", "https://blog.rheosense.com/news/synovial-fluids-and-the-importance-of-viscosity-a-comprehensive-guide", context),
 								const TextSpan(text: ''' that lubricates your joints is made primarily of water. So by dehydrating yourself and exercising, you can easily cause connective tissue injuries.'''),
 							]
 						)
@@ -969,7 +980,7 @@ class _InformationPageState extends State<InformationPage>
 								const TextSpan(text: '''The primary electrolyte that gets the most attention is sodium. It regulates blood volume and muscle contractions, and depletes quickly through sweat. It's important not to consume too much, but it's also important to consume enough to not lose strength and develop headaches.'''),
 								const TextSpan(text: '''Furthermore, if you are drinking large amounts of water (3L+) and training hard, don't be afraid to salt your food or use an electrolyte powder. If you only hydrate yourself without also replacing your electrolytes, you can easily dilute your blood and decrease your performance.'''),
 								const TextSpan(text: '''. For more information, '''),
-								hyperlinkText("refer to this website.", "https://www.healthline.com/nutrition/electrolytes", context),
+								HyperLinker.hyperlinkText("refer to this website.", "https://www.healthline.com/nutrition/electrolytes", context),
 							]
 						)
 					),
@@ -1023,69 +1034,10 @@ class _InformationPageState extends State<InformationPage>
 		);
 	}
 
-	TextSpan hyperlinkText(String hyperText, String websiteUri, BuildContext context)
-	{
-		return TextSpan
-		(
-			children:
-			[
-				TextSpan
-				(
-					text: hyperText,
-					style: const TextStyle
-					(
-						color: Colors.blue,
-						decoration: TextDecoration.underline,
-					),
-					recognizer: TapGestureRecognizer()..onTap = ()
-					{
-						_launchURL(Uri.parse(websiteUri), context);
-					},
-				),
-			],
-		);
-	}
-
-	Future<void> _launchURL(Uri url, BuildContext context) async
-	{
-		try
-		{
-			await launchUrl(url, mode: LaunchMode.inAppBrowserView);
-		}
-		catch(e)
-		{
-			if(context.mounted)
-			{
-				ScaffoldMessenger.of(context).showSnackBar
-				(
-					SnackBar
-					(
-						content: const Center
-						(
-							child: Text
-							(
-								'''Couldn't open website''',
-								style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black),
-							)
-						),
-						width: 200,
-						backgroundColor: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
-						behavior: SnackBarBehavior.floating,
-						shape: RoundedRectangleBorder
-						(
-							borderRadius: BorderRadius.circular(50),
-						),
-					),
-				);
-			}
-		}
-	}
-
 	Widget darkModeButton()
 	{
 		return Switch
 		(
-			padding: const EdgeInsets.only(top: 30),
 			value: context.read<ThemeNotifier>().isLightMode,
 			onChanged: (newValue)
 			{
