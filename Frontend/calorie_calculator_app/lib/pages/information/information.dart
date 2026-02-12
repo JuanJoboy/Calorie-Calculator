@@ -51,15 +51,56 @@ class _InformationPageState extends State<InformationPage>
 
 	Widget disclaimer()
 	{
-		return const Card
+		return Padding
 		(
-			child: Column
+			padding: const EdgeInsets.only(top: 20.0),
+			child: SizedBox
 			(
-				children:
-				[
-					Text('''Disclaimer'''),
-					Text('''The caloric data provided are simply mathematical estimations, not clinical measurements. Individual factors (genetics, body composition, hormonal health, etc) are too variable and are beyond the scope of this calculator. This means that these figures serve as a guide rather than an absolute value. The same goes with the nutritional information, they're based on the standards for a healthy adult, not an elderly person or a child. So use these results at your own discretion. For precise nutritional or medical planning, consult a certified professional.'''),
-				],
+				height: 300,
+				width: 380,
+
+				child: Card
+				(
+					color: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
+					shape: RoundedRectangleBorder
+					(
+						side: BorderSide
+						(
+							color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+							width: 2
+						),
+						borderRadius: BorderRadiusGeometry.circular(20)
+					),
+					child: const Column
+					(
+						children:
+						[
+							Padding
+							(
+								padding: EdgeInsets.only(top: 10.0),
+								child: Text
+								(
+									"Disclaimer",
+									style: TextStyle
+									(
+										fontSize: 20,
+										fontWeight: FontWeight.w900,
+										color: Colors.red
+									)
+								),
+							),
+				
+							SizedBox
+							(
+								child: Padding
+								(
+									padding: EdgeInsets.all(8.0),
+									child: Text("The caloric data provided are simply mathematical estimations, not clinical measurements. Individual factors (genetics, body composition, hormonal health, etc) are too variable and are beyond the scope of this calculator. This means that these figures serve as a guide rather than an absolute value. The same goes with the nutritional information, they're based on the standards for a healthy adult, not an elderly person or a child. So use these results at your own discretion. For precise nutritional or medical planning, consult a certified professional.", style: TextStyle(color: Color.fromARGB(255, 255, 17, 0)),),
+								)
+							),
+						],
+					),
+				),
 			),
 		);
 	}
