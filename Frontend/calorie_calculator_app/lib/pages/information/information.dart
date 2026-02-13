@@ -1,5 +1,12 @@
 import 'package:calorie_calculator_app/main.dart';
 import 'package:calorie_calculator_app/pages/information/bmr_info.dart';
+import 'package:calorie_calculator_app/pages/information/cardio_info.dart';
+import 'package:calorie_calculator_app/pages/information/epoc_info.dart';
+import 'package:calorie_calculator_app/pages/information/example_bulk_info.dart';
+import 'package:calorie_calculator_app/pages/information/example_cut_info.dart';
+import 'package:calorie_calculator_app/pages/information/example_day_info.dart';
+import 'package:calorie_calculator_app/pages/information/sports_info.dart';
+import 'package:calorie_calculator_app/pages/information/tdee_info.dart';
 import 'package:calorie_calculator_app/utilities/colours.dart';
 import 'package:calorie_calculator_app/utilities/hyperlinker.dart';
 import 'package:calorie_calculator_app/utilities/utilities.dart';
@@ -35,19 +42,12 @@ class _InformationPageState extends State<InformationPage>
 
 						disclaimer(),
 
-						infoSquare("Basal Metabolic Rate (BMR)", const BMRInfo()),
+						clickMe(),
 
-						tdee(context),
-						weightLiftingBurn(context),
-						cardioBurn(context),
-						epoc(context),
-						summary(context),
-						gainWeight2(context),
-						gainWeight(),
-						loseWeight2(context),
-						loseWeight(),
-						nutrition(context)
-					],
+						infoGrid(),
+
+						infoSquare("Nutrition", const TDEEInfo())
+					]
 				),
 			)
 		);
@@ -81,7 +81,6 @@ class _InformationPageState extends State<InformationPage>
 			padding: const EdgeInsets.only(top: 20.0),
 			child: SizedBox
 			(
-				height: 300,
 				width: 380,
 				
 				child: Card
@@ -92,7 +91,7 @@ class _InformationPageState extends State<InformationPage>
 						side: BorderSide
 						(
 							color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
-							width: 2
+							width: 6
 						),
 						borderRadius: BorderRadiusGeometry.circular(20)
 					),
@@ -102,7 +101,7 @@ class _InformationPageState extends State<InformationPage>
 						[
 							Padding
 							(
-								padding: EdgeInsets.only(top: 10.0),
+								padding: EdgeInsets.only(top: 20.0),
 								child: Text
 								(
 									"Disclaimer",
@@ -120,9 +119,14 @@ class _InformationPageState extends State<InformationPage>
 								child: Padding
 								(
 									padding: EdgeInsets.all(8.0),
-									child: Text("The caloric data provided are simply mathematical estimations, not clinical measurements. Individual factors (genetics, body composition, hormonal health, etc) are too variable and are beyond the scope of this calculator. This means that these figures serve as a guide rather than an absolute value. The same goes with the nutritional information, they're based on the standards for a healthy adult, not an elderly person or a child. So use these results at your own discretion. For precise nutritional or medical planning, consult a certified professional.", style: TextStyle(color: Color.fromARGB(255, 255, 17, 0))),
+									child: BulletedList
+									(
+										listItems: ['''The caloric data provided are simply mathematical estimations, not clinical measurements.''', '''Individual factors (genetics, body composition, hormonal health, etc) are too variable and are beyond the scope of this calculator.''', '''This means that these figures serve as a guide rather than an absolute value. The same goes with the nutritional information, they're based on the standards for a healthy adult, not an elderly person or a child. So use these results at your own discretion.''', '''For precise nutritional or medical planning, consult a certified professional.'''],
+										style: TextStyle(fontSize: 15, color: Colors.red),
+										bullet: Icon(Icons.warning_amber_rounded, size: 30, color: Colors.red, fontWeight: .w500),
+									)
 								)
-							),
+							)
 						],
 					),
 				),
@@ -130,16 +134,59 @@ class _InformationPageState extends State<InformationPage>
 		);
 	}
 
+	Widget clickMe()
+	{
+		return Column
+		(
+			crossAxisAlignment: CrossAxisAlignment.center,
+			mainAxisAlignment: MainAxisAlignment.center,
+			children:
+			[
+				const SizedBox(height: 20),
+
+				const Divider(indent: 50, endIndent: 50, height: 40),
+
+				Padding
+				(
+					padding: const EdgeInsets.only(right: 30, left: 30, top: 30, bottom: 10),
+					child: Text("Select one of the categories below to learn more", style: TextStyle(color: Theme.of(context).hintColor)),
+				),
+
+				const Icon(Icons.arrow_downward_rounded, size: 30, fontWeight: .w500)
+			],
+		);
+	}
+
+	Widget infoGrid()
+	{
+		return GridView.count
+		(
+			crossAxisCount: 2, // Number of columns
+			shrinkWrap: true,   // Allows the grid to take only as much space as it needs
+			physics: const NeverScrollableScrollPhysics(), // Disables internal scrolling
+			children:
+			[
+				infoSquare("BMR", const BMRInfo()),
+				infoSquare("TDEE", const TDEEInfo()),
+				infoSquare("Sports", const SportsInfo()),
+				infoSquare("Cardio", const CardioInfo()),
+				infoSquare("Epoc", const EPOCInfo()),
+				infoSquare("Example Day", const ExampleDayInfo()),
+				infoSquare("Example Bulk", const ExampleBulkInfo()),
+				infoSquare("Example Cut", const ExampleCutInfo())
+			],
+		);
+	}
+
 	Widget infoSquare(String title, Widget infoPage)
 	{
 		return Padding
 		(
-			padding: const EdgeInsets.only(top: 20.0),
+			padding: const EdgeInsets.all(20),
 			child: SizedBox
 			(
-				height: 300,
-				width: 380,
-				
+				width: 200,
+				height: 100,
 				child: GestureDetector
 				(
 					onTap: () async
@@ -158,11 +205,19 @@ class _InformationPageState extends State<InformationPage>
 							side: BorderSide
 							(
 								color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
-								width: 2
+								width: 4
 							),
 							borderRadius: BorderRadiusGeometry.circular(20)
 						),
-						child: Text(title),
+						child:
+						Center
+						(
+							child: Padding
+							(
+								padding: const EdgeInsets.all(10.0),
+								child: Text(title, style: const TextStyle(fontSize: 20, fontWeight: .w500)),
+							),
+						)
 					),
 				)
 			),

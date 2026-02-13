@@ -264,6 +264,8 @@ class _BurnPageState extends State<BurnPage>
 			children:
 			[
 				Utils.widgetPlusHelper(Utils.header("Activity Selection", 30, FontWeight.bold), HelpIcon(msg: "Select the activity that you did, to apply its MET value. This constant determines how intense your exercise was and how many calories you burned.\n\nNote: No values are needed to proceed, however if you do enter data into any field, you must select a corresponding activity to ensure the correct intensity factor is applied to your results.",), top: 50, right: 17.5),
+
+				Text("Select only 1 activity", style: TextStyle(color: Theme.of(context).hintColor)),
 			
 				Column
 				(
