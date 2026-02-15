@@ -1,5 +1,6 @@
 import 'package:bulleted_list/bulleted_list.dart';
 import 'package:calorie_calculator_app/utilities/colours.dart';
+import 'package:calorie_calculator_app/utilities/settings.dart';
 import 'package:calorie_calculator_app/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:calorie_calculator_app/pages/calculator/calculations.dart';
@@ -123,22 +124,23 @@ class _HistoryPageState extends State<HistoryPage>
 										child: Text
 										(
 											"$day / $month / $year",
-											style: TextStyle(
-											fontSize: 16,
-											fontWeight: FontWeight.w600,
-											color: Theme.of(context).hintColor,
+											style: TextStyle
+											(
+												fontSize: 16,
+												fontWeight: FontWeight.w600,
+												color:Theme.of(context).hintColor,
 											),
 										)
 									),
 
 									const Padding(padding: EdgeInsetsGeometry.only(top: 20)),
 
-									dotPoint("BMR", bmr, Icons.monitor_heart_rounded, Theme.of(context).extension<AppColours>()!.maleSeColour!),
-									dotPoint("Base TDEE", tdee, Icons.self_improvement_rounded, Theme.of(context).extension<AppColours>()!.maleSeColour!),
-									dotPoint("Activity Burn", activityBurn, Icons.whatshot_rounded, Colors.deepOrange[400]!),
-									dotPoint("Cardio Burn", cardioBurn, Icons.whatshot_rounded, Colors.deepOrange[400]!),
-									dotPoint("EPOC", epocBurn, Icons.whatshot_rounded, Colors.deepOrange[400]!),
-									dotPoint("Total Calories Burned", totalBurn, Icons.workspace_premium_rounded, Colors.deepOrange[400]!),
+									dotPoint("BMR", bmr, Icons.monitor_heart_rounded, Theme.of(context).extension<AppColours>()!.bmr!),
+									dotPoint("Base TDEE", tdee, Icons.self_improvement_rounded, Theme.of(context).extension<AppColours>()!.bmr!),
+									dotPoint("Activity Burn", activityBurn, Icons.whatshot_rounded, Theme.of(context).extension<AppColours>()!.caloricBurn!),
+									dotPoint("Cardio Burn", cardioBurn, Icons.whatshot_rounded, Theme.of(context).extension<AppColours>()!.caloricBurn!),
+									dotPoint("EPOC", epocBurn, Icons.whatshot_rounded, Theme.of(context).extension<AppColours>()!.caloricBurn!),
+									dotPoint("Total Calories Burned", totalBurn, Icons.workspace_premium_rounded, Theme.of(context).extension<AppColours>()!.caloricBurn!),
 									dotPoint("Caloric Ceiling", ceiling, Icons.vertical_align_top, Theme.of(context).extension<AppColours>()!.femaleSeColour!),
 
 									deleteButton(index),
@@ -225,7 +227,6 @@ class _HistoryPageState extends State<HistoryPage>
 		return BulletedList
 		(
 			listItems: [richText(boldText, value, padding: 15)],
-			style: const TextStyle(fontSize: 20, color: Colors.black),
 			bullet: Icon(icon, size: 30, color: color)
 		);
 	}

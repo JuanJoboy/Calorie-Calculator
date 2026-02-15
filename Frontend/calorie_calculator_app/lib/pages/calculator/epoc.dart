@@ -139,7 +139,7 @@ class _EPOCPageState extends State<EPOCPage>
 									style: const TextStyle
 									(
 										fontSize: 20,
-										fontWeight: FontWeight.w500
+										fontWeight: FontWeight.w500,
 									)
 								),
 							),
@@ -159,15 +159,22 @@ class _EPOCPageState extends State<EPOCPage>
 										),
 										borderRadius: BorderRadiusGeometry.circular(100)
 									),
-									color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
 									child: ElevatedButton
 									(
+										style: ElevatedButton.styleFrom
+										(
+											backgroundColor: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
+											shape: RoundedRectangleBorder
+											(
+												side: BorderSide(color: outline, width: 2),
+												borderRadius: BorderRadius.circular(100),
+											),
+										),
 										onPressed: () async
 										{
 											await processInfo(epocFactor, subtitle1);
 										},
-										child: const Text("Next", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black))
-,
+										child: const Text("Next", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black)),
 									)
 								),
 							),
@@ -178,7 +185,7 @@ class _EPOCPageState extends State<EPOCPage>
 								style: const TextStyle
 								(
 									fontSize: 17,
-									fontWeight: FontWeight.w600
+									fontWeight: FontWeight.w600,
 								),
 							),
 							Text
@@ -187,7 +194,7 @@ class _EPOCPageState extends State<EPOCPage>
 								style: const TextStyle
 								(
 									fontSize: 15,
-									fontWeight: FontWeight.w500
+									fontWeight: FontWeight.w500,
 								),
 							),
 						],

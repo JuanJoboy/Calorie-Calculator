@@ -1,5 +1,6 @@
 import 'package:calorie_calculator_app/utilities/colours.dart';
 import 'package:calorie_calculator_app/utilities/help.dart';
+import 'package:calorie_calculator_app/utilities/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:calorie_calculator_app/pages/calculator/calculations.dart';
@@ -430,7 +431,6 @@ class _BurnPageState extends State<BurnPage>
 													style: const TextStyle
 													(
 														fontSize: 15,
-														color: Colors.black
 													),
 													controller: controller,
 													onChanged: (value)
@@ -536,7 +536,7 @@ class _BurnPageState extends State<BurnPage>
 			[
 				Utils.widgetPlusHelper(Utils.header("Cardio", 25, FontWeight.w600), HelpIcon(msg: "To calculate how many calories you burned during cardio, input the distance that you traveled into the text field, and click on either the Run-Button or the Cycling-Button to apply the correct efficiency factor.",), top: 45, right: 17.5),
 
-				textBox("Distance", "km", distance, fieldToSave: 5),
+				textBox("Distance", context.watch<DistanceNotifier>().currentUnit.symbol, distance, fieldToSave: 5),
 
 				Row
 				(
@@ -592,7 +592,7 @@ class _BurnPageState extends State<BurnPage>
 					child: const Padding
 					(
 						padding: EdgeInsets.all(8.0),
-						child: Icon(Icons.directions_run_rounded, size: 60, color: Colors.black),
+						child: Icon(Icons.directions_run_rounded, size: 60),
 					),
 				),
 			),
@@ -640,7 +640,7 @@ class _BurnPageState extends State<BurnPage>
 					child: const Padding
 					(
 						padding: EdgeInsets.all(8.0),
-						child: Icon(Icons.directions_bike_rounded, size: 60, color: Colors.black),
+						child: Icon(Icons.directions_bike_rounded, size: 60),
 					),
 				),
 			),
@@ -678,6 +678,7 @@ class _BurnPageState extends State<BurnPage>
 									final double accDurationNum = double.tryParse(accessoriesDuration.text.trim()) ?? 0;
 									final double lowerDurationNum = double.tryParse(lowerDuration.text.trim()) ?? 0;
 									final double distanceNum = double.tryParse(distance.text.trim()) ?? 0;
+									final double trueDistance = context.read<DistanceNotifier>().currentUnit.toBase(distanceNum);
 
 									// Systemic Load Multipliers
 									final double upperBurn = metCalculator(upperDurationNum, 1.2);
@@ -690,14 +691,14 @@ class _BurnPageState extends State<BurnPage>
 									final double activityBurn = extractCorrectActivity(weightLiftingBurn, sportBurn);
 									final (:name, :upper, :acc, :lower, :sport) = extractCorrectDuration(activityName, upperDurationNum, accDurationNum, lowerDurationNum, sportDurationNum);
 
-									final double cardioBurn = widget.personWeight * distanceNum * (chosenCardio?.value ?? 0);
+									final double cardioBurn = widget.personWeight * trueDistance * (chosenCardio?.value ?? 0);
 
 									_calcs.resetControllers();
 
 									Navigator.push
 									(
 										context,
-										MaterialPageRoute(builder: (context) => Utils.switchPage(context, EPOCPage(personWeight: widget.personWeight, age: widget.age, male: widget.male, bmr: widget.bmr, tdee: widget.tdee, activityBurn: activityBurn, cardioBurn: cardioBurn, additionalCalories: widget.additionalCalories, weeklyPlanner: widget.weeklyPlanner, cardioDistance: distanceNum, protein: selectedProteinIntensity, fat: selectedFatIntensity, metFactor: metFactor ?? 0, cardioFactor: chosenCardio?.value ?? 0, activityName: name ?? "", sportDuration: sport, upperDuration: upper, accessoryDuration: acc, lowerDuration: lower, cardioName: (chosenCardio?.label ?? ""), weeklyPlanId: widget.weeklyPlanId, dayId: widget.dayId))) // Takes you to the page that shows all the locations connected to the restaurant
+										MaterialPageRoute(builder: (context) => Utils.switchPage(context, EPOCPage(personWeight: widget.personWeight, age: widget.age, male: widget.male, bmr: widget.bmr, tdee: widget.tdee, activityBurn: activityBurn, cardioBurn: cardioBurn, additionalCalories: widget.additionalCalories, weeklyPlanner: widget.weeklyPlanner, cardioDistance: trueDistance, protein: selectedProteinIntensity, fat: selectedFatIntensity, metFactor: metFactor ?? 0, cardioFactor: chosenCardio?.value ?? 0, activityName: name ?? "", sportDuration: sport, upperDuration: upper, accessoryDuration: acc, lowerDuration: lower, cardioName: (chosenCardio?.label ?? ""), weeklyPlanId: widget.weeklyPlanId, dayId: widget.dayId))) // Takes you to the page that shows all the locations connected to the restaurant
 									);
 								},
 								child: const Text("Next", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black))
@@ -746,7 +747,7 @@ class _BurnPageState extends State<BurnPage>
 			padding: const EdgeInsets.only(left: 20, right: 20, top: 30, bottom: 0),
 			child: ChoiceChip
 			(
-				label: Text(intensity.label, style: const TextStyle(color: Colors.black)),
+				label: Text(intensity.label),
 				selected: isProtein == true ? isProteinSelected == index : isFatSelected == index,
 				onSelected: (value)
 				{
@@ -766,7 +767,6 @@ class _BurnPageState extends State<BurnPage>
 				},
 				selectedColor: Theme.of(context).extension<AppColours>()!.secondaryColour!,
 				backgroundColor: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
-				checkmarkColor: Colors.black,
 			),
 		);
 	}

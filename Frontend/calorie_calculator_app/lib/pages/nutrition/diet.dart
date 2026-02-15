@@ -2,8 +2,10 @@ import 'package:bulleted_list/bulleted_list.dart';
 import 'package:calorie_calculator_app/pages/calculator/burn.dart';
 import 'package:calorie_calculator_app/utilities/colours.dart';
 import 'package:calorie_calculator_app/utilities/formulas.dart';
+import 'package:calorie_calculator_app/utilities/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:calorie_calculator_app/utilities/utilities.dart';
+import 'package:provider/provider.dart';
 
 class DietPage extends StatefulWidget
 {
@@ -255,10 +257,10 @@ class _DietPageState extends State<DietPage>
 		{
 			return const
 			[
-				ButtonSegment(value: DietView.calories, label: Text('Calories', style: TextStyle(fontSize: 13)), icon: Icon(Icons.fitness_center)),
-				ButtonSegment(value: DietView.macros, label: Text('Macros', style: TextStyle(fontSize: 13)), icon: Icon(Icons.pie_chart)),
-				ButtonSegment(value: DietView.water, label: Text('Water', style: TextStyle(fontSize: 13)), icon: Icon(Icons.water_drop)),
-				ButtonSegment(value: DietView.micros, label: Text('Micros', style: TextStyle(fontSize: 13)), icon: Icon(Icons.biotech))
+				ButtonSegment(value: DietView.calories, label: Text('Calories', style: TextStyle(fontSize: 12)), icon: Icon(Icons.fitness_center)),
+				ButtonSegment(value: DietView.macros, label: Text('Macros', style: TextStyle(fontSize: 12)), icon: Icon(Icons.pie_chart)),
+				ButtonSegment(value: DietView.water, label: Text('Water', style: TextStyle(fontSize: 12)), icon: Icon(Icons.water_drop)),
+				ButtonSegment(value: DietView.micros, label: Text('Micros', style: TextStyle(fontSize: 12)), icon: Icon(Icons.biotech))
 			];
 		}
 		else
@@ -286,7 +288,7 @@ class _DietPageState extends State<DietPage>
 		// Water
 		final double activityDuration = CalorieMath.totalDuration(widget.sportDuration, widget.upperDuration, widget.accessoryDuration, widget.lowerDuration);
 
-		final (:minBaseWater, :maxBaseWater, :minExerciseWater, :maxExerciseWater) = NutritionMath.water(widget.weight, activityDuration, widget.metFactor, widget.cardioDistance, widget.cardioFactor);
+		final (:minBaseWater, :maxBaseWater, :minExerciseWater, :maxExerciseWater) = NutritionMath.water(widget.weight, activityDuration, widget.metFactor, widget.cardioDistance, widget.cardioFactor, context);
 
 		final bool noActivity = widget.activityBurn == 0 && widget.cardioBurn == 0;
 
@@ -340,8 +342,8 @@ class _DietPageState extends State<DietPage>
 					children:
 					[
 						Utils.header("Daily Hydration", 25, FontWeight.w600),
-						displayInfo("Base Intake", "$minBaseWater - $maxBaseWater", "L", padding: 20, width: 130),
-						displayInfo("Exercise Add-on", "$minExerciseWater - $maxExerciseWater", "L", padding: 20, width: 130),
+						displayInfo("Base Intake", "$minBaseWater - $maxBaseWater", context.watch<WaterNotifier>().currentUnit.symbol, padding: 20, width: 130),
+						displayInfo("Exercise Add-on", "$minExerciseWater - $maxExerciseWater", context.watch<WaterNotifier>().currentUnit.symbol, padding: 20, width: 130),
 					],
 				);
 			case DietView.micros:
@@ -399,15 +401,13 @@ class _DietPageState extends State<DietPage>
 									BulletedList
 									(
 										listItems: activityDurations(activity),
-										style: const TextStyle(fontSize: 20, color: Colors.black),
 										bullet: Icon(((activity == "EPOC" ? Icons.trending_up : (activity == Cardio.run.label || activity == Cardio.cycle.label) ? Icons.route_rounded : Icons.alarm_rounded)), size: 30, color: Theme.of(context).extension<AppColours>()!.runSeColour!),
 									),
 
 									BulletedList
 									(
 										listItems: [richText("Calories Burned", intValue: caloricValue, unit: "kcal", padding: 20)],
-										style: const TextStyle(fontSize: 20, color: Colors.black),
-										bullet: Icon(Icons.whatshot_rounded, size: 30, color: Colors.deepOrange[400]),
+										bullet: Icon(Icons.whatshot_rounded, size: 30, color: Theme.of(context).extension<AppColours>()!.caloricBurn!),
 									),
 								],
 							),
@@ -455,21 +455,18 @@ class _DietPageState extends State<DietPage>
 									BulletedList
 									(
 										listItems: [richText("Base TDEE", intValue: tdee, unit: "kcal", padding: 15)],
-										style: const TextStyle(fontSize: 20, color: Colors.black),
-										bullet: Icon(Icons.self_improvement_rounded, size: 30, color: Theme.of(context).extension<AppColours>()!.maleSeColour!)
+										bullet: Icon(Icons.self_improvement_rounded, size: 30, color: Theme.of(context).extension<AppColours>()!.bmr!)
 									),
 
 									BulletedList
 									(
 										listItems: [richText("Total Calories Burned", intValue: total, unit: "kcal", padding: 15)],
-										style: const TextStyle(fontSize: 20, color: Colors.black),
-										bullet: Icon(Icons.workspace_premium_rounded, size: 30, color: Colors.deepOrange[400])
+										bullet: Icon(Icons.workspace_premium_rounded, size: 30, color: Theme.of(context).extension<AppColours>()!.caloricBurn!)
 									),
 
 									BulletedList
 									(
 										listItems: [richText("Caloric Ceiling", intValue: ceiling, unit: "kcal", padding: 15)],
-										style: const TextStyle(fontSize: 20, color: Colors.black),
 										bullet: Icon(Icons.vertical_align_top, size: 30, color: Theme.of(context).extension<AppColours>()!.femaleSeColour!)
 									),
 								],

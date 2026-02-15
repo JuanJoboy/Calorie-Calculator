@@ -3,6 +3,7 @@ import 'package:calorie_calculator_app/pages/planner/folder_data.dart';
 import 'package:calorie_calculator_app/pages/planner/week.dart';
 import 'package:calorie_calculator_app/utilities/colours.dart';
 import 'package:calorie_calculator_app/utilities/help.dart';
+import 'package:calorie_calculator_app/utilities/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:calorie_calculator_app/pages/calculator/burn.dart';
@@ -16,9 +17,10 @@ class CalculatorPage extends StatefulWidget
 	final bool isDedicatedBMRPage;
 	final bool weeklyPlanner;
 	final int? weeklyPlanId;
+	final bool isEditing;
 
-	const CalculatorPage({super.key, required this.title, required this.isDedicatedBMRPage, required this.weeklyPlanner, required this.weeklyPlanId});
-	const CalculatorPage.notAWeeklyPlanner({super.key, required this.title, required this.isDedicatedBMRPage, required this.weeklyPlanner, this.weeklyPlanId});
+	const CalculatorPage({super.key, required this.title, required this.isDedicatedBMRPage, required this.weeklyPlanner, required this.weeklyPlanId, required this.isEditing});
+	const CalculatorPage.notAWeeklyPlanner({super.key, required this.title, required this.isDedicatedBMRPage, required this.weeklyPlanner, this.weeklyPlanId, this.isEditing = false});
 
 	@override
 	State<CalculatorPage> createState() => _BMRPageState();
@@ -68,6 +70,7 @@ class _BMRPageState extends State<CalculatorPage>
 {
 	final TextEditingController weight = TextEditingController();
 	final TextEditingController height = TextEditingController();
+	final TextEditingController feet = TextEditingController();
 	final TextEditingController age = TextEditingController();
 
 	int isTdeeSelected = 0;
@@ -94,6 +97,7 @@ class _BMRPageState extends State<CalculatorPage>
 		super.dispose();
 		weight.dispose();
 		height.dispose();
+		feet.dispose();
 		age.dispose();
 	}
 
@@ -113,6 +117,7 @@ class _BMRPageState extends State<CalculatorPage>
 		// On the first go, it sets all the fields to blank, but then whenever the user goes to another page, and then back here, the page will rebuild with the previous values. This is so that the fields don't keep resetting
 		weight.text = _calcs.w;
 		height.text = _calcs.h;
+		feet.text = _calcs.f;
 		age.text = _calcs.a;
   	}
 
@@ -129,7 +134,7 @@ class _BMRPageState extends State<CalculatorPage>
 					if (didPop) return;
 
 					// Delete the plan from DB since they are cancelling
-					if (widget.weeklyPlanId != null && !_isSaving)
+					if (widget.weeklyPlanId != null && !_isSaving && widget.isEditing == false)
 					{
 						final WeeklyPlanNotifier plan = context.read<WeeklyPlanNotifier>();
 						await plan.deleteWeeklyPlan(widget.weeklyPlanId!);
@@ -171,9 +176,9 @@ class _BMRPageState extends State<CalculatorPage>
 
 						Utils.widgetPlusHelper(Utils.header("Measurements", 25, FontWeight.w600), HelpIcon(msg: "Input your current body weight, height, and age into the text fields.",), top: 45, right: 17.5),
 
-						textBox("Weight", "kg", weight, fieldToSave: 1),
-						textBox("Height", "cm", height, fieldToSave: 2),
-						textBox("Age", "years", age, fieldToSave: 3, padding: 47),
+						textCard("Weight", context.watch<WeightNotifier>().currentUnit.symbol, weight, fieldToSave: 1),
+						textCard("Height", context.watch<HeightNotifier>().currentUnit.symbol, height, fieldToSave: 2),
+						textCard("Age", "years", age, fieldToSave: 3),
 
 						Utils.widgetPlusHelper(Utils.header("Physical Activity Level", 25, FontWeight.w600), HelpIcon(msg: "Select a Physical Activity Level (PAL) based on your occupational movement and daily routine only. Do not include gym sessions or sports, as these are calculated on the next page. If an activity that you regularly do isn't listed on the next page, adjust this PAL upward to account for that additional energy demand.",), top: 45, right: 17.5),
 						Column
@@ -223,15 +228,18 @@ class _BMRPageState extends State<CalculatorPage>
 			),
 		);
 	}
-	
-	Widget textBox(String header, String unit, TextEditingController controller, {int? fieldToSave, double? padding})
+
+	Widget textCard(String header, String unit, TextEditingController controller, {required int fieldToSave})
 	{
+		final bool isFoot = context.read<HeightNotifier>().currentUnit == Height.inch;
+		final bool trueIsFoot = isFoot && fieldToSave == 2;
+
 		return Padding
 		(
 			padding: const EdgeInsets.only(top: 20.0),
 			child: SizedBox
 			(
-				height: 105,
+				height: trueIsFoot ? 155 : 105,
 				width: 300,
 				child: Card
 				(
@@ -263,76 +271,117 @@ class _BMRPageState extends State<CalculatorPage>
 								),
 							),
 				
-							Row
+							trueIsFoot ? Column
 							(
 								mainAxisAlignment: MainAxisAlignment.center,
 								children:
 								[
-									Padding
+									Row
 									(
-										padding: EdgeInsets.only(left: padding ?? 30.0),
-										child: SizedBox
-										(
-											height: 40,
-											width: 100,
-											child: Card
-											(
-												shape: RoundedRectangleBorder
-												(
-													side: BorderSide
-													(
-														color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
-														width: 2
-													),
-													borderRadius: BorderRadiusGeometry.circular(100)
-												),
-												color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
-												child: TextField
-												(
-													textAlign: TextAlign.center,
-													decoration: const InputDecoration
-													(
-														hintText: "...",
-														border: InputBorder.none,
-													),
-													style: const TextStyle
-													(
-														fontSize: 15,
-														color: Colors.black
-													),
-													controller: controller,
-													onChanged: (value)
-													{
-														switch(fieldToSave)
-														{
-															case 1: _calcs.updateControllers(weight: value);
-															case 2: _calcs.updateControllers(height: value);
-															case 3: _calcs.updateControllers(age: value);
-														}
-													},
-													inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))],
-													keyboardType: const TextInputType.numberWithOptions(decimal: true),
-												),
-											),
-										),
+										mainAxisAlignment: MainAxisAlignment.center,
+										children:
+										[
+											textBox(feet, fieldToSave: 4),
+											unitName("ft")
+										],
 									),
-					
-									Padding
+
+									const Padding(padding: EdgeInsetsGeometry.only(top: 10)),
+
+									Row
 									(
-										padding: const EdgeInsets.only(left: 8.0, bottom: 3.0),
-										child: Text
-										(
-											unit,
-											style: const TextStyle
-											(
-												fontSize: 17,
-												fontWeight: FontWeight.bold
-											),
-										),
+										mainAxisAlignment: MainAxisAlignment.center,
+										children:
+										[
+											textBox(controller, fieldToSave: fieldToSave),
+											unitName(unit)
+										],
 									)
 								],
 							)
+							: Row
+							(
+								mainAxisAlignment: MainAxisAlignment.center,
+								children:
+								[
+									textBox(controller, fieldToSave: fieldToSave),
+									unitName(unit),
+								],
+							)
 						],
+					),
+				),
+			),
+		);
+	}
+
+	Widget textBox(TextEditingController controller, {required int fieldToSave})
+	{
+		return Padding
+		(
+			padding: const EdgeInsets.only(left: 60.5),
+			child: SizedBox
+			(
+				height: 40,
+				width: 100,
+				child: Card
+				(
+					shape: RoundedRectangleBorder
+					(
+						side: BorderSide
+						(
+							color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+							width: 2
+						),
+						borderRadius: BorderRadiusGeometry.circular(100)
+					),
+					color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+					child: TextField
+					(
+						textAlign: TextAlign.center,
+						decoration: const InputDecoration
+						(
+							hintText: "...",
+							border: InputBorder.none,
+						),
+						style: const TextStyle
+						(
+							fontSize: 15,
+						),
+						controller: controller,
+						onChanged: (value)
+						{
+							switch(fieldToSave)
+							{
+								case 1: _calcs.updateControllers(weight: value);
+								case 2: _calcs.updateControllers(height: value);
+								case 3: _calcs.updateControllers(age: value);
+								case 4: _calcs.updateControllers(feet: value);
+							}
+						},
+						inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))],
+						keyboardType: const TextInputType.numberWithOptions(decimal: true),
+					),
+				),
+			),
+		);
+	}
+
+	Widget unitName(String unit)
+	{
+		return Padding
+		(
+			padding: const EdgeInsets.only(left: 8.0, bottom: 3.0),
+			child: SizedBox
+			(
+				width: 50,
+				child: Text
+				(
+					unit,
+					style: const TextStyle
+					(
+						fontSize: 17,
+						fontWeight: FontWeight.bold
 					),
 				),
 			),
@@ -346,7 +395,7 @@ class _BMRPageState extends State<CalculatorPage>
 			padding: const EdgeInsets.only(left: 20, right: 20, top: 30, bottom: 0),
 			child: ChoiceChip
 			(
-				label: Text(label, style: const TextStyle(color: Colors.black)),
+				label: Text(label),
 				selected: isTdeeSelected == index,
 				onSelected: (value)
 				{
@@ -358,7 +407,6 @@ class _BMRPageState extends State<CalculatorPage>
 				},
 				selectedColor: Theme.of(context).extension<AppColours>()!.secondaryColour!,
 				backgroundColor: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
-				checkmarkColor: Colors.black,
 			),
 		);
 	}
@@ -401,7 +449,7 @@ class _BMRPageState extends State<CalculatorPage>
 					(
 						borderRadius: BorderRadiusGeometry.circular(25)
 					),
-					child: const Icon(Icons.male_rounded, size: 70, color: Colors.black),
+					child: const Icon(Icons.male_rounded, size: 70),
 				),
 			),
 		);
@@ -445,7 +493,7 @@ class _BMRPageState extends State<CalculatorPage>
 					(
 						borderRadius: BorderRadiusGeometry.circular(25)
 					),
-					child: const Icon(Icons.female_rounded, size: 70, color: Colors.black),
+					child: const Icon(Icons.female_rounded, size: 70),
 				),
 			),
 		);
@@ -556,11 +604,28 @@ class _BMRPageState extends State<CalculatorPage>
 	
 	({double bmr, double ageNum, double tdee, double weightNum}) calculateBodyInfo()
 	{
-		final double weightNum = double.tryParse(weight.text.trim()) ?? 0;
-		final double heightNum = double.tryParse(height.text.trim()) ?? 0;
+		final double weightInput = double.tryParse(weight.text.trim()) ?? 0;
+		final double heightInput = double.tryParse(height.text.trim()) ?? 0;
+		final double feetInput = double.tryParse(feet.text.trim()) ?? 0;
 		final double ageNum = double.tryParse(age.text.trim()) ?? 0;
 
-		final double bmr = (10 * weightNum) + (6.25 * heightNum) - (5 * ageNum) + chosenGender!.caloricValue;
+		final double weightNum = context.read<WeightNotifier>().currentUnit.toBase(weightInput);
+
+		final double trueHeight;
+
+		if(!context.read<HeightNotifier>().isBaseMode)
+		{
+			trueHeight = heightInput;
+		}
+		else
+		{
+			final double heightNum = context.read<HeightNotifier>().currentUnit.toBase(heightInput);
+			final double feetNum = context.read<HeightNotifier>().currentUnit.toBase(feetInput * 12);
+
+			trueHeight = heightNum + feetNum;
+		}
+
+		final double bmr = (10 * weightNum) + (6.25 * trueHeight) - (5 * ageNum) + chosenGender!.caloricValue;
 		final double tdee = bmr * selectedTdee;
 
 		return (bmr: bmr, ageNum: ageNum, tdee: tdee, weightNum: weightNum);
@@ -588,7 +653,7 @@ class _BMRPageState extends State<CalculatorPage>
 					await Navigator.push
 					(
 						context,
-						MaterialPageRoute(builder: (context) => Utils.switchPage(context, WeekPage(bmr: bmr, age: ageNum, male: chosenGender == Gender.male, tdee: tdee, personWeight: weightNum, additionalCalories: sliderNumber, weeklyPlanId: trueWeeklyPlanId)))
+						MaterialPageRoute(builder: (context) => Utils.switchPage(context, WeekPage(bmr: bmr, age: ageNum, male: chosenGender == Gender.male, tdee: tdee, personWeight: weightNum, additionalCalories: sliderNumber, weeklyPlanId: trueWeeklyPlanId, isEditing: widget.isEditing)))
 					);
 				}
 			}
@@ -610,7 +675,7 @@ class _BMRPageState extends State<CalculatorPage>
 					await Navigator.push
 					(
 						context,
-						MaterialPageRoute(builder: (context) => Utils.switchPage(context, WeekPage(bmr: _tdeeNotifier.usersTdee!.bmr, age: _tdeeNotifier.usersTdee!.age, male: _tdeeNotifier.usersTdee!.male, tdee: _tdeeNotifier.usersTdee!.tdee, personWeight: _tdeeNotifier.usersTdee!.weight, additionalCalories: sliderNumber, weeklyPlanId: trueWeeklyPlanId)))
+						MaterialPageRoute(builder: (context) => Utils.switchPage(context, WeekPage(bmr: _tdeeNotifier.usersTdee!.bmr, age: _tdeeNotifier.usersTdee!.age, male: _tdeeNotifier.usersTdee!.male, tdee: _tdeeNotifier.usersTdee!.tdee, personWeight: _tdeeNotifier.usersTdee!.weight, additionalCalories: sliderNumber, weeklyPlanId: trueWeeklyPlanId, isEditing: widget.isEditing)))
 					);
 				}
 			}

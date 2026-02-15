@@ -1,5 +1,9 @@
 import 'dart:math';
 import 'package:calorie_calculator_app/pages/nutrition/diet.dart';
+import 'package:calorie_calculator_app/utilities/settings.dart';
+import 'package:flutter/material.dart';
+import 'package:path/path.dart';
+import 'package:provider/provider.dart';
 
 class CalorieMath
 {
@@ -67,10 +71,13 @@ class NutritionMath
 		return (totalCarb: carb, solubleFibre: solubleFibre, insolubleFibre: insolubleFibre, sugar: sugar);
 	}
 
-	static ({double minBaseWater, double maxBaseWater, double minExerciseWater, double maxExerciseWater}) water(double weight, double activityDuration, double metFactor, double cardioDistance, double cardioFactor)
+	static ({double minBaseWater, double maxBaseWater, double minExerciseWater, double maxExerciseWater}) water(double weight, double activityDuration, double metFactor, double cardioDistance, double cardioFactor, BuildContext context)
 	{
 		final double minBaseWater = double.parse((weight * 0.030).toStringAsFixed(2));
 		final double maxBaseWater = double.parse((weight * 0.035).toStringAsFixed(2));
+
+		final double trueMinBaseWater = double.parse(context.read<WaterNotifier>().currentUnit.fromBase(minBaseWater).toStringAsFixed(2));
+		final double trueMaxBaseWater = double.parse(context.read<WaterNotifier>().currentUnit.fromBase(maxBaseWater).toStringAsFixed(2));
 
 		final durationWater = waterDurationScaler(activityDuration, metFactor);
 		
@@ -82,7 +89,10 @@ class NutritionMath
 		final double minExerciseWater = double.parse((minDurationWater + distanceWater).toStringAsFixed(2));
 		final double maxExerciseWater = double.parse((maxDurationWater + distanceWater).toStringAsFixed(2));
 
-		return (minBaseWater: minBaseWater, maxBaseWater: maxBaseWater, minExerciseWater: minExerciseWater, maxExerciseWater: maxExerciseWater);
+		final double trueMinExerciseWater = double.parse(context.read<WaterNotifier>().currentUnit.fromBase(minExerciseWater).toStringAsFixed(2));
+		final double trueMaxExerciseWater = double.parse(context.read<WaterNotifier>().currentUnit.fromBase(maxExerciseWater).toStringAsFixed(2));
+
+		return (minBaseWater: trueMinBaseWater, maxBaseWater: trueMaxBaseWater, minExerciseWater: trueMinExerciseWater, maxExerciseWater: trueMaxExerciseWater);
 	}
 
 	static ({double min, double max}) waterDurationScaler(double activityDuration, double metFactor)

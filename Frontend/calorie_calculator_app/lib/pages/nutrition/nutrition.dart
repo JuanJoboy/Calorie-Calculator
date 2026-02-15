@@ -1,6 +1,7 @@
 import 'package:calorie_calculator_app/pages/nutrition/diet.dart';
 import 'package:calorie_calculator_app/utilities/colours.dart';
 import 'package:calorie_calculator_app/utilities/help.dart';
+import 'package:calorie_calculator_app/utilities/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:calorie_calculator_app/utilities/utilities.dart';
@@ -111,9 +112,9 @@ class _NutritionPageState extends State<NutritionPage>
 					[
 						Utils.header("Macro Calculator", 30, FontWeight.bold),
 
-						Utils.widgetPlusHelper(Utils.header("Today's Biometrics", 25, FontWeight.w600), HelpIcon(msg: "Input your current body weight, caloric intake for today, and the duration of the exercise you did into the text fields. If you didn't do any exercise today, leave it blank or enter 0.",), top: 45, right: 17.5),
+						Utils.widgetPlusHelper(Utils.header("Today's Biometrics", 25, FontWeight.w600), HelpIcon(msg: "Input your current body weight and total caloric intake for today.",), top: 45, right: 17.5),
 
-						textBox("Weight", "kg", weight, fieldToSave: 1, padding: 30),
+						textBox("Weight", context.watch<WeightNotifier>().currentUnit.symbol, weight, fieldToSave: 1, padding: 30),
 						textBox("Total Calories Today", "kcal", tdee, fieldToSave: 2, padding: 45),
 
 						chips("Protein Intensity", "Select the amount of protein that you want in your diet. 'Aggressive Cut / Fat Loss' helps preserve lean mass during a deficit and increases satiety, while 'Maintenance' provides the baseline RDA for health.", ProteinIntensity.values, true),
@@ -229,7 +230,6 @@ class _NutritionPageState extends State<NutritionPage>
 													style: const TextStyle
 													(
 														fontSize: 15,
-														color: Colors.black
 													),
 													controller: controller,
 													onChanged: (value)
@@ -276,7 +276,7 @@ class _NutritionPageState extends State<NutritionPage>
 			padding: const EdgeInsets.only(left: 20, right: 20, top: 30, bottom: 0),
 			child: ChoiceChip
 			(
-				label: Text(intensity.label, style: const TextStyle(color: Colors.black)),
+				label: Text(intensity.label),
 				selected: isProtein == true ? isProteinSelected == index : isFatSelected == index,
 				onSelected: (value)
 				{
@@ -296,7 +296,6 @@ class _NutritionPageState extends State<NutritionPage>
 				},
 				selectedColor: Theme.of(context).extension<AppColours>()!.secondaryColour!,
 				backgroundColor: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
-				checkmarkColor: Colors.black,
 			),
 		);
 	}
@@ -339,7 +338,7 @@ class _NutritionPageState extends State<NutritionPage>
 					(
 						borderRadius: BorderRadiusGeometry.circular(25)
 					),
-					child: const Icon(Icons.male_rounded, size: 70, color: Colors.black),
+					child: const Icon(Icons.male_rounded, size: 70),
 				),
 			),
 		);
@@ -383,7 +382,7 @@ class _NutritionPageState extends State<NutritionPage>
 					(
 						borderRadius: BorderRadiusGeometry.circular(25)
 					),
-					child: const Icon(Icons.female_rounded, size: 70, color: Colors.black),
+					child: const Icon(Icons.female_rounded, size: 70),
 				),
 			),
 		);
@@ -431,7 +430,9 @@ class _NutritionPageState extends State<NutritionPage>
 		final double weightNum = double.tryParse(weight.text.trim()) ?? 0;
 		final int tdeeNum = int.tryParse(tdee.text.trim()) ?? 0;
 
-		return (weightNum, tdeeNum);
+		final double trueWeight = context.read<WeightNotifier>().currentUnit.toBase(weightNum);
+
+		return (trueWeight, tdeeNum);
 	}
 
 	bool areFieldsEmpty()

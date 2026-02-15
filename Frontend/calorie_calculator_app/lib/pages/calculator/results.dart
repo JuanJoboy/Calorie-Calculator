@@ -160,7 +160,7 @@ class _ResultsPageState extends State<ResultsPage>
 													borderRadius: BorderRadiusGeometry.circular(100)
 												),
 												color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
-												child: Center(child: Text(info, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),)),
+												child: Center(child: Text(info, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
 											),
 										),
 									),

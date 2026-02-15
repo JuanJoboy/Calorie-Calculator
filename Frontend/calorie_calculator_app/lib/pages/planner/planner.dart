@@ -147,7 +147,7 @@ class _PlannerPageState extends State<PlannerPage>
 							context,
 							MaterialPageRoute(builder: (context) => Scaffold
 							(
-								body: Utils.switchPage(context, CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: false, weeklyPlanner: true, weeklyPlanId: id!))
+								body: Utils.switchPage(context, CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: false, weeklyPlanner: true, weeklyPlanId: id!, isEditing: true))
 							))
 						);
 					}
@@ -176,7 +176,7 @@ class _PlannerPageState extends State<PlannerPage>
 						child: Padding
 						(
 							padding: const EdgeInsets.all(8.0),
-							child: Icon(icon, size: 30,),
+							child: Icon(icon, size: 30),
 						),
 					),
 				),
@@ -245,7 +245,7 @@ class _PlannerPageState extends State<PlannerPage>
 									context,
 									MaterialPageRoute(builder: (context) => Scaffold // ChoiceChips in the bmr page need a scaffold at the root, so i need this here
 									(
-										body: Utils.switchPage(context, const CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: false, weeklyPlanner: true, weeklyPlanId: null))
+										body: Utils.switchPage(context, const CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: false, weeklyPlanner: true, weeklyPlanId: null, isEditing: false))
 									))
 								);
 							}

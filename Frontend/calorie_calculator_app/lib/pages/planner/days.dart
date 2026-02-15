@@ -132,7 +132,7 @@ class _DaysPageState extends State<DaysPage>
 					width: 360,
 					child: Card
 					(
-						color: Colors.pink[50],
+						color: Theme.of(context).extension<AppColours>()!.fairyPink!,
 						shape: RoundedRectangleBorder
 						(
 							side: BorderSide
@@ -278,7 +278,7 @@ class _DaysPageState extends State<DaysPage>
 		(
 			child: Padding
 			(
-				padding: EdgeInsets.symmetric(horizontal: 10.0),
+				padding: const EdgeInsets.symmetric(horizontal: 10.0),
 				child: Column
 				(
 					children:

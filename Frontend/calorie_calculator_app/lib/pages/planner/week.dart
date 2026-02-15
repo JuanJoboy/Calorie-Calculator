@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 class WeekPage extends StatefulWidget
 {
 	final int? weeklyPlanId;
+	final bool isEditing;
 	final double bmr;
 	final double age;
 	final bool male;
@@ -15,7 +16,7 @@ class WeekPage extends StatefulWidget
 	final double personWeight;
 	final double additionalCalories;
 	
-	const WeekPage({super.key, required this.weeklyPlanId, required this.bmr, required this.age, required this.male, required this.tdee, required this.personWeight, required this.additionalCalories});
+	const WeekPage({super.key, required this.weeklyPlanId, required this.isEditing, required this.bmr, required this.age, required this.male, required this.tdee, required this.personWeight, required this.additionalCalories});
 
 	@override
 	State<WeekPage> createState() => _WeekPageState();
@@ -61,7 +62,7 @@ class _WeekPageState extends State<WeekPage>
 				if (didPop) return;
 
 				// Delete the plan from DB since they are cancelling
-				if (widget.weeklyPlanId != null && !_isSaving)
+				if (widget.weeklyPlanId != null && !_isSaving && widget.isEditing == false)
 				{
 					final WeeklyPlanNotifier plan = context.read<WeeklyPlanNotifier>();
 					await plan.deleteWeeklyPlan(widget.weeklyPlanId!);
@@ -185,7 +186,6 @@ class _WeekPageState extends State<WeekPage>
 													style: const TextStyle
 													(
 														fontSize: 25,
-														color: Colors.black
 													),
 													controller: folderName,
 													onChanged: (value)
@@ -229,7 +229,7 @@ class _WeekPageState extends State<WeekPage>
 					width: double.infinity,
 					child: Card
 					(
-						color: Colors.pink[50],
+						color: Theme.of(context).extension<AppColours>()!.fairyPink!,
 						shape: RoundedRectangleBorder
 						(
 							side: BorderSide

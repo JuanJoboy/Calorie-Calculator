@@ -44,42 +44,16 @@ class Utils
 			],
 		);
 	}
-	static Color? getColor(double? rating, ThemeData theme)
-	{
-		final bool lightMode = theme.brightness == Brightness.light;
 
-		if(rating != null)
-		{
-			if(lightMode)
-			{
-				return Color.lerp(const Color.fromARGB(225, 255, 0, 0), const Color.fromARGB(255, 50, 255, 0), (rating / 10));
-			}
-			else
-			{
-				return Color.lerp(const Color.fromARGB(255, 152, 27, 27), const Color.fromARGB(255, 27, 152, 5), (rating / 10)); // Slightly duller, so that it doesn't look weirdly neon on dark mode
-			}
-		}
-		else
-		{
-			if(lightMode)
-			{
-				return theme.colorScheme.onPrimary;
-			}
-			else
-			{
-				return Colors.black;
-			}
-		}
+	// If the condition is true, the first option is chosen, otherwise the second is chosen. T allows for any datatype to be returned
+	static T whatModeIsIt<T>(bool condition, T option1, T option2)
+	{
+		return condition ? option1 : option2;
 	}
 
 	static Color getBackgroundColor(ThemeData theme)
 	{
 		return theme.scaffoldBackgroundColor;
-	}
-
-	static bool backgroundColorIsLightMode(ThemeData theme)
-	{
-		return theme.brightness == Brightness.light ? true : false;
 	}
 
 	static ColoredBox switchPage(BuildContext context, Widget nextPage)
