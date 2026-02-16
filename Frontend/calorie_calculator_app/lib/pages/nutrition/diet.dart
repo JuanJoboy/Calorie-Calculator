@@ -257,10 +257,10 @@ class _DietPageState extends State<DietPage>
 		{
 			return const
 			[
-				ButtonSegment(value: DietView.calories, label: Text('Calories', style: TextStyle(fontSize: 12)), icon: Icon(Icons.fitness_center)),
-				ButtonSegment(value: DietView.macros, label: Text('Macros', style: TextStyle(fontSize: 12)), icon: Icon(Icons.pie_chart)),
-				ButtonSegment(value: DietView.water, label: Text('Water', style: TextStyle(fontSize: 12)), icon: Icon(Icons.water_drop)),
-				ButtonSegment(value: DietView.micros, label: Text('Micros', style: TextStyle(fontSize: 12)), icon: Icon(Icons.biotech))
+				ButtonSegment(value: DietView.calories, label: Text('Calories', style: TextStyle(fontSize: 10)), icon: Icon(Icons.fitness_center)),
+				ButtonSegment(value: DietView.macros, label: Text('Macros', style: TextStyle(fontSize: 10)), icon: Icon(Icons.pie_chart)),
+				ButtonSegment(value: DietView.water, label: Text('Water', style: TextStyle(fontSize: 10)), icon: Icon(Icons.water_drop)),
+				ButtonSegment(value: DietView.micros, label: Text('Micros', style: TextStyle(fontSize: 10)), icon: Icon(Icons.biotech))
 			];
 		}
 		else

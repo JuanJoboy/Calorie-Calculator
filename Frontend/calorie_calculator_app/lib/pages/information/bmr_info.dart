@@ -1,4 +1,3 @@
-import 'package:bulleted_list/bulleted_list.dart';
 import 'package:calorie_calculator_app/pages/information/information.dart';
 import 'package:calorie_calculator_app/utilities/colours.dart';
 import 'package:calorie_calculator_app/utilities/hyperlinker.dart';
@@ -15,59 +14,116 @@ class BMRInfo extends Information
 	@override
 	List<Widget> info(BuildContext context)
 	{
+		final textCol = Theme.of(context).extension<AppColours>()!.text!;
+		final formulaCol = Theme.of(context).extension<AppColours>()!.bmr!;
+
 		return
 		[
-			Utils.header('''Basal Metabolic Rate''', 30, FontWeight.bold),
+			Utils.header('''Basal Metabolic Rate''', 32, FontWeight.bold, color: textCol),
 
-			Utils.header("Definition", 25, FontWeight.w600),
-
-			const SizedBox(height: 20),
-
-			const Text('''The amount of energy your body uses to maintain basic life functions at rest. It is essentially the amount of energy you would use up in a coma.''', style: TextStyle(fontSize: 20)),
+			Utils.header("Definition", 24, FontWeight.w600, color: textCol),
+			const SizedBox(height: 12),
+			Text('''The amount of energy your body uses to maintain basic life functions at rest. It is essentially the amount of energy you would use up in a coma.''', style: TextStyle(fontSize: 18, height: 1.5, color: textCol)),
 			
-			Utils.header("Formulas", 25, FontWeight.w600),
-			Utils.header("Male Formula", 20, FontWeight.w500, padding: 25),
-			bullet("(10 * Weight in kg) + (6.25 * Height in cm) - (5 * Age in years) + 5", context),
-			Utils.header("Example", 20, FontWeight.w500, padding: 25),
-			bullet("(70kg | 180cm | 25 years | Male): (10 * 70) + (6.25 * 180) - (5 * 25) + 5 = 1705", context),
-			Utils.header("Female Formula", 20, FontWeight.w500, padding: 25),
-			bullet("(10 * Weight in kg) + (6.25 * Height in cm) - (5 * Age in years) - 161", context),
-			Utils.header("Example", 20, FontWeight.w500, padding: 25),
-			bullet("(65kg | 165cm | 25 years | Female): (10 * 65) + (6.25 * 165) - (5 * 25) - 161 = 1395", context),
+			Utils.header("Formulas", 24, FontWeight.w600, color: textCol),
+			const SizedBox(height: 12),
 
-			Utils.header("Note", 25, FontWeight.w600),
-
-			Text.rich
+			_formulaCard
 			(
-				TextSpan
-				(
-					style: const TextStyle(fontSize: 20),
-					children:
-					[
-						const TextSpan(text: "The "),
-						HyperLinker.hyperlinkText("Mifflin-St Jeor Equation", "https://pubmed.ncbi.nlm.nih.gov/2305711/", context),
-						const TextSpan(text: " is the current clinical gold standard for estimating "),
-						HyperLinker.hyperlinkText("BMR", "https://www.healthline.com/health/how-to-calculate-your-basal-metabolic-rate", context),
-						const TextSpan(text: ". Established in 1990, it replaced the older "),
-						const TextSpan(text: "Harris-Benedict Equation ", style: TextStyle(fontStyle: FontStyle.italic)),
-						const TextSpan(text: "because it more accurately reflects modern body compositions and sedentary lifestyles. While highly reliable for the average population, it may underestimate needs for highly muscular individuals or overestimate for those with high body fat percentages, as muscle tissue is more metabolically active than fat. Which is where the "),
-						const TextSpan(text: "Katch-McArdle Equation ", style: TextStyle(fontStyle: FontStyle.italic)),
-						const TextSpan(text: "comes in handy. However for simplicity and to accommodate the general population, the "),
-						const TextSpan(text: "Mifflin-St Jeor Equation ", style: TextStyle(fontStyle: FontStyle.italic)),
-						const TextSpan(text: "is used in the app."),
-					]
-				)
-			),					
+				context,
+				textColour: textCol,
+				formulaColour: formulaCol,
+				title: "Male Formula",
+				formula: "(10 × Weight) + (6.25 × Height) - (5 × Age) + 5",
+				example: "70kg, 180cm, 25y: 1705 kcal",
+			),
+				
+			_formulaCard
+			(
+				context,
+				textColour: textCol,
+				formulaColour: formulaCol,
+				title: "Female Formula",
+				formula: "(10 × Weight) + (6.25 × Height) - (5 × Age) - 161",
+				example: "65kg, 165cm, 25y: 1395 kcal",
+			),
+
+			Utils.header("Note", 24, FontWeight.w600, padding: 30, color: textCol),
+			_note(context),
+			const SizedBox(height: 100),
 		];
 	}
 
-	Widget bullet(String text, BuildContext context)
+	Widget _formulaCard(BuildContext context, {required Color textColour, required Color formulaColour, required String title, required String formula, required String example})
 	{
-		return BulletedList
+		return Container
 		(
-			listItems: [text],
-			bulletColor: Theme.of(context).extension<AppColours>()!.text!,
-			style: TextStyle(fontSize: 15, color: Theme.of(context).extension<AppColours>()!.text!),
+			margin: const EdgeInsets.only(bottom: 16),
+			padding: const EdgeInsets.all(16),
+			decoration: BoxDecoration
+			(
+				color: textColour.withOpacity(0.05),
+				borderRadius: BorderRadius.circular(12),
+				border: Border.all(color: textColour.withOpacity(0.1)),
+			),
+			child: Column
+			(
+				crossAxisAlignment: CrossAxisAlignment.start,
+				children:
+				[
+					Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColour)),
+					const SizedBox(height: 8),
+					Text(formula, style: TextStyle(fontSize: 16, fontFamily: 'monospace', color: formulaColour)),
+					const SizedBox(height: 4),
+					Text("Example: $example", style: TextStyle(fontSize: 14, color: textColour.withOpacity(0.7))),
+				],
+			),
+		);
+	}
+
+	Widget _note(BuildContext context)
+	{
+		final accentColor = Theme.of(context).extension<AppColours>()!.text!.withOpacity(0.3);
+		
+		return Container
+		(
+			padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+			decoration: BoxDecoration
+			(
+				border: Border(left: BorderSide(color: accentColor, width: 3)),
+			),
+			child: Text.rich
+			(
+				TextSpan
+				(
+					style: TextStyle
+					(
+						fontSize: 16,
+						height: 2,
+						color: Theme.of(context).extension<AppColours>()!.text,
+					),
+					children:
+					[
+						const TextSpan(text: "The "),
+						HyperLinker.hyperlinkText("Mifflin-St Jeor Equation", "...", context),
+						const TextSpan(text: " is the current clinical gold standard for estimating "),
+						HyperLinker.hyperlinkText("BMR", "...", context),
+						const TextSpan(text: ".\n\n"),
+
+						const TextSpan(text: "History: ", style: TextStyle(fontWeight: FontWeight.bold)),
+						const TextSpan(text: "Established in 1990, it replaced the older "),
+						const TextSpan(text: "Harris-Benedict Equation", style: TextStyle(fontStyle: FontStyle.italic)),
+						const TextSpan(text: " because it more accurately reflects modern body compositions and sedentary lifestyles.\n\n"),
+						
+						const TextSpan(text: "Limitations: ", style: TextStyle(fontWeight: FontWeight.bold)),
+						const TextSpan(text: "While highly reliable for the average population, it may underestimate needs for highly muscular individuals or overestimate for those with high body fat percentages, as muscle tissue is more metabolically active than fat. Which is where the "),
+						const TextSpan(text: "Katch-McArdle Equation", style: TextStyle(fontStyle: FontStyle.italic)),
+						const TextSpan(text: " comes in handy. However for simplicity and to accommodate the general population, the "),
+						const TextSpan(text: "Mifflin-St Jeor Equation ", style: TextStyle(fontStyle: FontStyle.italic)),
+						const TextSpan(text: "is used in this app."),
+					],
+				),
+			),
 		);
 	}
 }
