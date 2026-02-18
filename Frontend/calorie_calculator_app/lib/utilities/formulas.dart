@@ -2,7 +2,6 @@ import 'dart:math';
 import 'package:calorie_calculator_app/pages/nutrition/diet.dart';
 import 'package:calorie_calculator_app/utilities/settings.dart';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart';
 import 'package:provider/provider.dart';
 
 class CalorieMath

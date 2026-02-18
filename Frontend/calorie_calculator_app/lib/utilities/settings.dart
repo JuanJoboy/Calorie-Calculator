@@ -216,8 +216,6 @@ abstract class SettingsSwitch<T extends BaseSettingsNotifier> extends StatelessW
 {
 	IconData get initialIcon;
 	IconData get secondIcon;
-	Color? get initialActiveColor;
-	Color? get secondActiveColor;
 
   	const SettingsSwitch({super.key});
 
@@ -268,8 +266,9 @@ abstract class SettingsSwitch<T extends BaseSettingsNotifier> extends StatelessW
 					return isBaseMode ? Colors.white : Colors.black;
 				}
 			}),
-			inactiveTrackColor: initialActiveColor,
-			activeTrackColor: secondActiveColor,
+
+			inactiveTrackColor: Colors.amber[300],
+			activeTrackColor: Colors.blue[200],
 		);
 	}
 }
@@ -280,10 +279,6 @@ class DarkModeSwitch extends SettingsSwitch<ThemeNotifier>
 	IconData get initialIcon => Icons.nights_stay_rounded;
 	@override
 	IconData get secondIcon => Icons.sunny;
-	@override
-	Color? get initialActiveColor => Colors.amber[300];
-	@override
-	Color? get secondActiveColor => Colors.blue[200];
 
   	const DarkModeSwitch({super.key});
 }
@@ -294,10 +289,6 @@ class WeightSwitch extends SettingsSwitch<WeightNotifier>
 	IconData get initialIcon => Icons.fitness_center_rounded;
 	@override
 	IconData get secondIcon => Icons.monitor_weight_rounded;
-	@override
-	Color? get initialActiveColor => Colors.amber[300];
-	@override
-	Color? get secondActiveColor => Colors.blue[200];
 
   	const WeightSwitch({super.key});
 }
@@ -308,10 +299,6 @@ class HeightSwitch extends SettingsSwitch<HeightNotifier>
 	IconData get initialIcon => Icons.height_rounded;
 	@override
 	IconData get secondIcon => Icons.straighten_rounded;
-	@override
-	Color? get initialActiveColor => Colors.amber[300];
-	@override
-	Color? get secondActiveColor => Colors.blue[200];
 
   	const HeightSwitch({super.key});
 }
@@ -322,10 +309,6 @@ class DistanceSwitch extends SettingsSwitch<DistanceNotifier>
 	IconData get initialIcon => Icons.map_rounded;
 	@override
 	IconData get secondIcon => Icons.route_rounded;
-	@override
-	Color? get initialActiveColor => Colors.amber[300];
-	@override
-	Color? get secondActiveColor => Colors.blue[200];
 
   	const DistanceSwitch({super.key});
 }
@@ -336,10 +319,6 @@ class WaterSwitch extends SettingsSwitch<WaterNotifier>
 	IconData get initialIcon => Icons.water_drop_outlined;
 	@override
 	IconData get secondIcon => Icons.opacity_rounded;
-	@override
-	Color? get initialActiveColor => Colors.amber[300];
-	@override
-	Color? get secondActiveColor => Colors.blue[200];
 
   	const WaterSwitch({super.key});
 }

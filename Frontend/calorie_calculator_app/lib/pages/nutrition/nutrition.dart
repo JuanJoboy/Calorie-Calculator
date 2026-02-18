@@ -1,6 +1,6 @@
 import 'package:calorie_calculator_app/pages/nutrition/diet.dart';
 import 'package:calorie_calculator_app/utilities/colours.dart';
-import 'package:calorie_calculator_app/utilities/help.dart';
+import 'package:calorie_calculator_app/utilities/formulas.dart';
 import 'package:calorie_calculator_app/utilities/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -62,18 +62,18 @@ enum FatIntensity implements Intensity
 
 class _NutritionPageState extends State<NutritionPage>
 {
-	final TextEditingController weight = TextEditingController();
-	final TextEditingController tdee = TextEditingController();
+	final TextEditingController _weight = TextEditingController();
+	final TextEditingController _tdee = TextEditingController();
 
-	int isProteinSelected = 0;
-	double selectedProteinIntensity = ProteinIntensity.maintenance.value;
+	int _isProteinSelected = 0;
+	double _selectedProteinIntensity = ProteinIntensity.maintenance.value;
 
-	int isFatSelected = 1;
-	double selectedFatIntensity = FatIntensity.mid.value;
+	int _isFatSelected = 1;
+	double _selectedFatIntensity = FatIntensity.mid.value;
 
-	Gender? chosenGender;
-	Color? maleColour;
-	Color? femaleColour;
+	Gender? _chosenGender;
+	Color? _maleColour;
+	Color? _femaleColour;
 
 	late NutritionFields _nutris;
 
@@ -81,19 +81,18 @@ class _NutritionPageState extends State<NutritionPage>
 	void dispose()
 	{
 		super.dispose();
-		weight.dispose();
-		tdee.dispose();
+		_weight.dispose();
+		_tdee.dispose();
 	}
 
 	@override void initState()
 	{
     	super.initState();
 
-		final NutritionFields fields = context.read<NutritionFields>();
-		_nutris = fields;
+		_nutris = context.read<NutritionFields>();
 
-		weight.text = _nutris.we;
-		tdee.text = _nutris.td;
+		_weight.text = _nutris.we;
+		_tdee.text = _nutris.td;
   	}
 
 	@override
@@ -110,30 +109,47 @@ class _NutritionPageState extends State<NutritionPage>
 					mainAxisSize: MainAxisSize.min,
 					children:
 					[
-						Utils.header("Macro Calculator", 30, FontWeight.bold),
+						const Header(text: "Macro Calculator", fontSize: 30, fontWeight: FontWeight.bold),
 
-						Utils.widgetPlusHelper(Utils.header("Today's Biometrics", 25, FontWeight.w600), HelpIcon(msg: "Input your current body weight and total caloric intake for today.",), top: 45, right: 17.5),
+						WidgetPlusHelper(mainWidget: const Header(text: "Today's Biometrics", fontSize: 25, fontWeight: FontWeight.w600), helpIcon: HelpIcon(msg: "Input your current body weight and total caloric intake for today.",), top: 30, left: 330),
 
-						textBox("Weight", context.watch<WeightNotifier>().currentUnit.symbol, weight, fieldToSave: 1, padding: 30),
-						textBox("Total Calories Today", "kcal", tdee, fieldToSave: 2, padding: 45),
+						_textBox("Weight", context.watch<WeightNotifier>().currentUnit.symbol, _weight, fieldToSave: 1, padding: 30),
+						_textBox("Total Calories Today", "kcal", _tdee, fieldToSave: 2, padding: 45),
 
-						chips("Protein Intensity", "Select the amount of protein that you want in your diet. 'Aggressive Cut / Fat Loss' helps preserve lean mass during a deficit and increases satiety, while 'Maintenance' provides the baseline RDA for health.", ProteinIntensity.values, true),
+						_chips("Protein Intensity", "Select the amount of protein that you want in your diet. 'Aggressive Cut / Fat Loss' helps preserve lean mass during a deficit and increases satiety, while 'Maintenance' provides the baseline RDA for health.", ProteinIntensity.values, true),
 
-						chips("Fat Intake", "Select the amount of fat that you want in your diet. High Fat supports hormonal health and fat-soluble vitamin absorption (A, D, E, K), while Low Fat allows for higher carbohydrate volume to fuel high-intensity training.", FatIntensity.values, false),
+						_chips("Fat Intake", "Select the amount of fat that you want in your diet. High Fat supports hormonal health and fat-soluble vitamin absorption (A, D, E, K), while Low Fat allows for higher carbohydrate volume to fuel high-intensity training.", FatIntensity.values, false),
 
-						Utils.widgetPlusHelper(Utils.header("Gender", 25, FontWeight.w600), HelpIcon(msg: "Click on one of the 2 buttons below, that you most identify with.",), top: 45, right: 17.5),
+						WidgetPlusHelper(mainWidget: const Header(text: "Gender", fontSize: 25, fontWeight: FontWeight.w600), helpIcon: HelpIcon(msg: "Click on one of the 2 buttons below, that you most identify with.",), top: 30, left: 330),
 						
 						Row
 						(
 							mainAxisAlignment: MainAxisAlignment.center,
 							children:
 							[
-								male(),
-								female(),
+								_male(),
+								_female(),
 							]
 						),
 
-						processInfo(),
+						ListenableBuilder
+						(
+							listenable: Listenable.merge([_weight, _tdee]),
+							builder: (context, child)
+							{
+								return _weightAndCaloriesDoNotLineUp() ? const Padding
+								(
+									padding: EdgeInsets.symmetric(horizontal: 36.0, vertical: 20),
+									child: Text
+									(
+										"Your current configuration exceeds your Total Calories. Please adjust your inputs.",
+										style: TextStyle(color: Colors.red, fontSize: 20, fontWeight: FontWeight.bold),
+									),
+								) : const SizedBox();
+							}
+						),
+
+						_processInfo(),
 
 						const Padding(padding: EdgeInsetsGeometry.only(top: 20)),
 					],
@@ -142,22 +158,24 @@ class _NutritionPageState extends State<NutritionPage>
 		);
 	}
 
-	Widget chips(String header, String helpMsg, List<Intensity> intensity, bool isProtein)
+	Widget _chips(String header, String helpMsg, List<Intensity> intensity, bool isProtein)
 	{
 		return Column
 		(
 			children:
 			[
-				Utils.widgetPlusHelper(Utils.header(header, 25, FontWeight.w600), HelpIcon(msg: helpMsg), top: 45, right: 17.5),
+				WidgetPlusHelper(mainWidget: Header(text: header, fontSize: 25, fontWeight: FontWeight.w600), helpIcon: HelpIcon(msg: helpMsg), top: 30, left: 330),
 				
 				for(int i = 0; i < intensity.length; i++)
-					intensityChip(intensity[i], i, isProtein)
+					_intensityChip(intensity[i], i, isProtein)
 			],
 		);
 	}
 	
-	Widget textBox(String header, String unit, TextEditingController controller, {int? fieldToSave, double? padding})
+	Widget _textBox(String header, String unit, TextEditingController controller, {int? fieldToSave, double? padding})
 	{
+		final colour = Theme.of(context).extension<AppColours>()!;
+
 		return Padding
 		(
 			padding: const EdgeInsets.only(top: 20.0),
@@ -167,12 +185,12 @@ class _NutritionPageState extends State<NutritionPage>
 				width: 300,
 				child: Card
 				(
-					color: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
+					color: colour.tertiaryColour!,
 					shape: RoundedRectangleBorder
 					(
 						side: BorderSide
 						(
-							color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+							color: colour.secondaryColour!,
 							width: 2
 						),
 						borderRadius: BorderRadiusGeometry.circular(20)
@@ -213,12 +231,12 @@ class _NutritionPageState extends State<NutritionPage>
 												(
 													side: BorderSide
 													(
-														color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+														color: colour.secondaryColour!,
 														width: 2
 													),
 													borderRadius: BorderRadiusGeometry.circular(100)
 												),
-												color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+												color: colour.secondaryColour!,
 												child: TextField
 												(
 													textAlign: TextAlign.center,
@@ -269,41 +287,45 @@ class _NutritionPageState extends State<NutritionPage>
 		);
 	}
 
-	Widget intensityChip(Intensity intensity, int index, bool isProtein)
+	Widget _intensityChip(Intensity intensity, int index, bool isProtein)
 	{
+		final colour = Theme.of(context).extension<AppColours>()!;
+
 		return Padding
 		(
 			padding: const EdgeInsets.only(left: 20, right: 20, top: 30, bottom: 0),
 			child: ChoiceChip
 			(
 				label: Text(intensity.label),
-				selected: isProtein == true ? isProteinSelected == index : isFatSelected == index,
+				selected: isProtein == true ? _isProteinSelected == index : _isFatSelected == index,
 				onSelected: (value)
 				{
 					setState(()
 					{
 						if(isProtein)
 						{
-							selectedProteinIntensity = intensity.value;
-							isProteinSelected = index;
+							_selectedProteinIntensity = intensity.value;
+							_isProteinSelected = index;
 						}
 						else
 						{
-							selectedFatIntensity = intensity.value;
-							isFatSelected = index;
+							_selectedFatIntensity = intensity.value;
+							_isFatSelected = index;
 						}
 					});
 				},
-				selectedColor: Theme.of(context).extension<AppColours>()!.secondaryColour!,
-				backgroundColor: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
+				selectedColor: colour.secondaryColour!,
+				backgroundColor: colour.tertiaryColour!,
 			),
 		);
 	}
 
-	Widget male()
+	Widget _male()
 	{
-		Color unselectedBlue = Theme.of(context).extension<AppColours>()!.maleUnColour!;
-		Color selectedBlue = Theme.of(context).extension<AppColours>()!.maleSeColour!;
+		final colour = Theme.of(context).extension<AppColours>()!;
+
+		Color unselectedBlue = colour.maleUnColour!;
+		Color selectedBlue = colour.maleSeColour!;
 
 		return GestureDetector
 		(
@@ -311,19 +333,19 @@ class _NutritionPageState extends State<NutritionPage>
 			{
 				setState(()
 				{
-					if(maleColour == null)
+					if(_maleColour == null)
 					{
-						maleColour = selectedBlue;
-						femaleColour = null;
-						chosenGender = Gender.male;
+						_maleColour = selectedBlue;
+						_femaleColour = null;
+						_chosenGender = Gender.male;
 						return;
 					}
 
-					if(maleColour == selectedBlue)
+					if(_maleColour == selectedBlue)
 					{
-						maleColour = null;
-						femaleColour = null;
-						chosenGender = null;
+						_maleColour = null;
+						_femaleColour = null;
+						_chosenGender = null;
 						return;
 					}
 				});
@@ -333,7 +355,7 @@ class _NutritionPageState extends State<NutritionPage>
 				padding: const EdgeInsets.all(30.0),
 				child: Card
 				(
-					color: maleColour == null ? unselectedBlue : selectedBlue,
+					color: _maleColour == null ? unselectedBlue : selectedBlue,
 					shape: RoundedRectangleBorder
 					(
 						borderRadius: BorderRadiusGeometry.circular(25)
@@ -344,10 +366,12 @@ class _NutritionPageState extends State<NutritionPage>
 		);
 	}
 
-	Widget female()
+	Widget _female()
 	{
-		Color unselectedPink = Theme.of(context).extension<AppColours>()!.femaleUnColour!;
-		Color selectedPink = Theme.of(context).extension<AppColours>()!.femaleSeColour!;
+		final colour = Theme.of(context).extension<AppColours>()!;
+
+		Color unselectedPink = colour.femaleUnColour!;
+		Color selectedPink = colour.femaleSeColour!;
 		
 		return GestureDetector
 		(
@@ -355,19 +379,19 @@ class _NutritionPageState extends State<NutritionPage>
 			{
 				setState(()
 				{
-					if(femaleColour == null)
+					if(_femaleColour == null)
 					{
-						femaleColour = selectedPink;
-						maleColour = null;
-						chosenGender = Gender.female;
+						_femaleColour = selectedPink;
+						_maleColour = null;
+						_chosenGender = Gender.female;
 						return;
 					}
 
-					if(femaleColour == selectedPink)
+					if(_femaleColour == selectedPink)
 					{
-						femaleColour = null;
-						maleColour = null;
-						chosenGender = null;
+						_femaleColour = null;
+						_maleColour = null;
+						_chosenGender = null;
 						return;
 					}
 				});
@@ -377,7 +401,7 @@ class _NutritionPageState extends State<NutritionPage>
 				padding: const EdgeInsets.all(30.0),
 				child: Card
 				(
-					color: femaleColour == null ? unselectedPink : selectedPink,
+					color: _femaleColour == null ? unselectedPink : selectedPink,
 					shape: RoundedRectangleBorder
 					(
 						borderRadius: BorderRadiusGeometry.circular(25)
@@ -388,8 +412,10 @@ class _NutritionPageState extends State<NutritionPage>
 		);
 	}
 
-	Widget processInfo()
+	Widget _processInfo()
 	{
+		final colour = Theme.of(context).extension<AppColours>()!;
+
 		return SizedBox
 		(
 			height: 70,
@@ -400,21 +426,21 @@ class _NutritionPageState extends State<NutritionPage>
 				elevation: 2,
 				child: ListenableBuilder
 				(
-					listenable: Listenable.merge([weight, tdee]),
+					listenable: Listenable.merge([_weight, _tdee]),
 					builder: (context, child)
 					{
 						return ElevatedButton
 						(
 							style: ElevatedButton.styleFrom
 							(
-								backgroundColor: Theme.of(context).extension<AppColours>()!.secondaryColour!
+								backgroundColor: colour.secondaryColour!
 							),
-							onPressed: areFieldsEmpty() ? null : () async
+							onPressed: _areFieldsEmpty() ? null : _weightAndCaloriesDoNotLineUp() ? null : () async
 							{
 								await Navigator.push
 								(
 									context,
-									MaterialPageRoute(builder: (context) => Utils.switchPage(context, DietPage.noActivity(weight: parseTextFields().$1, tdee: parseTextFields().$2, proteinIntensity: selectedProteinIntensity, fatIntake: selectedFatIntensity, fibre: chosenGender!.value,)))
+									MaterialPageRoute(builder: (context) => PageSwitcher(nextPage: DietPage.noActivity(weight: _parseTextFields().$1, tdee: _parseTextFields().$2, proteinIntensity: _selectedProteinIntensity, fatIntake: _selectedFatIntensity, fibre: _chosenGender!.value, caloricCeiling: _parseTextFields().$2,)))
 								);
 							},
 							child: const Text("Calculate Macros", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black))
@@ -425,19 +451,43 @@ class _NutritionPageState extends State<NutritionPage>
 		);
 	}
 	
-	(double, int) parseTextFields()
+	(double, int) _parseTextFields()
 	{
-		final double weightNum = double.tryParse(weight.text.trim()) ?? 0;
-		final int tdeeNum = int.tryParse(tdee.text.trim()) ?? 0;
+		final double weightNum = double.tryParse(_weight.text.trim()) ?? 0;
+		final int tdeeNum = int.tryParse(_tdee.text.trim()) ?? 0;
 
 		final double trueWeight = context.read<WeightNotifier>().currentUnit.toBase(weightNum);
 
 		return (trueWeight, tdeeNum);
 	}
 
-	bool areFieldsEmpty()
+	bool _weightAndCaloriesDoNotLineUp()
 	{
-		return (weight.text.trim().isEmpty) || (tdee.text.trim().isEmpty) || (chosenGender == null);
+		if(_areFieldsEmpty())
+		{
+			return false;
+		}
+
+		final bool isMale = _chosenGender?.label == "Male";
+
+		final (double weight, int tdee) = _parseTextFields();
+
+		final int protein = NutritionMath.protein(weight, _selectedProteinIntensity);
+		final (:totalFat, :saturatedFat, :unsaturatedFat, :omega3, :omega6, :cholesterol) = NutritionMath.fat(tdee.toDouble(), _selectedFatIntensity, isMale);
+
+		final int solubleFibre = isMale ? 12 : 10; // Soluble: ~2 kcal/g
+		final int insolubleFibre = isMale ? 18 : 15; // Insoluble: ~0 kcal/g
+
+		final int basicMacros = (protein * 4) + (totalFat * 9);
+		final double fibre = (solubleFibre * 2) + (insolubleFibre * 0);
+		final double fatComponents = saturatedFat + omega3 + omega6;
+
+		return (basicMacros + fibre > tdee) || (fatComponents > totalFat);
+	}
+
+	bool _areFieldsEmpty()
+	{
+		return (_weight.text.trim().isEmpty) || (_tdee.text.trim().isEmpty) || (_chosenGender == null);
 	}
 }
 

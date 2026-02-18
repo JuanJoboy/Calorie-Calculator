@@ -1,5 +1,4 @@
 import 'package:calorie_calculator_app/utilities/colours.dart';
-import 'package:calorie_calculator_app/utilities/help.dart';
 import 'package:calorie_calculator_app/utilities/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -158,8 +157,9 @@ enum HardMET implements Intensity
 
 enum Cardio
 {
-	run(value: 1, label: 'Running'),
-	cycle(value: 0.3, label: 'Cycling');
+	run(value: 1.0, label: 'Running'),
+	cycle(value: 0.3, label: 'Cycling'),
+	swim(value: 4.0, label: 'Swimming');
 
 	final double value;
 	final String label;
@@ -169,27 +169,28 @@ enum Cardio
 
 class _BurnPageState extends State<BurnPage>
 {
-	double? metFactor;
-	String? activityName;
+	double? _metFactor;
+	String? _activityName;
 
-	late ScrollController offSetController;
+	late ScrollController _offSetController;
 
-	final TextEditingController sportDuration = TextEditingController();
+	final TextEditingController _sportDuration = TextEditingController();
 
-	final TextEditingController upperDuration = TextEditingController();
-	final TextEditingController accessoriesDuration = TextEditingController();
-	final TextEditingController lowerDuration = TextEditingController();
+	final TextEditingController _upperDuration = TextEditingController();
+	final TextEditingController _accessoriesDuration = TextEditingController();
+	final TextEditingController _lowerDuration = TextEditingController();
 
-	final TextEditingController distance = TextEditingController();
-	Cardio? chosenCardio;
-	Color? runColour;
-	Color? cycleColour;
+	final TextEditingController _distance = TextEditingController();
+	Cardio? _chosenCardio;
+	Color? _runColour;
+	Color? _cycleColour;
+	Color? _swimColour;
 
-	int isProteinSelected = 0;
-	double selectedProteinIntensity = ProteinIntensity.maintenance.value;
+	int _isProteinSelected = 0;
+	double _selectedProteinIntensity = ProteinIntensity.maintenance.value;
 
-	int isFatSelected = 1;
-	double selectedFatIntensity = FatIntensity.mid.value;
+	int _isFatSelected = 1;
+	double _selectedFatIntensity = FatIntensity.mid.value;
 
 	late CalculationFields _calcs;
 
@@ -197,28 +198,29 @@ class _BurnPageState extends State<BurnPage>
 	void dispose()
 	{
 		super.dispose();
-		sportDuration.dispose();
-		upperDuration.dispose();
-		accessoriesDuration.dispose();
-		lowerDuration.dispose();
-		distance.dispose();
+		_sportDuration.dispose();
+		_upperDuration.dispose();
+		_accessoriesDuration.dispose();
+		_lowerDuration.dispose();
+		_distance.dispose();
 	}
 
 	@override void initState()
 	{
     	super.initState();
 
-		offSetController = ScrollController(initialScrollOffset: 10000); // Need to initialize this offSet here otherwise it takes 10 years to initialize if i do it in listOfOptions()
+		_offSetController = ScrollController(initialScrollOffset: 10000); // Need to initialize this offSet here otherwise it takes 10 years to initialize if i do it in listOfOptions()
 
 		final CalculationFields list = context.read<CalculationFields>();
 		_calcs = list;
 
-		sportDuration.text = _calcs.s;
-		upperDuration.text = _calcs.up;
-		accessoriesDuration.text = _calcs.ac;
-		lowerDuration.text = _calcs.lo;
-		distance.text = _calcs.d;
-		metFactor = _calcs.met;
+		_sportDuration.text = _calcs.s;
+		_upperDuration.text = _calcs.up;
+		_accessoriesDuration.text = _calcs.ac;
+		_lowerDuration.text = _calcs.lo;
+		_distance.text = _calcs.d;
+		_metFactor = _calcs.met;
+		_activityName = _calcs.name;
   	}
 
 	@override
@@ -239,11 +241,11 @@ class _BurnPageState extends State<BurnPage>
 						mainAxisAlignment: MainAxisAlignment.center,
 						children:
 						[
-							met(),
-							switcher(),
-							cardio(),
-							nutrition(),
-							nextButton(),
+							_met(),
+							_switcher(),
+							_cardio(),
+							_nutrition(),
+							_nextButton(),
 						],
 					),
 				)
@@ -251,20 +253,21 @@ class _BurnPageState extends State<BurnPage>
 		);
 	}
 
-	Widget met()
+	Widget _met()
 	{
-		Color aeOutline = Theme.of(context).extension<AppColours>()!.aerobicOutlineColour!;
-		Color aeBackground = Theme.of(context).extension<AppColours>()!.aerobicBackgroundColour!;
-		Color anOutline = Theme.of(context).extension<AppColours>()!.anaerobicOutlineColour!;
-		Color anBackground = Theme.of(context).extension<AppColours>()!.anaerobicBackgroundColour!;
-		Color maOutline = Theme.of(context).extension<AppColours>()!.maximalOutlineColour!;
-		Color maBackground = Theme.of(context).extension<AppColours>()!.maximalBackgroundColour!;
+		final colour = Theme.of(context).extension<AppColours>()!;
+		Color aeOutline = colour.aerobicOutlineColour!;
+		Color aeBackground = colour.aerobicBackgroundColour!;
+		Color anOutline = colour.anaerobicOutlineColour!;
+		Color anBackground = colour.anaerobicBackgroundColour!;
+		Color maOutline = colour.maximalOutlineColour!;
+		Color maBackground = colour.maximalBackgroundColour!;
 
 		return Column
 		(
 			children:
 			[
-				Utils.widgetPlusHelper(Utils.header("Activity Selection", 30, FontWeight.bold), HelpIcon(msg: "Select the activity that you did, to apply its MET value. This constant determines how intense your exercise was and how many calories you burned.\n\nNote: No values are needed to proceed, however if you do enter data into any field, you must select a corresponding activity to ensure the correct intensity factor is applied to your results.",), top: 50, right: 17.5),
+				WidgetPlusHelper(mainWidget: const Header(text: "Activity Selection", fontSize: 30, fontWeight: FontWeight.bold), helpIcon: HelpIcon(msg: "Select the activity that you did to apply its MET value. This constant determines how intense your exercise was and how many calories you burned.\n\nNote: No values are needed to proceed, however if you do enter data into any field, you must select a corresponding activity to ensure the correct intensity factor is applied to your results.",), top: 30, left: 330),
 
 				Text("Select only 1 activity", style: TextStyle(color: Theme.of(context).hintColor)),
 			
@@ -272,21 +275,21 @@ class _BurnPageState extends State<BurnPage>
 				(
 					children:
 					[
-						Utils.header("Light Activities", 25, FontWeight.w600),
-						listOfOptions(EasyMET.values, aeOutline, aeBackground),
+						const Header(text: "Light Activities", fontSize: 25, fontWeight: FontWeight.w600),
+						_listOfOptions(EasyMET.values, aeOutline, aeBackground),
 
-						Utils.header("Moderate Activities", 25, FontWeight.w600),
-						listOfOptions(MidMET.values, anOutline, anBackground),
+						const Header(text: "Moderate Activities", fontSize: 25, fontWeight: FontWeight.w600),
+						_listOfOptions(MidMET.values, anOutline, anBackground),
 
-						Utils.header("Vigorous Activities", 25, FontWeight.w600),
-						listOfOptions(HardMET.values, maOutline, maBackground),
+						const Header(text: "Vigorous Activities", fontSize: 25, fontWeight: FontWeight.w600),
+						_listOfOptions(HardMET.values, maOutline, maBackground),
 					],
 				)
 			],
 		);
 	}
 
-	Widget listOfOptions(List<Intensity> metList, Color outlineColour, Color backgroundColour)
+	Widget _listOfOptions(List<Intensity> metList, Color outlineColour, Color backgroundColour)
 	{
 		return SizedBox
 		(
@@ -295,20 +298,20 @@ class _BurnPageState extends State<BurnPage>
 
 			child: ListView.builder
 			(
-				controller: offSetController,
+				controller: _offSetController,
 				physics: const BouncingScrollPhysics(),
 				scrollDirection: Axis.horizontal,
 				itemCount: null, // null sets it to infinity basically
 				itemBuilder: (context, index)
 				{
 					final Intensity item = metList[index % metList.length]; // Makes it infinitely cycle
-					return option(item, outlineColour, backgroundColour, padding: 7.5);
+					return _option(item, outlineColour, backgroundColour, padding: 7.5);
 				}
 			),
 		);
 	}
 
-	Widget option(Intensity item, Color outlineColour, Color backgroundColour, {double? padding})
+	Widget _option(Intensity item, Color outlineColour, Color backgroundColour, {double? padding})
 	{
 		final String text = item.label;
 		final double factor = item.value;
@@ -340,14 +343,15 @@ class _BurnPageState extends State<BurnPage>
 							contentPadding: const EdgeInsets.symmetric(horizontal: 0.0), // Reclaims some of the space lost by the radio tile
 							title: Text(text, style: const TextStyle(fontWeight: .bold)),
 							value: factor,
-							groupValue: metFactor,
+							groupValue: _metFactor,
 							onChanged: (newValue)
 							{
 								setState(()
 								{
-									metFactor = newValue;
-									_calcs.updateControllers(metFactor: metFactor);
-									activityName = text;
+									_metFactor = newValue;
+									_calcs.updateControllers(metFactor: _metFactor);
+									_activityName = text;
+									_calcs.updateControllers(activityName: _activityName);
 								});
 							},
 						),
@@ -357,8 +361,10 @@ class _BurnPageState extends State<BurnPage>
 		);
 	}
 
-	Widget textBox(String header, String unit, TextEditingController controller, {int? fieldToSave, double? padding})
+	Widget _textBox(String header, String unit, TextEditingController controller, {int? fieldToSave, double? padding})
 	{
+		final colour = Theme.of(context).extension<AppColours>()!;
+		
 		return Padding
 		(
 			padding: const EdgeInsets.only(top: 20.0),
@@ -368,12 +374,12 @@ class _BurnPageState extends State<BurnPage>
 				width: 300,
 				child: Card
 				(
-					color: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
+					color: colour.tertiaryColour!,
 					shape: RoundedRectangleBorder
 					(
 						side: BorderSide
 						(
-							color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+							color: colour.secondaryColour!,
 							width: 2
 						),
 						borderRadius: BorderRadiusGeometry.circular(20)
@@ -414,12 +420,12 @@ class _BurnPageState extends State<BurnPage>
 												(
 													side: BorderSide
 													(
-														color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+														color: colour.secondaryColour!,
 														width: 2
 													),
 													borderRadius: BorderRadiusGeometry.circular(100)
 												),
-												color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+												color: colour.secondaryColour!,
 												child: TextField
 												(
 													textAlign: TextAlign.center,
@@ -473,18 +479,18 @@ class _BurnPageState extends State<BurnPage>
 		);
 	}
 
-	Widget switcher()
+	Widget _switcher()
 	{
 		return AnimatedCrossFade
 		(
-			firstChild: metFactor == null ? const SizedBox.shrink() : sportWidget(),
-			secondChild: metFactor == null ? const SizedBox.shrink() : weightLifting(),
-			crossFadeState: selectedSport() ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+			firstChild: _metFactor == null ? const SizedBox.shrink() : _sportWidget(),
+			secondChild: _metFactor == null ? const SizedBox.shrink() : _weightLifting(),
+			crossFadeState: _selectedSport() ? CrossFadeState.showFirst : CrossFadeState.showSecond,
 			duration: const Duration(milliseconds: 200)
 		);
 	}
 
-	Widget sportWidget()
+	Widget _sportWidget()
 	{
 		return Column
 		(
@@ -492,16 +498,16 @@ class _BurnPageState extends State<BurnPage>
 			[
 				const Padding(padding: EdgeInsetsGeometry.all(5)),
 
-				Utils.widgetPlusHelper(Utils.header(activityName ?? "", 25, FontWeight.w600), HelpIcon(msg: "Enter the net time spent in active play. Exclude long periods of inactivity or halftime to maintain accuracy.\nIf you switch to a gym workout, this field is automatically bypassed.",), top: 45, right: 17.5),
+				WidgetPlusHelper(mainWidget: Header(text: _activityName ?? "", fontSize: 25, fontWeight: FontWeight.w600), helpIcon: HelpIcon(msg: "Enter the net time spent in active play. Exclude long periods of inactivity or halftime to maintain accuracy.\nIf you switch to a gym workout, this field is automatically bypassed.",), top: 30, left: 330),
 
-				textBox("Activity Duration", "mins", sportDuration, fieldToSave: 1)
+				_textBox("Activity Duration", "mins", _sportDuration, fieldToSave: 1)
 			]
 		);
 	}
 
-	bool selectedSport()
+	bool _selectedSport()
 	{
-		if((metFactor == null) || (metFactor == EasyMET.weightLifting.value) || (metFactor == MidMET.weightLifting.value) || (metFactor == HardMET.weightLifting.value))
+		if((_metFactor == null) || (_metFactor == EasyMET.weightLifting.value) || (_metFactor == MidMET.weightLifting.value) || (_metFactor == HardMET.weightLifting.value))
 		{
 			return false;
 		}
@@ -509,9 +515,9 @@ class _BurnPageState extends State<BurnPage>
 		return true;
 	}
 
-	Widget weightLifting()
+	Widget _weightLifting()
 	{
-		final String? name = activityName?.split(":").first;
+		final String? name = _activityName?.split(":").first;
 
 		return Column
 		(
@@ -519,42 +525,45 @@ class _BurnPageState extends State<BurnPage>
 			[
 				const Padding(padding: EdgeInsetsGeometry.all(5)),
 
-				Utils.widgetPlusHelper(Utils.header(name ?? "", 25, FontWeight.w600), HelpIcon(msg: "Enter your total time in the gym from your first set to your last. The formula used applies a 0.8 factor to account for standard rest intervals between sets. Entering data into a muscle group adjusts the intensity based on the metabolic demand of the movement type.\nIf you switch to a sport, these fields are automatically bypassed.",), top: 45, right: 17.5),
+				WidgetPlusHelper(mainWidget: Header(text: name ?? "", fontSize: 25, fontWeight: FontWeight.w600), helpIcon: HelpIcon(msg: "Enter your total time in the gym from your first set to your last. The formula used applies a 0.8 factor to account for standard rest intervals between sets. Entering data into a muscle group adjusts the intensity based on the metabolic demand of the movement type.\nIf you switch to a sport, these fields are automatically bypassed.",), top: 30, left: 330),
 
-				Utils.widgetPlusHelper(textBox("Upper Body Duration", "mins", upperDuration, fieldToSave: 2), HelpIcon(msg: "Compound movements that target multiple muscles for the upper body and back area.\nExamples: Bench Press, Overhead Press, Dips, Push-ups, Pull-ups, Chin-ups, Bent-over Rows, Lat Pulldown, Cable Rows",), top: 35, right: 20), // Compound
-				Utils.widgetPlusHelper(textBox("Accessories Duration", "mins", accessoriesDuration, fieldToSave: 3), HelpIcon(msg: "Isolated movements that only target 1-2 muscle groups.\nExamples: Bicep Curl, Tricep Cable Pushdown, Lateral Raise, Leg Extensions, Leg Curl, Calf Raise, Crunches",), top: 35, right: 20), // Isolation
-				Utils.widgetPlusHelper(textBox("Lower Body Duration", "mins", lowerDuration, fieldToSave: 4), HelpIcon(msg: "Compound movements that target multiple muscles for the lower body and back area.\nExamples: Squats, Deadlifts, Lunges, Bulgarian Split Squats, Step-ups.",), top: 35, right: 20), // Compound
+				WidgetPlusHelper(mainWidget: _textBox("Upper Body Duration", "mins", _upperDuration, fieldToSave: 2), helpIcon: HelpIcon(msg: "Compound movements that target multiple muscles for the upper body and back area.\nExamples: Bench Press, Overhead Press, Dips, Push-ups, Pull-ups, Chin-ups, Bent-over Rows, Lat Pulldown, Cable Rows",), bottom: 30, left: 235), // Compound
+				WidgetPlusHelper(mainWidget: _textBox("Accessories Duration", "mins", _accessoriesDuration, fieldToSave: 3), helpIcon: HelpIcon(msg: "Isolated movements that only target 1-2 muscle groups.\nExamples: Bicep Curl, Tricep Cable Pushdown, Lateral Raise, Leg Extensions, Leg Curl, Calf Raise, Crunches",), bottom: 30, left: 235), // Isolation
+				WidgetPlusHelper(mainWidget: _textBox("Lower Body Duration", "mins", _lowerDuration, fieldToSave: 4), helpIcon: HelpIcon(msg: "Compound movements that target multiple muscles for the lower body and back area.\nExamples: Squats, Deadlifts, Lunges, Bulgarian Split Squats, Step-ups.",), bottom: 30, left: 235), // Compound
 			]
 		);
 	}
 
-	Widget cardio()
+	Widget _cardio()
 	{
 		return Column
 		(
 			children:
 			[
-				Utils.widgetPlusHelper(Utils.header("Cardio", 25, FontWeight.w600), HelpIcon(msg: "To calculate how many calories you burned during cardio, input the distance that you traveled into the text field, and click on either the Run-Button or the Cycling-Button to apply the correct efficiency factor.",), top: 45, right: 17.5),
+				WidgetPlusHelper(mainWidget: const Header(text: "Cardio", fontSize: 25, fontWeight: FontWeight.w600), helpIcon: HelpIcon(msg: "To calculate how many calories you burned during cardio, input the distance that you traveled into the text field, and click on either the Run-Button, Cycling-Button or Swim-button to apply the correct efficiency factor.",), top: 30, left: 330),
 
-				textBox("Distance", context.watch<DistanceNotifier>().currentUnit.symbol, distance, fieldToSave: 5),
+				_textBox("Distance", context.watch<DistanceNotifier>().currentUnit.symbol, _distance, fieldToSave: 5),
 
 				Row
 				(
-					mainAxisAlignment: MainAxisAlignment.center,
+					mainAxisAlignment: MainAxisAlignment.spaceEvenly,
 					children:
 					[
-						run(),
-						cycle(),
+						_run(),
+						_cycle(),
+						_swim(),
 					]
 				),
 			],
 		);
 	}
 
-	Widget run()
+	Widget _run()
 	{
-		Color unselectedGreen = Theme.of(context).extension<AppColours>()!.runUnColour!;
-		Color selectedGreen = Theme.of(context).extension<AppColours>()!.runSeColour!;
+		final colour = Theme.of(context).extension<AppColours>()!;
+
+		Color unselectedGreen = colour.runUnColour!;
+		Color selectedGreen = colour.runSeColour!;
 		
 		return GestureDetector
 		(
@@ -562,29 +571,31 @@ class _BurnPageState extends State<BurnPage>
 			{
 				setState(()
 				{
-					if(runColour == null)
+					if(_runColour == null)
 					{
-						runColour = selectedGreen;
-						cycleColour = null;
-						chosenCardio = Cardio.run;
+						_runColour = selectedGreen;
+						_cycleColour = null;
+						_swimColour = null;
+						_chosenCardio = Cardio.run;
 						return;
 					}
 
-					if(runColour == selectedGreen)
+					if(_runColour == selectedGreen)
 					{
-						runColour = null;
-						cycleColour = null;
-						chosenCardio = null;
+						_runColour = null;
+						_cycleColour = null;
+						_swimColour = null;
+						_chosenCardio = null;
 						return;
 					}
 				});
 			},
 			child: Padding
 			(
-				padding: const EdgeInsets.all(30.0),
+				padding: const EdgeInsets.symmetric(vertical: 20.0),
 				child: Card
 				(
-					color: runColour == null ? unselectedGreen : selectedGreen,
+					color: _runColour == null ? unselectedGreen : selectedGreen,
 					shape: RoundedRectangleBorder
 					(
 						borderRadius: BorderRadiusGeometry.circular(25)
@@ -599,10 +610,12 @@ class _BurnPageState extends State<BurnPage>
 		);
 	}
 
-	Widget cycle()
+	Widget _cycle()
 	{
-		Color unselectedYellow = Theme.of(context).extension<AppColours>()!.cycleUnColour!;
-		Color selectedYellow = Theme.of(context).extension<AppColours>()!.cycleSeColour!;
+		final colour = Theme.of(context).extension<AppColours>()!;
+
+		Color unselectedYellow = colour.cycleUnColour!;
+		Color selectedYellow = colour.cycleSeColour!;
 		
 		return GestureDetector
 		(
@@ -610,29 +623,31 @@ class _BurnPageState extends State<BurnPage>
 			{
 				setState(()
 				{
-					if(cycleColour == null)
+					if(_cycleColour == null)
 					{
-						cycleColour = selectedYellow;
-						runColour = null;
-						chosenCardio = Cardio.cycle;
+						_cycleColour = selectedYellow;
+						_runColour = null;
+						_swimColour = null;
+						_chosenCardio = Cardio.cycle;
 						return;
 					}
 
-					if(cycleColour == selectedYellow)
+					if(_cycleColour == selectedYellow)
 					{
-						cycleColour = null;
-						runColour = null;
-						chosenCardio = null;
+						_cycleColour = null;
+						_runColour = null;
+						_swimColour = null;
+						_chosenCardio = null;
 						return;
 					}
 				});
 			},
 			child: Padding
 			(
-				padding: const EdgeInsets.all(30.0),
+				padding: const EdgeInsets.symmetric(vertical: 20.0),
 				child: Card
 				(
-					color: cycleColour == null ? unselectedYellow : selectedYellow,
+					color: _cycleColour == null ? unselectedYellow : selectedYellow,
 					shape: RoundedRectangleBorder
 					(
 						borderRadius: BorderRadiusGeometry.circular(25)
@@ -647,8 +662,62 @@ class _BurnPageState extends State<BurnPage>
 		);
 	}
 
-	Widget nextButton()
+	Widget _swim()
 	{
+		final colour = Theme.of(context).extension<AppColours>()!;
+
+		Color unselectedBlue = colour.maleUnColour!;
+		Color selectedBlue = colour.maleSeColour!;
+		
+		return GestureDetector
+		(
+			onTap: ()
+			{
+				setState(()
+				{
+					if(_swimColour == null)
+					{
+						_swimColour = selectedBlue;
+						_runColour = null;
+						_cycleColour = null;
+						_chosenCardio = Cardio.swim;
+						return;
+					}
+
+					if(_swimColour == selectedBlue)
+					{
+						_swimColour = null;
+						_runColour = null;
+						_cycleColour = null;
+						_chosenCardio = null;
+						return;
+					}
+				});
+			},
+			child: Padding
+			(
+				padding: const EdgeInsets.symmetric(vertical: 20.0),
+				child: Card
+				(
+					color: _swimColour == null ? unselectedBlue : selectedBlue,
+					shape: RoundedRectangleBorder
+					(
+						borderRadius: BorderRadiusGeometry.circular(25)
+					),
+					child: const Padding
+					(
+						padding: EdgeInsets.all(8.0),
+						child: Icon(Icons.pool_rounded, size: 60),
+					),
+				),
+			),
+		);
+	}
+
+	Widget _nextButton()
+	{
+		final colour = Theme.of(context).extension<AppColours>()!;
+
 		return Padding
 		(
 			padding: const EdgeInsets.only(bottom: 100.0),
@@ -662,43 +731,43 @@ class _BurnPageState extends State<BurnPage>
 					elevation: 2,
 					child: ListenableBuilder
 					(
-						listenable: Listenable.merge([sportDuration, upperDuration, accessoriesDuration, lowerDuration, distance]), // Combines all the controllers together to say "Track all these guys's changes"
+						listenable: Listenable.merge([_sportDuration, _upperDuration, _accessoriesDuration, _lowerDuration, _distance]), // Combines all the controllers together to say "Track all these guys's changes"
 						builder: (context, child)
 						{
 							return ElevatedButton
 							(
 								style: ElevatedButton.styleFrom
 								(
-									backgroundColor: Theme.of(context).extension<AppColours>()!.secondaryColour!
+									backgroundColor: colour.secondaryColour!
 								),
-								onPressed: areFieldsEmpty() ? null : ()
+								onPressed: _areFieldsEmpty() ? null : ()
 								{
-									final double sportDurationNum = double.tryParse(sportDuration.text.trim()) ?? 0;
-									final double upperDurationNum = double.tryParse(upperDuration.text.trim()) ?? 0;
-									final double accDurationNum = double.tryParse(accessoriesDuration.text.trim()) ?? 0;
-									final double lowerDurationNum = double.tryParse(lowerDuration.text.trim()) ?? 0;
-									final double distanceNum = double.tryParse(distance.text.trim()) ?? 0;
+									final double sportDurationNum = double.tryParse(_sportDuration.text.trim()) ?? 0;
+									final double upperDurationNum = double.tryParse(_upperDuration.text.trim()) ?? 0;
+									final double accDurationNum = double.tryParse(_accessoriesDuration.text.trim()) ?? 0;
+									final double lowerDurationNum = double.tryParse(_lowerDuration.text.trim()) ?? 0;
+									final double distanceNum = double.tryParse(_distance.text.trim()) ?? 0;
 									final double trueDistance = context.read<DistanceNotifier>().currentUnit.toBase(distanceNum);
 
 									// Systemic Load Multipliers
-									final double upperBurn = metCalculator(upperDurationNum, 1.2);
-									final double accBurn = metCalculator(accDurationNum, 0.7);
-									final double lowerBurn = metCalculator(lowerDurationNum, 1.3);
+									final double upperBurn = _metCalculator(upperDurationNum, 1.2);
+									final double accBurn = _metCalculator(accDurationNum, 0.7);
+									final double lowerBurn = _metCalculator(lowerDurationNum, 1.3);
 				
 									final double weightLiftingBurn = (upperBurn + accBurn + lowerBurn) * 0.8;
-									final double sportBurn = metCalculator(sportDurationNum, 1);
+									final double sportBurn = _metCalculator(sportDurationNum, 1);
 
-									final double activityBurn = extractCorrectActivity(weightLiftingBurn, sportBurn);
-									final (:name, :upper, :acc, :lower, :sport) = extractCorrectDuration(activityName, upperDurationNum, accDurationNum, lowerDurationNum, sportDurationNum);
+									final double activityBurn = _extractCorrectActivity(weightLiftingBurn, sportBurn);
+									final (:name, :upper, :acc, :lower, :sport) = _extractCorrectDuration(_activityName, upperDurationNum, accDurationNum, lowerDurationNum, sportDurationNum);
 
-									final double cardioBurn = widget.personWeight * trueDistance * (chosenCardio?.value ?? 0);
+									final double cardioBurn = widget.personWeight * trueDistance * (_chosenCardio?.value ?? 0);
 
 									_calcs.resetControllers();
 
 									Navigator.push
 									(
 										context,
-										MaterialPageRoute(builder: (context) => Utils.switchPage(context, EPOCPage(personWeight: widget.personWeight, age: widget.age, male: widget.male, bmr: widget.bmr, tdee: widget.tdee, activityBurn: activityBurn, cardioBurn: cardioBurn, additionalCalories: widget.additionalCalories, weeklyPlanner: widget.weeklyPlanner, cardioDistance: trueDistance, protein: selectedProteinIntensity, fat: selectedFatIntensity, metFactor: metFactor ?? 0, cardioFactor: chosenCardio?.value ?? 0, activityName: name ?? "", sportDuration: sport, upperDuration: upper, accessoryDuration: acc, lowerDuration: lower, cardioName: (chosenCardio?.label ?? ""), weeklyPlanId: widget.weeklyPlanId, dayId: widget.dayId))) // Takes you to the page that shows all the locations connected to the restaurant
+										MaterialPageRoute(builder: (context) => PageSwitcher(nextPage: EPOCPage(personWeight: widget.personWeight, age: widget.age, male: widget.male, bmr: widget.bmr, tdee: widget.tdee, activityBurn: activityBurn, cardioBurn: cardioBurn, additionalCalories: widget.additionalCalories, weeklyPlanner: widget.weeklyPlanner, cardioDistance: trueDistance, protein: _selectedProteinIntensity, fat: _selectedFatIntensity, metFactor: _metFactor ?? 0, cardioFactor: _chosenCardio?.value ?? 0, activityName: name ?? "", sportDuration: sport, upperDuration: upper, accessoryDuration: acc, lowerDuration: lower, cardioName: (_chosenCardio?.label ?? ""), weeklyPlanId: widget.weeklyPlanId, dayId: widget.dayId))) // Takes you to the page that shows all the locations connected to the restaurant
 									);
 								},
 								child: const Text("Next", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black))
@@ -710,15 +779,15 @@ class _BurnPageState extends State<BurnPage>
 		);
 	}
 
-	Widget nutrition()
+	Widget _nutrition()
 	{
 		return widget.weeklyPlanner == true ? Column
 		(
 			children:
 			[
-				chips("Protein Intensity", "Select the amount of protein that you want in your diet. 'Aggressive Cut / Fat Loss' helps preserve lean mass during a deficit and increases satiety, while 'Maintenance' provides the baseline RDA for health.", ProteinIntensity.values, true),
+				_chips("Protein Intensity", "Select the amount of protein that you want in your diet. 'Aggressive Cut / Fat Loss' helps preserve lean mass during a deficit and increases satiety, while 'Maintenance' provides the baseline RDA for health.", ProteinIntensity.values, true),
 
-				chips("Fat Intake", "Select the amount of fat that you want in your diet. High Fat supports hormonal health and fat-soluble vitamin absorption (A, D, E, K), while Low Fat allows for higher carbohydrate volume to fuel high-intensity training.", FatIntensity.values, false),
+				_chips("Fat Intake", "Select the amount of fat that you want in your diet. High Fat supports hormonal health and fat-soluble vitamin absorption (A, D, E, K), while Low Fat allows for higher carbohydrate volume to fuel high-intensity training.", FatIntensity.values, false),
 
 				const Padding(padding: EdgeInsets.only(bottom: 75.0))
 
@@ -726,56 +795,58 @@ class _BurnPageState extends State<BurnPage>
 		) : const SizedBox();
 	}
 
-	Widget chips(String header, String helpMsg, List<Nutrition> intensity, bool isProtein)
+	Widget _chips(String header, String helpMsg, List<Nutrition> intensity, bool isProtein)
 	{
 		return Column
 		(
 			children:
 			[
-				Utils.widgetPlusHelper(Utils.header(header, 25, FontWeight.w600), HelpIcon(msg: helpMsg), top: 45, right: 17.5),
+				WidgetPlusHelper(mainWidget: Header(text: header, fontSize: 25, fontWeight: FontWeight.w600), helpIcon: HelpIcon(msg: helpMsg), top: 30, left: 330),
 				
 				for(int i = 0; i < intensity.length; i++)
-					intensityChip(intensity[i], i, isProtein)
+					_intensityChip(intensity[i], i, isProtein)
 			],
 		);
 	}
 
-	Widget intensityChip(Nutrition intensity, int index, bool isProtein)
+	Widget _intensityChip(Nutrition intensity, int index, bool isProtein)
 	{
+		final colour = Theme.of(context).extension<AppColours>()!;
+		
 		return Padding
 		(
 			padding: const EdgeInsets.only(left: 20, right: 20, top: 30, bottom: 0),
 			child: ChoiceChip
 			(
 				label: Text(intensity.label),
-				selected: isProtein == true ? isProteinSelected == index : isFatSelected == index,
+				selected: isProtein == true ? _isProteinSelected == index : _isFatSelected == index,
 				onSelected: (value)
 				{
 					setState(()
 					{
 						if(isProtein)
 						{
-							selectedProteinIntensity = intensity.value;
-							isProteinSelected = index;
+							_selectedProteinIntensity = intensity.value;
+							_isProteinSelected = index;
 						}
 						else
 						{
-							selectedFatIntensity = intensity.value;
-							isFatSelected = index;
+							_selectedFatIntensity = intensity.value;
+							_isFatSelected = index;
 						}
 					});
 				},
-				selectedColor: Theme.of(context).extension<AppColours>()!.secondaryColour!,
-				backgroundColor: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
+				selectedColor: colour.secondaryColour!,
+				backgroundColor: colour.tertiaryColour!,
 			),
 		);
 	}
 
-	({String? name, double upper, double acc, double lower, double sport}) extractCorrectDuration(String? name, double upper, double acc, double lower, double sport)
+	({String? name, double upper, double acc, double lower, double sport}) _extractCorrectDuration(String? name, double upper, double acc, double lower, double sport)
 	{
-		if((metFactor == EasyMET.weightLifting.value) || (metFactor == MidMET.weightLifting.value) || (metFactor == HardMET.weightLifting.value))
+		if((_metFactor == EasyMET.weightLifting.value) || (_metFactor == MidMET.weightLifting.value) || (_metFactor == HardMET.weightLifting.value))
 		{
-			name = activityName?.split(":").first;
+			name = _activityName?.split(":").first;
 			return (name: name, upper: upper, acc: acc, lower: lower, sport: 0);
 		}
 
@@ -783,9 +854,9 @@ class _BurnPageState extends State<BurnPage>
 	}
 
 
-	double extractCorrectActivity(double weight, double sport)
+	double _extractCorrectActivity(double weight, double sport)
 	{
-		if((metFactor == EasyMET.weightLifting.value) || (metFactor == MidMET.weightLifting.value) || (metFactor == HardMET.weightLifting.value))
+		if((_metFactor == EasyMET.weightLifting.value) || (_metFactor == MidMET.weightLifting.value) || (_metFactor == HardMET.weightLifting.value))
 		{
 			return weight;
 		}
@@ -793,22 +864,22 @@ class _BurnPageState extends State<BurnPage>
 		return sport;
 	}
 
-	double metCalculator(double durationNum, double burnMultiplier)
+	double _metCalculator(double durationNum, double burnMultiplier)
 	{
-		return ((((metFactor ?? 0) * 3.5 * widget.personWeight) / 200) * durationNum) * burnMultiplier;
+		return ((((_metFactor ?? 0) * 3.5 * widget.personWeight) / 200) * durationNum) * burnMultiplier;
 	}
 
-	bool areFieldsEmpty()
+	bool _areFieldsEmpty()
 	{
-		if((metFactor == null) && sportDuration.text.isNotEmpty)
+		if((_metFactor == null) && _sportDuration.text.isNotEmpty)
 		{
 			return true;
 		}
-		if((metFactor == null) && ((upperDuration.text.isNotEmpty) || (accessoriesDuration.text.isNotEmpty) || (lowerDuration.text.isNotEmpty)))
+		if((_metFactor == null) && ((_upperDuration.text.isNotEmpty) || (_accessoriesDuration.text.isNotEmpty) || (_lowerDuration.text.isNotEmpty)))
 		{
 			return true;
 		}
-		else if(chosenCardio == null && distance.text.isNotEmpty)
+		else if(_chosenCardio == null && _distance.text.isNotEmpty)
 		{
 			return true;
 		}

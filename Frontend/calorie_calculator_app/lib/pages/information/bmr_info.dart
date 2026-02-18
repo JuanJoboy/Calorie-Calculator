@@ -1,6 +1,5 @@
 import 'package:calorie_calculator_app/pages/information/information.dart';
 import 'package:calorie_calculator_app/utilities/colours.dart';
-import 'package:calorie_calculator_app/utilities/hyperlinker.dart';
 import 'package:calorie_calculator_app/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 
@@ -19,13 +18,13 @@ class BMRInfo extends Information
 
 		return
 		[
-			Utils.header('''Basal Metabolic Rate''', 32, FontWeight.bold, color: textCol),
+			const Header(text: '''Basal Metabolic Rate''', fontSize: 32, fontWeight: FontWeight.bold),
 
-			Utils.header("Definition", 24, FontWeight.w600, color: textCol),
+			const Header(text: "Definition", fontSize: 24, fontWeight: FontWeight.w600),
 			const SizedBox(height: 12),
 			Text('''The amount of energy your body uses to maintain basic life functions at rest. It is essentially the amount of energy you would use up in a coma.''', style: TextStyle(fontSize: 18, height: 1.5, color: textCol)),
 			
-			Utils.header("Formulas", 24, FontWeight.w600, color: textCol),
+			const Header(text: "Formulas", fontSize: 24, fontWeight: FontWeight.w600),
 			const SizedBox(height: 12),
 
 			_formulaCard
@@ -48,7 +47,7 @@ class BMRInfo extends Information
 				example: "65kg, 165cm, 25y: 1395 kcal",
 			),
 
-			Utils.header("Note", 24, FontWeight.w600, padding: 30, color: textCol),
+			const Header(text: "Note", fontSize: 24, fontWeight: FontWeight.w600),
 			_note(context),
 			const SizedBox(height: 100),
 		];
@@ -62,9 +61,8 @@ class BMRInfo extends Information
 			padding: const EdgeInsets.all(16),
 			decoration: BoxDecoration
 			(
-				color: textColour.withOpacity(0.05),
+				color: formulaColour.withOpacity(0.1),
 				borderRadius: BorderRadius.circular(12),
-				border: Border.all(color: textColour.withOpacity(0.1)),
 			),
 			child: Column
 			(
@@ -105,17 +103,15 @@ class BMRInfo extends Information
 					children:
 					[
 						const TextSpan(text: "The "),
-						HyperLinker.hyperlinkText("Mifflin-St Jeor Equation", "...", context),
+						HyperLinker.hyperlinkText("Mifflin-St Jeor Equation", "https://pubmed.ncbi.nlm.nih.gov/2305711/", context),
 						const TextSpan(text: " is the current clinical gold standard for estimating "),
-						HyperLinker.hyperlinkText("BMR", "...", context),
+						HyperLinker.hyperlinkText("BMR", "https://www.healthline.com/health/how-to-calculate-your-basal-metabolic-rate", context),
 						const TextSpan(text: ".\n\n"),
 
-						const TextSpan(text: "History: ", style: TextStyle(fontWeight: FontWeight.bold)),
 						const TextSpan(text: "Established in 1990, it replaced the older "),
 						const TextSpan(text: "Harris-Benedict Equation", style: TextStyle(fontStyle: FontStyle.italic)),
 						const TextSpan(text: " because it more accurately reflects modern body compositions and sedentary lifestyles.\n\n"),
 						
-						const TextSpan(text: "Limitations: ", style: TextStyle(fontWeight: FontWeight.bold)),
 						const TextSpan(text: "While highly reliable for the average population, it may underestimate needs for highly muscular individuals or overestimate for those with high body fat percentages, as muscle tissue is more metabolically active than fat. Which is where the "),
 						const TextSpan(text: "Katch-McArdle Equation", style: TextStyle(fontStyle: FontStyle.italic)),
 						const TextSpan(text: " comes in handy. However for simplicity and to accommodate the general population, the "),

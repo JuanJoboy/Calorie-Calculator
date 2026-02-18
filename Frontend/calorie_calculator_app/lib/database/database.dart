@@ -329,11 +329,11 @@ class DatabaseHelper
 				    $weeklyTdeeTableName.$weeklyTdeeBMRColumnName AS weekly_bmr,
 				    $weeklyTdeeTableName.$weeklyTdeeTDEEColumnName AS weekly_tdee
 				FROM $dailyEntriesTableName
-				LEFT JOIN $weeklyTdeeTableName
+				JOIN $weeklyTdeeTableName
 				ON $dailyEntriesTableName.$dailyEntriesWeeklyPlanIDColumnName = $weeklyTdeeTableName.$weeklyTdeeWeeklyPlanIDColumnName
 				WHERE $dailyEntriesTableName.$dailyEntriesWeeklyPlanIDColumnName = ?
 			''',
-			[weekId]
+			[weekId] // This argument is whats passed into the question mark above
 		);
 	}
 
@@ -407,6 +407,7 @@ class DatabaseHelper
 
 		int weeklyPlanId = -1;
 
+		// This ensures "all or nothing" execution
 		await db.transaction((txn) async
 		{
 			weeklyPlanId = await addWeeklyPlan(folderName, txn: txn);

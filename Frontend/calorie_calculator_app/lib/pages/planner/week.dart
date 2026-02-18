@@ -24,7 +24,7 @@ class WeekPage extends StatefulWidget
 
 class _WeekPageState extends State<WeekPage>
 {
-	final TextEditingController folderName = TextEditingController();
+	final TextEditingController _folderName = TextEditingController();
 
 	late FolderNotifier _folder;
 	late WeeklyPlanNotifier _plan;
@@ -35,20 +35,18 @@ class _WeekPageState extends State<WeekPage>
 	void dispose()
 	{
 		super.dispose();
-		folderName.dispose();
+		_folderName.dispose();
 	}
 
 	@override void initState()
 	{
     	super.initState();
 
-		final FolderNotifier folder = context.read<FolderNotifier>();
-		_folder = folder;
+		_folder = context.read<FolderNotifier>();
 
-		final WeeklyPlanNotifier plan = context.read<WeeklyPlanNotifier>();
-		_plan = plan;
+		_plan = context.read<WeeklyPlanNotifier>();
 
-		folderName.text = _folder.name;
+		_folderName.text = _folder.name;
   	}
 
 	@override
@@ -88,19 +86,19 @@ class _WeekPageState extends State<WeekPage>
 							crossAxisAlignment: CrossAxisAlignment.center,
 							children:
 							[
-								const Padding(padding: EdgeInsetsGeometry.only(top: 40)),
+								const Header(text: "This Week's Plan", fontSize: 30, fontWeight: FontWeight.bold, bottomPadding: 16),
+								
+								_textBox(),
 
-								textBox(),
+								_button("Monday", dayId: 0),
+								_button("Tuesday", dayId: 1),
+								_button("Wednesday", dayId: 2),
+								_button("Thursday", dayId: 3),
+								_button("Friday", dayId: 4),
+								_button("Saturday", dayId: 5),
+								_button("Sunday", dayId: 6),
 
-								button("Monday", dayId: 0),
-								button("Tuesday", dayId: 1),
-								button("Wednesday", dayId: 2),
-								button("Thursday", dayId: 3),
-								button("Friday", dayId: 4),
-								button("Saturday", dayId: 5),
-								button("Sunday", dayId: 6),
-
-								button("Save Plan", saveWeek: true),
+								_button("Save Plan", saveWeek: true),
 
 								const Padding(padding: EdgeInsetsGeometry.only(top: 100))
 							]
@@ -111,8 +109,10 @@ class _WeekPageState extends State<WeekPage>
 		);
 	}
 
-	Widget textBox()
+	Widget _textBox()
 	{
+		final colour = Theme.of(context).extension<AppColours>()!;
+
 		return Padding
 		(
 			padding: const EdgeInsets.only(top: 20.0, left: 10, right: 10),
@@ -122,12 +122,12 @@ class _WeekPageState extends State<WeekPage>
 				width: double.infinity,
 				child: Card
 				(
-					color: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
+					color: colour.tertiaryColour!,
 					shape: RoundedRectangleBorder
 					(
 						side: BorderSide
 						(
-							color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+							color: colour.secondaryColour!,
 							width: 6
 						),
 						borderRadius: BorderRadiusGeometry.circular(20)
@@ -169,12 +169,12 @@ class _WeekPageState extends State<WeekPage>
 												(
 													side: BorderSide
 													(
-														color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+														color: colour.secondaryColour!,
 														width: 2
 													),
 													borderRadius: BorderRadiusGeometry.circular(100)
 												),
-												color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+												color: colour.secondaryColour!,
 												child: TextField
 												(
 													textAlign: TextAlign.center,
@@ -187,7 +187,7 @@ class _WeekPageState extends State<WeekPage>
 													(
 														fontSize: 25,
 													),
-													controller: folderName,
+													controller: _folderName,
 													onChanged: (value)
 													{
 														_folder.updateControllers(folderName: value);
@@ -205,19 +205,21 @@ class _WeekPageState extends State<WeekPage>
 		);
 	}
 	
-	Widget button(String text, {bool? saveWeek = false, int? dayId})
+	Widget _button(String text, {bool? saveWeek = false, int? dayId})
 	{
+		final colour = Theme.of(context).extension<AppColours>()!;
+
 		return GestureDetector
 		(
 			onTap: () async
 			{
 				if (saveWeek == false)
 				{
-					goToNextPage(exit: false, dayId: dayId!);
+					_goToNextPage(exit: false, dayId: dayId!);
 				}
 				else
 				{
-					goToNextPage(exit: true);
+					_goToNextPage(exit: true);
 				}
 			},
 			child: Padding
@@ -229,37 +231,37 @@ class _WeekPageState extends State<WeekPage>
 					width: double.infinity,
 					child: Card
 					(
-						color: Theme.of(context).extension<AppColours>()!.fairyPink!,
+						color: colour.femaleUnColour!,
 						shape: RoundedRectangleBorder
 						(
 							side: BorderSide
 							(
-								color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+								color: colour.secondaryColour!,
 								width: 4
 							),
 							borderRadius: BorderRadiusGeometry.circular(20)
 						),
 						child: Center
+						(
+							child: Text
 							(
-								child: Text
+								text,
+								textAlign: TextAlign.center,
+								style: TextStyle
 								(
-									text,
-									textAlign: TextAlign.center,
-									style: TextStyle
-									(
-										fontSize: 40,
-										fontWeight: FontWeight.w900,
-										color: Theme.of(context).extension<AppColours>()!.femaleSeColour!
-									)
-								),
+									fontSize: 40,
+									fontWeight: FontWeight.w900,
+									color: saveWeek != null && saveWeek == true ? colour.runSeColour! : colour.femaleSeColour!,
+								)
 							),
+						),
 					),
 				),
 			),
 		);
 	}
 
-	void goToNextPage({bool? exit, int? dayId}) async
+	void _goToNextPage({bool? exit, int? dayId}) async
 	{
 		if(exit! == false)
 		{
@@ -268,7 +270,7 @@ class _WeekPageState extends State<WeekPage>
 				context,
 				MaterialPageRoute(builder: (context) => Scaffold // ChoiceChips in the bmr page need a scaffold at the root, so i need this here
 				(
-					body: Utils.switchPage(context, BurnPage(bmr: widget.bmr, age: widget.age, male: widget.male, tdee: widget.tdee, personWeight: widget.personWeight, additionalCalories: widget.additionalCalories, weeklyPlanner: true, weeklyPlanId: widget.weeklyPlanId, dayId: dayId!))
+					body: PageSwitcher(nextPage: BurnPage(bmr: widget.bmr, age: widget.age, male: widget.male, tdee: widget.tdee, personWeight: widget.personWeight, additionalCalories: widget.additionalCalories, weeklyPlanner: true, weeklyPlanId: widget.weeklyPlanId, dayId: dayId!))
 				))
 			);
 		}
@@ -276,7 +278,7 @@ class _WeekPageState extends State<WeekPage>
 		{
 			_isSaving = true;
 
-			final String name = folderName.text.trim() == "" ? "New Weekly Plan" : folderName.text.trim();
+			final String name = _folderName.text.trim() == "" ? "New Weekly Plan" : _folderName.text.trim();
 
 			await _plan.uploadOrEditWeeklyPlan(name, widget.weeklyPlanId);
 

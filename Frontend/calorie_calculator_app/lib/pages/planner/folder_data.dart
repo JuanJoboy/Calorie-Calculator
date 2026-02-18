@@ -44,6 +44,14 @@ class WeeklyPlanNotifier extends ChangeNotifier
 		final db = await dbInstance.database;
 		final List<Map<String, dynamic>> weeklyPlansMap = await db.query(dbInstance.weeklyPlansTableName, orderBy: "${dbInstance.weeklyPlansIDColumnName} DESC");
 
+		// The .map function is a "transformer." It loops through every single Map (m) in the list, one by one.
+		// It picks up the first Map.
+		// It passes that Map into the WeeklyPlan.fromMap constructor.
+		// The constructor reads the values (like m['folderName']) and builds a WeeklyPlan object.
+		// It repeats this for every row in the list.
+		// By default, the .map function in Dart returns something called an Iterable (a lazy stream of data).
+		// .toList() "freezes" the transformation.
+		// It gathers all those newly created Calculation objects and puts them into a standard Dart List.
 		weeklyPlans = weeklyPlansMap.map((m) => WeeklyPlan.fromMap(m, dbInstance)).toList();
 		
 		notifyListeners();
@@ -296,33 +304,22 @@ class DailyEntryNotifier extends ChangeNotifier
 	Future<void> loadEntries(int weeklyPlanId) async
 	{
 		final dbInstance = DatabaseHelper.instance;
-		final db = await dbInstance.database;
 		isLoading = true;
 		notifyListeners();
 
 		// Reset to empty/fresh state
 		dailyEntries = List.generate(7, (index) => DailyEntry.freshDay(dayId: index), growable: false);
 
-		// Debug: See what is actually in the DB
-		final List<Map<String, dynamic>> allRows = await db.query(dbInstance.dailyEntriesTableName);
-		print("--- DB DEBUG ---");
-		print("Total rows in table: ${allRows.length}");
-
-		for (var row in allRows)
-		{
-			print("Entry ID: ${row[dbInstance.dailyEntriesIDColumnName]}, PlanID: ${row[dbInstance.dailyEntriesWeeklyPlanIDColumnName]}, Day: ${row[dbInstance.dailyEntriesDayIDColumnName]}");
-		}
-
 		// Perform specific query
 		final List<Map<String, dynamic>> maps = await dbInstance.joinWeeklyTdeeToDailyEntry(weeklyPlanId);
-
-		print("Rows found for Plan $weeklyPlanId: ${maps.length}");
 
 		for (Map<String, dynamic> map in maps)
 		{
 			final DailyEntry entry = DailyEntry.fromMap(map, dbInstance);
 			dailyEntries[entry.dayId] = entry;
 		}
+
+		// dailyEntries = maps.map((m) => DailyEntry.fromMap(m, dbInstance)).toList(); I cant use this since I set growable to false. Also this creates a new list every time, and it would be better to just reuse the same list and plug the entries into the specific indices.
 
 		isLoading = false;
 		notifyListeners();

@@ -1,96 +1,195 @@
 import 'package:bulleted_list/bulleted_list.dart';
-import 'package:calorie_calculator_app/utilities/hyperlinker.dart';
+import 'package:calorie_calculator_app/pages/information/information.dart';
+import 'package:calorie_calculator_app/utilities/colours.dart';
 import 'package:calorie_calculator_app/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 
-class EPOCInfo extends StatelessWidget
+class EPOCInfo extends Information
 {
-  	const EPOCInfo({super.key});
+    const EPOCInfo({super.key});
 
-	@override
-	Widget build(BuildContext context)
-	{
-		return Scaffold
-		(
-			backgroundColor: Utils.getBackgroundColor(Theme.of(context)),
-			appBar: AppBar(title: const Text("XXX Info")),
-			body: SingleChildScrollView
+    @override
+    String get appBarText => "EPOC Info";
+
+    @override
+    List<Widget> info(BuildContext context)
+    {
+        final textCol = Theme.of(context).extension<AppColours>()!.text!;
+        final bmrCol = Theme.of(context).extension<AppColours>()!.bmr!;
+        final col1 = Theme.of(context).extension<AppColours>()!.aerobicBackgroundColour!;
+        final col2 = Theme.of(context).extension<AppColours>()!.anaerobicBackgroundColour!;
+        final col3 = Theme.of(context).extension<AppColours>()!.maximalBackgroundColour!;
+
+        return
+        [
+            const Header(text: 'Recovery Burn', fontSize: 32, fontWeight: FontWeight.bold),
+
+            const Header(text: "Definition", fontSize: 24, fontWeight: FontWeight.w600),
+            const SizedBox(height: 20),
+            Text
 			(
-				physics: const BouncingScrollPhysics(),
-				child: Center
-				(
-					child: info(context)
-				)
-			)
-		);
-	}
+                '''EPOC is the Excess Post-exercise Oxygen Consumption process that the body does after exercising.''',
+                style: TextStyle(fontSize: 18, height: 1.5, color: textCol),
+            ),
+            const SizedBox(height: 20),
+            
+            _processCard(context, textCol),
 
-	Widget info(BuildContext context)
-	{
-		return Card
-		(
-			child: Column
+            const Header(text: "The 3 Tiers of Intensity", fontSize: 24, fontWeight: FontWeight.w600),
+            const SizedBox(height: 20),
+            Text.rich
+            (
+                TextSpan
+                (
+                    style: TextStyle(fontSize: 16, color: textCol),
+                    children:
+                    [
+                        HyperLinker.hyperlinkText("There are 3 tiers that an EPOC can be", "https://pubmed.ncbi.nlm.nih.gov/17101527/", context),
+                        const TextSpan(text: ''', and they're determined by your perceived intensity rather than duration:'''),
+                    ]
+                )
+            ),
+            const SizedBox(height: 20),
+
+            _tierCard(context, "1. Light / Aerobic", "5%", "Light weights, walking.", "Metabolic disturbance is minimal.", textCol, col1),
+            _tierCard(context, "2. Moderate / Anaerobic", "10%", "Heavy resistance, circuit training.", "Protein synthesis demands significant recovery energy.", textCol, col2),
+            _tierCard(context, "3. Vigorous / Maximal", "13%", "Lifting to failure, sprinting.", "Largest oxygen debt and metabolic afterburn.", textCol, col3),
+
+            const Header(text: "Formula", fontSize: 24, fontWeight: FontWeight.w600),
+            const SizedBox(height: 20),
+            _formulaCard
 			(
-				children:
-				[
-					const Text('''5. Recovery Burn (EPOC)'''),
-					const Text('''Definition: Excess Post-exercise Oxygen Consumption; the "afterburn" from high-intensity training. It is the measurable increase in oxygen intake following strenuous activity. After a workout, your body requires extra energy to return to its resting metabolic state. This recovery process involves replenishing energy stores, balancing hormones, repairing cells, and cooling the core body temperature.'''),
-					
-					Text.rich
-					(
-						TextSpan
-						(
-							children:
-							[
-								const TextSpan(text: '''How it Works: During exercise, you create an "oxygen debt." Post-workout, '''),
-								HyperLinker.hyperlinkText("the body consumes more oxygen than usual to:", "https://blog.nasm.org/excess-post-exercise-oxygen-consumption", context),
-							]
-						)
-					),
+                context,
+                formula: "(Activity Burn + Cardio Burn) × EPOC %",
+                example: "(551 + 700) × 0.13 = 163 kcal",
+                textColour: textCol,
+                formulaColour: bmrCol,
+            ),
+            
+            const SizedBox(height: 20),
+            _note(context, textCol),
 
-					const BulletedList
-					(
-						listItems: ['''Resynthesize ATP and Phosphocreatine: Restoring the immediate energy used for muscle contractions.''', '''Metabolize Lactate: Converting lactate produced during anaerobic work back into glucose.''', '''Restore Blood Oxygen: Re-oxygenating hemoglobin and myoglobin.'''],
-					),
+            const SizedBox(height: 100),
+        ];
+    }
 
-					Text.rich
-					(
-						TextSpan
-						(
-							children:
-							[
-								HyperLinker.hyperlinkText("There are 3 tiers that an EPOC can be", "https://pubmed.ncbi.nlm.nih.gov/17101527/", context),
-								const TextSpan(text: ''', and they are determined by the exercise intensity rather than duration:'''),
-							]
-						)
-					),
+    Widget _processCard(BuildContext context, Color textCol)
+    {
+        return Container
+        (
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration
+            (
+                color: textCol.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: textCol.withOpacity(0.1)),
+            ),
+            child: Column
+            (
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: 
+                [
+                    Text.rich
+                    (
+                        TextSpan
+                        (
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textCol),
+                            children: 
+                            [
+                                const TextSpan(text: "After a workout, your body requires extra energy to return to its resting metabolic state.\n"),
+                                HyperLinker.hyperlinkText("This recovery process involves:", "https://blog.nasm.org/excess-post-exercise-oxygen-consumption", context),
+                            ]
+                        )
+                    ),
+                    const SizedBox(height: 8),
+                    BulletedList
+                    (
+                        listItems: const 
+                        [
+                            "Resynthesize ATP and Phosphocreatine.",
+                            "Metabolizing Lactate back into glucose.",
+                            "Restoring Blood Oxygen (Hemoglobin/Myoglobin).",
+                            "Repairing cells and cooling your core temperature."
+                        ],
+                        bulletColor: textCol,
+                        style: TextStyle(fontSize: 14, color: textCol, height: 1.4),
+                    ),
+                ],
+            ),
+        );
+    }
 
-					const Align(alignment: AlignmentGeometry.centerLeft, child: Text('''1. Light / Aerobic''', style: TextStyle(fontWeight: FontWeight.bold))),
-					const BulletedList
-					(
-						listItems: ['''EPOC Factor: 5%''', '''Examples: Light weights or walking.''', '''Impact: Metabolic disturbance is minimal.'''],
-					),
+    Widget _tierCard(BuildContext context, String title, String percentage, String examples, String impact, Color textCol, Color sideCol)
+    {
+        return Container
+        (
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration
+            (
+                color: sideCol.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border(left: BorderSide(color: sideCol, width: 4)),
+            ),
+            child: Row
+            (
+                children: 
+                [
+                    Expanded
+                    (
+                        child: Column
+                        (
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: 
+                            [
+                                Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textCol)),
+                                const SizedBox(height: 4),
+                                Text("Examples: $examples", style: TextStyle(fontSize: 13, color: textCol.withOpacity(0.7))),
+                                Text("Impact: $impact", style: TextStyle(fontSize: 13, color: textCol.withOpacity(0.7), fontStyle: FontStyle.italic)),
+                            ],
+                        ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(percentage, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: sideCol)),
+                ],
+            ),
+        );
+    }
 
-					const Align(alignment: AlignmentGeometry.centerLeft, child: Text('''2. Moderate / Anaerobic''', style: TextStyle(fontWeight: FontWeight.bold))),
-					const BulletedList
-					(
-						listItems: ['''EPOC Factor: 10%''', '''Examples: Heavy resistance training or circuit training.''', '''Impact: Protein synthesis demands significant recovery energy.'''],
-					),
+    Widget _formulaCard(BuildContext context, {required String formula, required String example, required Color textColour, required Color formulaColour})
+    {
+        return Container
+        (
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration
+            (
+                color: formulaColour.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column
+            (
+                children: 
+                [
+                    Text(formula, textAlign: TextAlign.center, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: formulaColour, fontFamily: 'monospace')),
+                    const SizedBox(height: 8),
+                    Text("Example: $example", style: TextStyle(fontSize: 14, color: textColour.withOpacity(0.7))),
+                ],
+            ),
+        );
+    }
 
-					const Align(alignment: AlignmentGeometry.centerLeft, child: Text('''3. Vigorous / Maximal''', style: TextStyle(fontWeight: FontWeight.bold))),
-					const BulletedList
-					(
-						listItems: ['''EPOC Factor: 13%''', '''Examples: Lifting to failure or sprinting.''', '''Impact: Creates the largest oxygen debt and the highest metabolic afterburn.'''],
-					),
-
-					const Text("So by simply training harder in a shorter amount of time, you can end up burning more calories."),
-
-					const BulletedList
-					(
-						listItems: ['''Formula: (Activity Burn + Run Burn) * EPOC Level''', '''Example: (551 + 700) * 0.13 = 163'''],
-					),
-				],
-			),
-		);
-	}
+    Widget _note(BuildContext context, Color textCol)
+    {
+        return Padding
+        (
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text
+			(
+                "So by simply training harder in a shorter amount of time, you can end up burning more calories.",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic, color: textCol),
+            ),
+        );
+    }
 }

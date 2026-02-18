@@ -1,6 +1,5 @@
 import 'package:calorie_calculator_app/pages/planner/folder_data.dart';
 import 'package:calorie_calculator_app/utilities/colours.dart';
-import 'package:calorie_calculator_app/utilities/help.dart';
 import 'package:flutter/material.dart';
 import 'package:calorie_calculator_app/pages/calculator/results.dart';
 import 'package:calorie_calculator_app/utilities/utilities.dart';
@@ -57,19 +56,19 @@ class _EPOCPageState extends State<EPOCPage>
 	{
     	super.initState();
 
-		final DailyEntryNotifier entry = context.read<DailyEntryNotifier>();
-		_entry = entry;
+		_entry = context.read<DailyEntryNotifier>();
   	}
 
 	@override
 	Widget build(BuildContext context)
 	{
-		Color aeOutline = Theme.of(context).extension<AppColours>()!.aerobicOutlineColour!;
-		Color aeBackground = Theme.of(context).extension<AppColours>()!.aerobicBackgroundColour!;
-		Color anOutline = Theme.of(context).extension<AppColours>()!.anaerobicOutlineColour!;
-		Color anBackground = Theme.of(context).extension<AppColours>()!.anaerobicBackgroundColour!;
-		Color maOutline = Theme.of(context).extension<AppColours>()!.maximalOutlineColour!;
-		Color maBackground = Theme.of(context).extension<AppColours>()!.maximalBackgroundColour!;
+		final colour = Theme.of(context).extension<AppColours>()!;
+		Color aeOutline = colour.aerobicOutlineColour!;
+		Color aeBackground = colour.aerobicBackgroundColour!;
+		Color anOutline = colour.anaerobicOutlineColour!;
+		Color anBackground = colour.anaerobicBackgroundColour!;
+		Color maOutline = colour.maximalOutlineColour!;
+		Color maBackground = colour.maximalBackgroundColour!;
 
 		return Scaffold
 		(
@@ -86,16 +85,16 @@ class _EPOCPageState extends State<EPOCPage>
 						crossAxisAlignment: CrossAxisAlignment.center,
 						children:
 						[
-							Utils.widgetPlusHelper(Utils.header("Activity Intensity Level", 30, FontWeight.bold), HelpIcon(msg: "Select your Intensity based on RPE (Rate of Perceived Exertion). The more you exerted yourself, the higher your RPE.",), top: 50, right: 17.5),
+							WidgetPlusHelper(mainWidget: const Header(text: "Activity Intensity Level", fontSize: 30, fontWeight: FontWeight.bold), helpIcon: HelpIcon(msg: "Select your intensity based on RPE (Rate of Perceived Exertion). The more you exerted yourself, the higher your RPE.",), top: 30, left: 350),
 
-							Utils.header(Epoc.low.label, 25, FontWeight.w600),
-							button("RPE 1-4", "Breathing is easy;", "conversation is possible", Epoc.low.value, aeOutline, aeBackground),
+							Header(text: Epoc.low.label, fontSize: 25, fontWeight: FontWeight.w600),
+							_button("RPE 1-4", "Breathing is easy;", "conversation is possible", Epoc.low.value, aeOutline, aeBackground),
 
-							Utils.header(Epoc.mid.label, 25, FontWeight.w600),
-							button("RPE 5-8", "Heavy lifting or fast pace;", "conversation is difficult", Epoc.mid.value, anOutline, anBackground),
+							Header(text: Epoc.mid.label, fontSize: 25, fontWeight: FontWeight.w600),
+							_button("RPE 5-8", "Heavy lifting or fast pace;", "conversation is difficult", Epoc.mid.value, anOutline, anBackground),
 							
-							Utils.header(Epoc.high.label, 25, FontWeight.w600),
-							button("RPE 9-10", "To failure, and gasping for air;", "conversation is impossible", Epoc.high.value, maOutline, maBackground),
+							Header(text: Epoc.high.label, fontSize: 25, fontWeight: FontWeight.w600),
+							_button("RPE 9-10", "To failure, and gasping for air;", "conversation is impossible", Epoc.high.value, maOutline, maBackground),
 
 							const Padding(padding: EdgeInsetsGeometry.all(50))
 						],
@@ -105,7 +104,7 @@ class _EPOCPageState extends State<EPOCPage>
 		);
 	}
 
-	Widget button(String header, String subtitle1, String subtitle2, double epocFactor, Color background, Color outline)
+	Widget _button(String header, String subtitle1, String subtitle2, double epocFactor, Color background, Color outline)
 	{
 		return Padding
 		(
@@ -172,7 +171,7 @@ class _EPOCPageState extends State<EPOCPage>
 										),
 										onPressed: () async
 										{
-											await processInfo(epocFactor, subtitle1);
+											await _processInfo(epocFactor, subtitle1);
 										},
 										child: const Text("Next", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black)),
 									)
@@ -204,30 +203,30 @@ class _EPOCPageState extends State<EPOCPage>
 		);
 	}
 
-	Future<void> processInfo(double epocFactor, String subtitle1) async
+	Future<void> _processInfo(double epocFactor, String subtitle1) async
 	{
 		final double epoc = (widget.activityBurn + widget.cardioBurn) * epocFactor;
 
 		if(widget.weeklyPlanner)
 		{
-			await calculate(epocFactor, epoc, subtitle1);
+			await _calculate(epocFactor, epoc, subtitle1);
 		}
 		else
 		{
 			Navigator.push
 			(
 				context,
-				MaterialPageRoute(builder: (context) => Utils.switchPage(context, ResultsPage(personWeight: widget.personWeight, age: widget.age, male: widget.male, bmr: widget.bmr, tdee: widget.tdee, activityBurn: widget.activityBurn, cardioBurn: widget.cardioBurn, epoc: epoc))) // Takes you to the page that shows all the locations connected to the restaurant
+				MaterialPageRoute(builder: (context) => PageSwitcher(nextPage: ResultsPage(personWeight: widget.personWeight, age: widget.age, male: widget.male, bmr: widget.bmr, tdee: widget.tdee, activityBurn: widget.activityBurn, cardioBurn: widget.cardioBurn, epoc: epoc))) // Takes you to the page that shows all the locations connected to the restaurant
 			);
 		}
 	}
 
-	Future<void> calculate(double epocFactor, double epocCalories, String subtitle1) async
+	Future<void> _calculate(double epocFactor, double epocCalories, String subtitle1) async
 	{
 		// Do all the calculations then post it
 		subtitle1 = subtitle1.split(";").first;
 
-		final existing = _entry.dailyEntries[widget.dayId];
+		final DailyEntry existing = _entry.dailyEntries[widget.dayId];
 
 		// Check if the existing entry belongs to the current plan.
 		// If it doesn't match, this is a new plan/entry context, so id must be null.

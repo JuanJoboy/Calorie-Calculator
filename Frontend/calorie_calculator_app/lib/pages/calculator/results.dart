@@ -33,14 +33,11 @@ class _ResultsPageState extends State<ResultsPage>
 	{
     	super.initState();
 		
-		final AllCalculations list = context.read<AllCalculations>();
-		_list = list;
+		_list = context.read<AllCalculations>();
 
-		final CalculationFields calc = context.read<CalculationFields>();
-		_calcs = calc;
+		_calcs = context.read<CalculationFields>();
 
-		final UsersTdeeNotifier usersNotifier = context.read<UsersTdeeNotifier>();
-		_usersNotifier = usersNotifier;
+		_usersNotifier = context.read<UsersTdeeNotifier>();
   	}
 
 	@override
@@ -65,30 +62,30 @@ class _ResultsPageState extends State<ResultsPage>
 						crossAxisAlignment: CrossAxisAlignment.center,
 						children:
 						[
-							Utils.header("Caloric Breakdown", 30, FontWeight.bold),
+							const Header(text: "Caloric Breakdown", fontSize: 30, fontWeight: FontWeight.bold),
 							
-							Utils.header("Basal Metabolic Rate", 25, FontWeight.w600),
-							displayInfo("BMR", "$bmr", padding: 40),
+							const Header(text: "Basal Metabolic Rate", fontSize: 25, fontWeight: FontWeight.w600),
+							_displayInfo("BMR", "$bmr", padding: 40),
 							
-							Utils.header("Total Daily Energy Expenditure", 25, FontWeight.w600),
-							displayInfo("TDEE", "$tdee", padding: 40),
+							const Header(text: "Total Daily Energy Expenditure", fontSize: 25, fontWeight: FontWeight.w600),
+							_displayInfo("TDEE", "$tdee", padding: 40),
 							
-							Utils.header("Activity Burn", 25, FontWeight.w600),
-							displayInfo("MET Method", "$activity", padding: 40),
+							const Header(text: "Activity Burn", fontSize: 25, fontWeight: FontWeight.w600),
+							_displayInfo("MET Method", "$activity", padding: 40),
 							
-							Utils.header("Running Burn", 25, FontWeight.w600),
-							displayInfo("Distance Method", "$cardio", padding: 40),
+							const Header(text: "Running Burn", fontSize: 25, fontWeight: FontWeight.w600),
+							_displayInfo("Distance Method", "$cardio", padding: 40),
 							
-							Utils.header("Recovery Burn", 25, FontWeight.w600),
-							displayInfo("EPOC", "$epoc", padding: 40),
+							const Header(text: "Recovery Burn", fontSize: 25, fontWeight: FontWeight.w600),
+							_displayInfo("EPOC", "$epoc", padding: 40),
 
-							Utils.header("Total Calories Burned", 25, FontWeight.w600),
-							displayInfo("Net Difference", "$totalBurn", padding: 40),
+							const Header(text: "Total Calories Burned", fontSize: 25, fontWeight: FontWeight.w600),
+							_displayInfo("Total Exercise", "$totalBurn", padding: 40),
 							
-							Utils.header("Todays Caloric Ceiling", 25, FontWeight.w600),
-							displayInfo("Maintenance Calories", "$roundedTotal", padding: 40),
+							const Header(text: "Todays Caloric Ceiling", fontSize: 25, fontWeight: FontWeight.w600),
+							_displayInfo("Maintenance Calories", "$roundedTotal", padding: 40),
 
-							submitButton(total)
+							_submitButton(total)
 						],
 					)
 				)
@@ -96,8 +93,10 @@ class _ResultsPageState extends State<ResultsPage>
 		);
   	}
 
-	Widget displayInfo(String header, String info, {double? padding})
+	Widget _displayInfo(String header, String info, {double? padding})
 	{
+		final colour = Theme.of(context).extension<AppColours>()!;
+		
 		return Padding
 		(
 			padding: const EdgeInsets.only(top: 20.0),
@@ -107,7 +106,7 @@ class _ResultsPageState extends State<ResultsPage>
 				width: 230,
 				child: Card
 				(
-					color: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
+					color: colour.tertiaryColour,
 					shape: RoundedRectangleBorder
 					(
 						side: BorderSide
@@ -187,7 +186,7 @@ class _ResultsPageState extends State<ResultsPage>
 		);
 	}
 
-	Widget submitButton(double total)
+	Widget _submitButton(double total)
 	{
 		return Padding
 		(
@@ -208,7 +207,7 @@ class _ResultsPageState extends State<ResultsPage>
 						),
 						onPressed: ()
 						{
-							newCalculation(widget.personWeight, widget.bmr, widget.tdee, widget.activityBurn, widget.cardioBurn, widget.epoc, total, widget.age, widget.male);
+							_newCalculation(widget.personWeight, widget.bmr, widget.tdee, widget.activityBurn, widget.cardioBurn, widget.epoc, total, widget.age, widget.male);
 							
 							Navigator.popUntil
 							(
@@ -225,7 +224,7 @@ class _ResultsPageState extends State<ResultsPage>
 		);
 	}
 
-	Future<void> newCalculation(double weight, double bmr, double tdee, double activityBurn, double cardioBurn, double epoc, double total, double age, bool male) async
+	Future<void> _newCalculation(double weight, double bmr, double tdee, double activityBurn, double cardioBurn, double epoc, double total, double age, bool male) async
 	{
 		Calculation calc = Calculation(id: null, date: DateTime.now().toIso8601String(), personWeight: weight, bmr: bmr, tdee: tdee, weightLiftingBurn: activityBurn, cardioBurn: cardioBurn, epoc: epoc, totalBurn: total);
 
@@ -233,10 +232,10 @@ class _ResultsPageState extends State<ResultsPage>
 
 		await _usersNotifier.uploadOrEditTdee(bmr, tdee, weight, age, male);
 
-		resetControllers();
+		_resetControllers();
 	}
 
-	void resetControllers()
+	void _resetControllers()
 	{
 		_calcs.updateControllers(sport: "", upper: "", accessories: "", lower: "", distance: "");
 	}

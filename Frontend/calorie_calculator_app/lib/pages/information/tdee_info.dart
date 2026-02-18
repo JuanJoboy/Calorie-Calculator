@@ -1,7 +1,6 @@
 import 'package:bulleted_list/bulleted_list.dart';
 import 'package:calorie_calculator_app/pages/information/information.dart';
 import 'package:calorie_calculator_app/utilities/colours.dart';
-import 'package:calorie_calculator_app/utilities/hyperlinker.dart';
 import 'package:calorie_calculator_app/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 
@@ -20,7 +19,7 @@ class TDEEInfo extends Information
 
         return
         [
-            Utils.header('Total Daily Energy Expenditure', 32, FontWeight.bold, color: textCol),
+            const Header(text: 'Total Daily Energy Expenditure', fontSize: 32, fontWeight: FontWeight.bold),
 
 			_componentSection
 			(
@@ -114,7 +113,7 @@ class TDEEInfo extends Information
 				]
 			),
 
-            Utils.header("Formula", 24, FontWeight.w600, color: textCol),
+            const Header(text: "Formula", fontSize: 24, fontWeight: FontWeight.w600),
 			const SizedBox(height: 20),
             _formulaCard
 			(
@@ -125,7 +124,7 @@ class TDEEInfo extends Information
                 example: "1700 × 1.2 = 2,040 kcal"
             ),
 
-			Utils.header("Note", 24, FontWeight.w600, color: textCol, padding: 50),
+			const Header(text: "Note", fontSize: 24, fontWeight: FontWeight.w600),
             _note(context, textCol),
             const SizedBox(height: 100),
         ];
@@ -185,7 +184,7 @@ class TDEEInfo extends Information
 		(
 			children: 
 			[
-				Utils.header(header, 24, FontWeight.w600, color: textCol),
+				Header(text: header, fontSize: 24, fontWeight: FontWeight.w600),
 				const SizedBox(height: 20),
 
 				Text.rich

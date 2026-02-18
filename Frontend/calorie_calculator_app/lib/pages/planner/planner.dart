@@ -21,37 +21,38 @@ class _PlannerPageState extends State<PlannerPage>
 	@override
 	Widget build(BuildContext context)
 	{
-		final WeeklyPlanNotifier list = context.watch<WeeklyPlanNotifier>();
-		_list = list;
+		_list = context.watch<WeeklyPlanNotifier>();
 
 		return Column
 		(
 			children:
 			[
-				Utils.header("Weekly Planner", 30, FontWeight.bold),
+				const Header(text: "Weekly Planner", fontSize: 30, fontWeight: FontWeight.bold),
 
 				Expanded
 				(
-					child: list.weeklyPlans.isNotEmpty ? ListView.builder
+					child: _list.weeklyPlans.isNotEmpty ? ListView.builder
 					(
 						physics: const BouncingScrollPhysics(),
-						itemCount: list.weeklyPlans.length,
+						itemCount: _list.weeklyPlans.length,
 						itemBuilder: (context, index)
 						{
-							return weeklyPlans(list.weeklyPlans, index);
+							return _weeklyPlans(_list.weeklyPlans, index);
 						},
 					) : const Center(child: Text("No plans have been made :("))
 				),
 
-				newPlanButton()
+				_newPlanButton()
 			],
 		);
 	}
 
-	Widget weeklyPlans(List<WeeklyPlan> plans, int index)
+	Widget _weeklyPlans(List<WeeklyPlan> plans, int index)
 	{
 		final String title = plans[index].folderName;
 		final int? id = plans[index].id;
+
+		final colour = Theme.of(context).extension<AppColours>()!;
 
 		return Padding
 		(
@@ -62,7 +63,7 @@ class _PlannerPageState extends State<PlannerPage>
 				width: 300,
 				child: Card
 				(
-					color: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
+					color: colour.tertiaryColour!,
 					shape: RoundedRectangleBorder
 					(
 						side: BorderSide
@@ -108,9 +109,9 @@ class _PlannerPageState extends State<PlannerPage>
 								mainAxisAlignment: MainAxisAlignment.center,
 								children:
 								[
-									iconButton(Icons.remove_red_eye_rounded, 1, id),
-									iconButton(Icons.edit, 2, id),
-									iconButton(Icons.delete, 3, id)
+									_iconButton(Icons.remove_red_eye_rounded, 1, id),
+									_iconButton(Icons.edit, 2, id),
+									_iconButton(Icons.delete, 3, id)
 								],
 							)
 						],
@@ -120,7 +121,7 @@ class _PlannerPageState extends State<PlannerPage>
 		);
 	}
 
-	Widget iconButton(IconData icon, int action, int? id)
+	Widget _iconButton(IconData icon, int action, int? id)
 	{
 		return Padding
 		(
@@ -129,33 +130,33 @@ class _PlannerPageState extends State<PlannerPage>
 			(
 				onTap: () async
 				{
-					if(action == 1)
+					if(action == 1) // View
 					{
 						if(mounted)
 						{
 							await Navigator.push
 							(
 								context,
-								MaterialPageRoute(builder: (context) => Utils.switchPage(context, DaysPage(weeklyPlanId: id!)))
+								MaterialPageRoute(builder: (context) => PageSwitcher(nextPage: DaysPage(weeklyPlanId: id!)))
 							);
 						}
 					}
-					else if(action == 2)
+					else if(action == 2) // Edit
 					{
 						await Navigator.push
 						(
 							context,
 							MaterialPageRoute(builder: (context) => Scaffold
 							(
-								body: Utils.switchPage(context, CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: false, weeklyPlanner: true, weeklyPlanId: id!, isEditing: true))
+								body: PageSwitcher(nextPage: CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: false, weeklyPlanner: true, weeklyPlanId: id!, isEditing: true))
 							))
 						);
 					}
 					else
 					{
-						setState(()
+						setState(() // Delete
 						{
-							delete(id!);
+							_delete(id!);
 						});
 					}
 				},
@@ -184,7 +185,7 @@ class _PlannerPageState extends State<PlannerPage>
 		);
 	}
 
-	void delete(int id)
+	void _delete(int id)
 	{
 		showDialog
 		(
@@ -217,7 +218,7 @@ class _PlannerPageState extends State<PlannerPage>
 		);
 	}
 
-	Widget newPlanButton()
+	Widget _newPlanButton()
 	{
 		return Padding
 		(
@@ -243,9 +244,9 @@ class _PlannerPageState extends State<PlannerPage>
 								await Navigator.push
 								(
 									context,
-									MaterialPageRoute(builder: (context) => Scaffold // ChoiceChips in the bmr page need a scaffold at the root, so i need this here
+									MaterialPageRoute(builder: (context) => const Scaffold // ChoiceChips in the bmr page need a scaffold at the root, so i need this here
 									(
-										body: Utils.switchPage(context, const CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: false, weeklyPlanner: true, weeklyPlanId: null, isEditing: false))
+										body: PageSwitcher(nextPage: CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: false, weeklyPlanner: true, weeklyPlanId: null, isEditing: false)) // Id is null here as the plan is in the process of being made
 									))
 								);
 							}

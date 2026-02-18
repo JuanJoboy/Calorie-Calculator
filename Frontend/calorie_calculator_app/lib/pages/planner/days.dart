@@ -57,7 +57,7 @@ class _DaysPageState extends State<DaysPage>
 								itemCount: notifier.dailyEntries.length,
 								itemBuilder: (context, index)
 								{
-									return button(notifier.dailyEntries, index);
+									return _button(notifier.dailyEntries, index);
 								},
 							)
 						),
@@ -69,7 +69,7 @@ class _DaysPageState extends State<DaysPage>
 		);
 	}
 
-	String whatDayIsIt(int index)
+	String _whatDayIsIt(int index)
 	{
 		return switch (index)
 		{
@@ -84,9 +84,9 @@ class _DaysPageState extends State<DaysPage>
 		};
 	}
 	
-	Widget button(List<DailyEntry> list, int index)
+	Widget _button(List<DailyEntry> list, int index)
 	{
-		final String text = whatDayIsIt(index);
+		final String text = _whatDayIsIt(index);
 
 		final double weight = list[index].weight;
 		final bool isMale = list[index].isMale;
@@ -117,11 +117,13 @@ class _DaysPageState extends State<DaysPage>
 		final String fat = "${totalFat}g";
 		final String carbs = "${totalCarb}g";
 
+		final colour = Theme.of(context).extension<AppColours>()!;
+
 		return GestureDetector
 		(
 			onTap: () async
 			{
-				goToNextPage(list, index);
+				_goToNextPage(list, index);
 			},
 			child: Padding
 			(
@@ -132,57 +134,58 @@ class _DaysPageState extends State<DaysPage>
 					width: 360,
 					child: Card
 					(
-						color: Theme.of(context).extension<AppColours>()!.fairyPink!,
+						color: colour.tertiaryColour!,
 						shape: RoundedRectangleBorder
 						(
 							side: BorderSide
 							(
-								color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+								color: colour.secondaryColour!,
 								width: 4
 							),
 							borderRadius: BorderRadiusGeometry.circular(20)
 						),
 						child: Column
-							(
-								children:
-								[
-									const Padding(padding: EdgeInsetsGeometry.only(top: 20)),
+						(
+							children:
+							[
+								const Padding(padding: EdgeInsetsGeometry.only(top: 20)),
 
-									Text
+								Text
+								(
+									text,
+									textAlign: TextAlign.center,
+									style: const TextStyle
 									(
-										text,
-										textAlign: TextAlign.center,
-										style: TextStyle
-										(
-											fontSize: 40,
-											fontWeight: FontWeight.w900,
-											color: Theme.of(context).extension<AppColours>()!.maleSeColour!
-										)
-									),
+										fontSize: 40,
+										fontWeight: FontWeight.w900,
+									)
+								),
 
-									const Padding(padding: EdgeInsetsGeometry.only(top: 20)),
+								const Padding(padding: EdgeInsetsGeometry.only(top: 20)),
 
-									shortDescription1("Calories Burned", caloriesBurned, "Caloric Ceiling", caloricCeiling),
+								_shortDescription1("Calories Burned", caloriesBurned, "Caloric Ceiling", caloricCeiling),
 
-									shortDescription2("Protein", protein, "Fat", fat, "Carbs", carbs),
-								]
-							),
+								_shortDescription2("Protein", protein, "Fat", fat, "Carbs", carbs),
+							]
+						),
 					),
 				),
 			),
 		);
 	}
 
-	Widget shortDescription1(String header1, String text1, String header2, String text2)
+	Widget _shortDescription1(String header1, String text1, String header2, String text2)
 	{
+		final colour = Theme.of(context).extension<AppColours>()!;
+
 		return Card
 		(
-			color: Theme.of(context).extension<AppColours>()!.anaerobicOutlineColour!,
+			color: colour.maleUnColour!,
 			shape: RoundedRectangleBorder
 			(
 				side: BorderSide
 				(
-					color: Theme.of(context).extension<AppColours>()!.anaerobicBackgroundColour!,
+					color: colour.maleSeColour!,
 					width: 2
 				),
 				borderRadius: BorderRadiusGeometry.circular(15)
@@ -202,8 +205,8 @@ class _DaysPageState extends State<DaysPage>
 								(
 									children:
 									[
-										paddedText(header1, size: 21, weight: FontWeight.w700),
-										paddedText(text1),
+										_paddedText(header1, size: 18, weight: FontWeight.w700),
+										_paddedText(text1),
 									]
 								),
 							),
@@ -214,8 +217,8 @@ class _DaysPageState extends State<DaysPage>
 								(
 									children:
 									[
-										paddedText(header2, size: 21, weight: FontWeight.w700),
-										paddedText(text2),
+										_paddedText(header2, size: 18, weight: FontWeight.w700),
+										_paddedText(text2),
 									]
 								),
 							),
@@ -228,16 +231,18 @@ class _DaysPageState extends State<DaysPage>
 		);
 	}
 
-	Widget shortDescription2(String header1, String text1, String header2, String text2, String header3, String text3)
+	Widget _shortDescription2(String header1, String text1, String header2, String text2, String header3, String text3)
 	{
+		final colour = Theme.of(context).extension<AppColours>()!;
+
 		return Card
 		(
-			color: Theme.of(context).extension<AppColours>()!.aerobicOutlineColour!,
+			color: colour.runUnColour!,
 			shape: RoundedRectangleBorder
 			(
 				side: BorderSide
 				(
-					color: Theme.of(context).extension<AppColours>()!.aerobicBackgroundColour!,
+					color: colour.runSeColour!,
 					width: 2
 				),
 				borderRadius: BorderRadiusGeometry.circular(15)
@@ -253,9 +258,9 @@ class _DaysPageState extends State<DaysPage>
 						[
 							const Padding(padding: EdgeInsetsGeometry.only(top: 75)),
 
-							paddedColumn(header1, text1),
-							paddedColumn(header2, text2),
-							paddedColumn(header3, text3)
+							_paddedColumn(header1, text1),
+							_paddedColumn(header2, text2),
+							_paddedColumn(header3, text3)
 						],
 					)
 				],
@@ -263,16 +268,16 @@ class _DaysPageState extends State<DaysPage>
 		);
 	}
 
-	Widget paddedText(String text, {double? horizontal, double? vertical, double? size, FontWeight? weight})
+	Widget _paddedText(String text, {double? horizontal, double? vertical, double? size, FontWeight? weight})
 	{
 		return Padding
 		(
 			padding: EdgeInsets.symmetric(horizontal: horizontal ?? 10.0, vertical: vertical ?? 5),
-			child: Text(text, overflow: TextOverflow.fade, maxLines: 1, style: TextStyle(fontSize: size ?? 20, fontWeight: weight ?? FontWeight.w500))
+			child: Text(text, maxLines: 1, style: TextStyle(fontSize: size ?? 20, fontWeight: weight ?? FontWeight.w500))
 		);
 	}
 
-	Widget paddedColumn(String header, String text)
+	Widget _paddedColumn(String header, String text)
 	{
 		return Expanded
 		(
@@ -283,15 +288,15 @@ class _DaysPageState extends State<DaysPage>
 				(
 					children:
 					[
-						paddedText(header, size: 21, weight: FontWeight.w700),
-						paddedText(text),
+						_paddedText(header, size: 18, weight: FontWeight.w700),
+						_paddedText(text),
 					]
 				),
 			)
 		);
 	}
 
-	void goToNextPage(List<DailyEntry> list, int index) async
+	void _goToNextPage(List<DailyEntry> list, int index) async
 	{
 		final double weight = list[index].weight;
 		final bool isMale = list[index].isMale;
@@ -326,10 +331,9 @@ class _DaysPageState extends State<DaysPage>
 			context,
 			MaterialPageRoute
 			(
-				builder: (context) => Utils.switchPage
+				builder: (context) => PageSwitcher
 				(
-					context,
-					DietPage
+					nextPage: DietPage
 					(
 						weight: weight,
 						tdee: roundedTdee,

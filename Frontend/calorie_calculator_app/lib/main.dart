@@ -1,22 +1,19 @@
-// import "package:english_words/english_words.dart"; // Imports a utility package containing thousands of common English words and functions to manipulate them. Used here to generate random WordPair objects.
 import "package:calorie_calculator_app/pages/nutrition/nutrition.dart";
 import "package:calorie_calculator_app/pages/planner/folder_data.dart";
 import "package:calorie_calculator_app/pages/planner/planner.dart";
 import "package:calorie_calculator_app/utilities/colours.dart";
 import "package:calorie_calculator_app/utilities/settings.dart";
-import "package:flutter/material.dart"; // The core Flutter framework. It provides "Material Design" widgets (buttons, cards, scaffolds) and the engine for rendering the UI.
+import "package:flutter/material.dart";
 import "package:calorie_calculator_app/pages/calculator/bmr.dart";
 import "package:calorie_calculator_app/pages/calculator/calculations.dart";
 import "package:calorie_calculator_app/pages/history/history.dart";
 import "package:calorie_calculator_app/pages/information/information.dart";
 import "package:calorie_calculator_app/utilities/utilities.dart";
 import "package:provider/provider.dart";
-// import 'package:google_fonts/google_fonts.dart';
 
-// TODO: Add try catches, better error handling, comments explaining everything, test cases / test units
 void main()
 {
-	WidgetsFlutterBinding.ensureInitialized();
+	WidgetsFlutterBinding.ensureInitialized(); // Helps load some async stuff below. I added this cause I was having trouble with SQL loading, but I don't think it's necessary anymore
 
 	runApp
 	(
@@ -36,7 +33,7 @@ void main()
 				ChangeNotifierProvider(create: (context) => NavigationNotifier()),
 				ChangeNotifierProvider(create: (context) => CalculationFields()),
 				ChangeNotifierProvider(create: (context) => AllCalculations()..init()),
-				ChangeNotifierProvider(create: (context) => UsersTdeeNotifier()..init()) // The ..init() triggers the load
+				ChangeNotifierProvider(create: (context) => UsersTdeeNotifier()..init()) // The ..init() immediately triggers whatever this method does when the app starts up
 			],
 
 			child: const MyApp(), // The entire app now has access to a list of providers, rather than just creating and listening to 1
@@ -52,7 +49,7 @@ class MyApp extends StatelessWidget
 	Widget build(BuildContext context)
 	{
 		const Color lightSeed = Color.fromARGB(255, 255, 240, 230);
-		const Color darkSeed = Color.fromARGB(255, 62, 39, 39);
+		const Color darkSeed = Color.fromARGB(255, 80, 57, 57);
 		
 		return MaterialApp
 		(
@@ -60,32 +57,10 @@ class MyApp extends StatelessWidget
 			// Light Theme
 			theme: ThemeData
 			(
-				textTheme: const TextTheme
+				textTheme: ThemeData.light().textTheme.apply
 				(
-					// Display: Largest, least frequent
-					displayLarge: TextStyle(fontSize: 57, fontWeight: FontWeight.w400, color: Colors.black),
-					displayMedium: TextStyle(fontSize: 45, fontWeight: FontWeight.w400, color: Colors.black),
-					displaySmall: TextStyle(fontSize: 36, fontWeight: FontWeight.w400, color: Colors.black),
-
-					// Headline: Section headers
-					headlineLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.w400, color: Colors.black),
-					headlineMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.w400, color: Colors.black),
-					headlineSmall: TextStyle(fontSize: 24, fontWeight: FontWeight.w400, color: Colors.black),
-
-					// Title: Component headers (e.g., App Bar, List Tiles)
-					titleLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: Colors.black),
-					titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black87),
-					titleSmall: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.black87),
-
-					// Body: Main content text
-					bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: Colors.black),
-					bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Colors.black87),
-					bodySmall: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: Colors.black87),
-
-					// Label: Functional text (Buttons, Input hints)
-					labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.black),
-					labelMedium: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.black87),
-					labelSmall: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Colors.black87),
+					bodyColor: Colors.black,
+					displayColor: Colors.black,
 				),
 				useMaterial3: true,
 				scaffoldBackgroundColor: lightSeed,
@@ -132,32 +107,10 @@ class MyApp extends StatelessWidget
 			// Dark Theme
 			darkTheme: ThemeData
 			(
-				textTheme: const TextTheme
+				textTheme: ThemeData.dark().textTheme.apply
 				(
-					// Display: Largest, least frequent
-					displayLarge: TextStyle(fontSize: 57, fontWeight: FontWeight.w400, color: Colors.white),
-					displayMedium: TextStyle(fontSize: 45, fontWeight: FontWeight.w400, color: Colors.white),
-					displaySmall: TextStyle(fontSize: 36, fontWeight: FontWeight.w400, color: Colors.white),
-
-					// Headline: Section headers
-					headlineLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.w400, color: Colors.white),
-					headlineMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.w400, color: Colors.white),
-					headlineSmall: TextStyle(fontSize: 24, fontWeight: FontWeight.w400, color: Colors.white),
-
-					// Title: Component headers (e.g., App Bar, List Tiles)
-					titleLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: Colors.white),
-					titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white70),
-					titleSmall: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white70),
-
-					// Body: Main content text
-					bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: Colors.white),
-					bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Colors.white70),
-					bodySmall: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: Colors.white70),
-
-					// Label: Functional text (Buttons, Input hints)
-					labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white),
-					labelMedium: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.white70),
-					labelSmall: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Colors.white70),
+					bodyColor: Colors.white,
+					displayColor: Colors.white,
 				),
 				useMaterial3: true,
 				scaffoldBackgroundColor: darkSeed,
@@ -214,7 +167,6 @@ class MyApp extends StatelessWidget
 					child: child!
 				);
 			},
-			// themeMode: context.watch<ThemeNotifier>().themeMode,
 			themeMode: context.watch<ThemeNotifier>().currentUnit.value,
 			home: const MyHomePage(), // The home page is immediately set to the feed because the index is set to 0 immediately
 		);
@@ -236,7 +188,7 @@ class _MyHomePageState extends State<MyHomePage>
 	{
 		int selectedIndex = context.watch<NavigationNotifier>().selectedIndex;
 
-		final ColoredBox truePage = Utils.switchPage(context, getCurrentPage(selectedIndex));
+		final PageSwitcher truePage = PageSwitcher(nextPage: _getCurrentPage(selectedIndex));
 
 		return LayoutBuilder
 		(
@@ -244,14 +196,14 @@ class _MyHomePageState extends State<MyHomePage>
 			{
 				return Scaffold // Use scaffold instead of column so that any space i missed out on isn't pure black. Scaffold works better on phones and has a dedicated nav bar parameter
 				(
-					body: mainArea(truePage),
-					bottomNavigationBar: mobileNavigationBar()
+					body: _mainArea(truePage),
+					bottomNavigationBar: _mobileNavigationBar()
 				);
 			}
 		);
 	}
 
-	Widget mainArea(ColoredBox truePage)
+	Widget _mainArea(PageSwitcher truePage)
 	{
 		return Padding
 		(
@@ -262,13 +214,13 @@ class _MyHomePageState extends State<MyHomePage>
 				children:
 				[
 					truePage,
-					settingsButton(),
+					_settingsButton(),
 				],
 			),
 		);
 	}
 
-	Widget settingsButton()
+	Widget _settingsButton()
 	{
 		return IconButton
 		(
@@ -327,7 +279,7 @@ class _MyHomePageState extends State<MyHomePage>
 		);
 	}
 
-	Widget getCurrentPage(int selectedIndex)
+	Widget _getCurrentPage(int selectedIndex)
 	{
 		return switch(selectedIndex)
 		{
@@ -341,19 +293,19 @@ class _MyHomePageState extends State<MyHomePage>
 		};
 	}
 
-	Widget mobileNavigationBar()
+	Widget _mobileNavigationBar()
 	{
 		return BottomNavigationBar
 		(
 			type: BottomNavigationBarType.fixed,
 			items:
 			[
-				navItem(Icons.book),
-				navItem(Icons.cached_outlined),
-				navItem(Icons.calculate_outlined),
-				navItem(Icons.history_rounded),
-				navItem(Icons.food_bank),
-				navItem(Icons.calendar_month_outlined),
+				_navItem(Icons.book),
+				_navItem(Icons.cached_outlined),
+				_navItem(Icons.calculate_outlined),
+				_navItem(Icons.history_rounded),
+				_navItem(Icons.food_bank),
+				_navItem(Icons.calendar_month_outlined),
 			],
 
 			currentIndex: context.read<NavigationNotifier>().selectedIndex, // Sets the page to the feed page on start up
@@ -365,7 +317,7 @@ class _MyHomePageState extends State<MyHomePage>
 		);
 	}
 
-	BottomNavigationBarItem navItem(IconData icon)
+	BottomNavigationBarItem _navItem(IconData icon)
 	{
 		return BottomNavigationBarItem
 		(

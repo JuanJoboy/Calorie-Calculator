@@ -1,6 +1,5 @@
 import 'package:bulleted_list/bulleted_list.dart';
 import 'package:calorie_calculator_app/utilities/colours.dart';
-import 'package:calorie_calculator_app/utilities/settings.dart';
 import 'package:calorie_calculator_app/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:calorie_calculator_app/pages/calculator/calculations.dart';
@@ -13,22 +12,18 @@ class HistoryPage extends StatefulWidget
 	@override
 	State<HistoryPage> createState() => _HistoryPageState();
 }
-
-late UsersTdeeNotifier _tdeeNotifier;
-bool get tdeeIsNull => _tdeeNotifier.usersTdee == null;
-
 class _HistoryPageState extends State<HistoryPage>
 {
 	late AllCalculations _list;
+	late UsersTdeeNotifier _tdeeNotifier;
+	bool get tdeeIsNull => _tdeeNotifier.usersTdee == null;
 
 	@override
 	Widget build(BuildContext context)
 	{
-		AllCalculations list = context.watch<AllCalculations>();
-		_list = list;
+		_list = context.watch<AllCalculations>();
 
-		final UsersTdeeNotifier tdeeNotifier = context.watch<UsersTdeeNotifier>();
-		_tdeeNotifier = tdeeNotifier;
+		_tdeeNotifier = context.watch<UsersTdeeNotifier>();
 
 		int? b = 0;
 		int? t = 0;
@@ -43,29 +38,27 @@ class _HistoryPageState extends State<HistoryPage>
 		(
 			children:
 			[
-				Utils.header("BMR: $b	|	TDEE: $t", 30, FontWeight.bold, padding: 50),
+				Header(text: "BMR: $b	|	TDEE: $t", fontSize: 30, fontWeight: FontWeight.bold, topPadding: 50),
 
-				Utils.header("All units in kcal", 15, FontWeight.bold, padding: 10, color: Colors.grey[500]),
-
-				const Padding(padding: EdgeInsetsGeometry.only(top: 20)),
+				Header(text: "All units in kcal", fontSize: 15, fontWeight: FontWeight.bold, topPadding: 10, color: Colors.grey[500], bottomPadding: 20),
 
 				Expanded
 				(
-					child: list.calcList.isNotEmpty ? ListView.builder
+					child: _list.calcList.isNotEmpty ? ListView.builder
 					(
 						physics: const BouncingScrollPhysics(),
-						itemCount: list.calcList.length,
+						itemCount: _list.calcList.length,
 						itemBuilder: (context, index)
 						{
-							return calorieCard(list.calcList, index); // Displays all the calculations
+							return _calorieCard(_list.calcList, index); // Displays all the calculations
 						},
-					) : const Center(child: Text("No calcs have been lated :(")) // If the list isn't empty then only print this text
+					) : const Center(child: Text("No calculations have been made :(")) // If the list isn't empty then only print this text
 				),
 			],
 		);
 	}
 
-	Widget calorieCard(List<Calculation> list, int index)
+	Widget _calorieCard(List<Calculation> list, int index)
 	{
 		final date = DateTime.parse(list[index].date);
 		final day = date.day;
@@ -81,6 +74,8 @@ class _HistoryPageState extends State<HistoryPage>
 
 		final bool noActivity = activityBurn == 0 && cardioBurn == 0;
 
+		final colour = Theme.of(context).extension<AppColours>()!;
+		
 		return Padding
 		(
 			padding: const EdgeInsets.only(top: 20.0, bottom: 20),
@@ -93,12 +88,12 @@ class _HistoryPageState extends State<HistoryPage>
 						width: constraints.maxWidth - 10,
 						child: Card
 						(
-							color: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
+							color: colour.tertiaryColour!,
 							shape: RoundedRectangleBorder
 							(
 								side: BorderSide
 								(
-									color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+									color: colour.secondaryColour!,
 									width: 4
 								),
 								borderRadius: BorderRadiusGeometry.circular(20)
@@ -109,7 +104,7 @@ class _HistoryPageState extends State<HistoryPage>
 								crossAxisAlignment: CrossAxisAlignment.center,
 								children:
 								[
-									Utils.header(noActivity == true ? "Rest Day 😴" : "Training Day 🔥", 30, FontWeight.bold),
+									Header(text: noActivity == true ? "Rest Day 😴" : "Training Day 🔥", fontSize: 30, fontWeight: FontWeight.bold),
 
 									const Padding(padding: EdgeInsetsGeometry.only(top: 15)),
 
@@ -118,7 +113,7 @@ class _HistoryPageState extends State<HistoryPage>
 										padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
 										decoration: BoxDecoration
 										(
-											color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+											color: colour.secondaryColour!,
 											borderRadius: BorderRadius.circular(20),
 										),
 										child: Text
@@ -135,15 +130,15 @@ class _HistoryPageState extends State<HistoryPage>
 
 									const Padding(padding: EdgeInsetsGeometry.only(top: 20)),
 
-									dotPoint("BMR", bmr, Icons.monitor_heart_rounded, Theme.of(context).extension<AppColours>()!.bmr!),
-									dotPoint("Base TDEE", tdee, Icons.self_improvement_rounded, Theme.of(context).extension<AppColours>()!.bmr!),
-									dotPoint("Activity Burn", activityBurn, Icons.whatshot_rounded, Theme.of(context).extension<AppColours>()!.caloricBurn!),
-									dotPoint("Cardio Burn", cardioBurn, Icons.whatshot_rounded, Theme.of(context).extension<AppColours>()!.caloricBurn!),
-									dotPoint("EPOC", epocBurn, Icons.whatshot_rounded, Theme.of(context).extension<AppColours>()!.caloricBurn!),
-									dotPoint("Total Calories Burned", totalBurn, Icons.workspace_premium_rounded, Theme.of(context).extension<AppColours>()!.caloricBurn!),
-									dotPoint("Caloric Ceiling", ceiling, Icons.vertical_align_top, Theme.of(context).extension<AppColours>()!.femaleSeColour!),
+									_dotPoint("BMR", bmr, Icons.monitor_heart_rounded, colour.bmr!),
+									_dotPoint("Base TDEE", tdee, Icons.self_improvement_rounded, colour.bmr!),
+									_dotPoint("Activity Burn", activityBurn, Icons.whatshot_rounded, colour.caloricBurn!),
+									_dotPoint("Cardio Burn", cardioBurn, Icons.whatshot_rounded, colour.caloricBurn!),
+									_dotPoint("EPOC", epocBurn, Icons.whatshot_rounded, colour.caloricBurn!),
+									_dotPoint("Total Calories Burned", totalBurn, Icons.workspace_premium_rounded, colour.caloricBurn!),
+									_dotPoint("Caloric Ceiling", ceiling, Icons.vertical_align_top, colour.femaleSeColour!),
 
-									deleteButton(index),
+									_deleteButton(index),
 
 									const Padding(padding: EdgeInsetsGeometry.only(top: 30)),
 								],
@@ -155,8 +150,10 @@ class _HistoryPageState extends State<HistoryPage>
 		);
 	}
 
-	Widget deleteButton(int index)
+	Widget _deleteButton(int index)
 	{
+		final colour = Theme.of(context).extension<AppColours>()!;
+		
 		return Padding
 		(
 			padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -205,12 +202,12 @@ class _HistoryPageState extends State<HistoryPage>
 						(
 							side: BorderSide
 							(
-								color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+								color: colour.secondaryColour!,
 								width: 2
 							),
 							borderRadius: BorderRadiusGeometry.circular(20)
 						),
-						color: Theme.of(context).extension<AppColours>()!.secondaryColour!,
+						color: colour.secondaryColour!,
 						child: const Padding
 						(
 							padding: EdgeInsets.all(8.0),
@@ -222,16 +219,16 @@ class _HistoryPageState extends State<HistoryPage>
 		);
 	}
 
-	Widget dotPoint(String boldText, int value, IconData icon, Color color)
+	Widget _dotPoint(String boldText, int value, IconData icon, Color color)
 	{
 		return BulletedList
 		(
-			listItems: [richText(boldText, value, padding: 15)],
+			listItems: [_richText(boldText, value, padding: 15)],
 			bullet: Icon(icon, size: 30, color: color)
 		);
 	}
 
-	Widget richText(String boldText, int value, {double? padding})
+	Widget _richText(String boldText, int value, {double? padding})
 	{
 		return Padding
 		(

@@ -46,8 +46,9 @@ class CalculationFields extends ChangeNotifier
 	String d = "";
 	String e = "";
 	double? met;
+	String? name;
 
-	void updateControllers({String? weight, String? height, String? feet, String? age, String? sport, String? upper, String? accessories, String? lower, String? distance, double? metFactor})
+	void updateControllers({String? weight, String? height, String? feet, String? age, String? sport, String? upper, String? accessories, String? lower, String? distance, double? metFactor, String? activityName})
 	{
 		// If the parameter isn't null, then save the value, so that when the page rebuilds, it rebuilds with this value
 		if(weight != null) w = weight;
@@ -60,6 +61,7 @@ class CalculationFields extends ChangeNotifier
 		if(lower != null) lo = lower;
 		if(distance != null) d = distance;
 		if(metFactor != null) met = metFactor;
+		if(activityName != null) name = activityName;
 	}
 
 	void resetControllers()
