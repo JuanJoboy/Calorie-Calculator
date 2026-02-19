@@ -1,6 +1,6 @@
 {
-    "name": "calorie_calculator_app",
-    "short_name": "calorie_calculator_app",
+    "name": "calorie_calculator",
+    "short_name": "calorie_calculator",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

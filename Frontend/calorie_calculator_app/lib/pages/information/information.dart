@@ -1,14 +1,14 @@
-import 'package:calorie_calculator_app/pages/information/bmr_info.dart';
-import 'package:calorie_calculator_app/pages/information/cardio_info.dart';
-import 'package:calorie_calculator_app/pages/information/epoc_info.dart';
-import 'package:calorie_calculator_app/pages/information/example_bulk_info.dart';
-import 'package:calorie_calculator_app/pages/information/example_cut_info.dart';
-import 'package:calorie_calculator_app/pages/information/example_day_info.dart';
-import 'package:calorie_calculator_app/pages/information/nutritional_info.dart';
-import 'package:calorie_calculator_app/pages/information/sports_info.dart';
-import 'package:calorie_calculator_app/pages/information/tdee_info.dart';
-import 'package:calorie_calculator_app/utilities/colours.dart';
-import 'package:calorie_calculator_app/utilities/utilities.dart';
+import 'package:calorie_calculator/pages/information/bmr_info.dart';
+import 'package:calorie_calculator/pages/information/cardio_info.dart';
+import 'package:calorie_calculator/pages/information/epoc_info.dart';
+import 'package:calorie_calculator/pages/information/example_bulk_info.dart';
+import 'package:calorie_calculator/pages/information/example_cut_info.dart';
+import 'package:calorie_calculator/pages/information/example_day_info.dart';
+import 'package:calorie_calculator/pages/information/nutritional_info.dart';
+import 'package:calorie_calculator/pages/information/sports_info.dart';
+import 'package:calorie_calculator/pages/information/tdee_info.dart';
+import 'package:calorie_calculator/utilities/colours.dart';
+import 'package:calorie_calculator/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:bulleted_list/bulleted_list.dart';
 

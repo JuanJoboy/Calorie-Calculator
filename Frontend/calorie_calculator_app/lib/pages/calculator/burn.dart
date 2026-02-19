@@ -1,10 +1,10 @@
-import 'package:calorie_calculator_app/utilities/colours.dart';
-import 'package:calorie_calculator_app/utilities/settings.dart';
+import 'package:calorie_calculator/utilities/colours.dart';
+import 'package:calorie_calculator/utilities/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:calorie_calculator_app/pages/calculator/calculations.dart';
-import 'package:calorie_calculator_app/pages/calculator/epoc.dart';
-import 'package:calorie_calculator_app/utilities/utilities.dart';
+import 'package:calorie_calculator/pages/calculator/calculations.dart';
+import 'package:calorie_calculator/pages/calculator/epoc.dart';
+import 'package:calorie_calculator/utilities/utilities.dart';
 import 'package:provider/provider.dart';
 
 class BurnPage extends StatefulWidget
@@ -450,7 +450,7 @@ class _BurnPageState extends State<BurnPage>
 															case 5: _calcs.updateControllers(distance: value);
 														}
 													},
-													inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))],
+													inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*[.,]?\d{0,2}')),],
 													keyboardType: const TextInputType.numberWithOptions(decimal: true),
 												),
 											),
@@ -742,33 +742,44 @@ class _BurnPageState extends State<BurnPage>
 								),
 								onPressed: _areFieldsEmpty() ? null : ()
 								{
-									final double sportDurationNum = double.tryParse(_sportDuration.text.trim()) ?? 0;
-									final double upperDurationNum = double.tryParse(_upperDuration.text.trim()) ?? 0;
-									final double accDurationNum = double.tryParse(_accessoriesDuration.text.trim()) ?? 0;
-									final double lowerDurationNum = double.tryParse(_lowerDuration.text.trim()) ?? 0;
-									final double distanceNum = double.tryParse(_distance.text.trim()) ?? 0;
-									final double trueDistance = context.read<DistanceNotifier>().currentUnit.toBase(distanceNum);
+									try
+									{
+										final double sportDurationNum = double.tryParse(_sportDuration.text.trim().replaceAll(',', '.')) ?? 0;
+										final double upperDurationNum = double.tryParse(_upperDuration.text.trim().replaceAll(',', '.')) ?? 0;
+										final double accDurationNum = double.tryParse(_accessoriesDuration.text.trim().replaceAll(',', '.')) ?? 0;
+										final double lowerDurationNum = double.tryParse(_lowerDuration.text.trim().replaceAll(',', '.')) ?? 0;
+										final double distanceNum = double.tryParse(_distance.text.trim().replaceAll(',', '.')) ?? 0;
+										final double trueDistance = context.read<DistanceNotifier>().currentUnit.toBase(distanceNum);
 
-									// Systemic Load Multipliers
-									final double upperBurn = _metCalculator(upperDurationNum, 1.2);
-									final double accBurn = _metCalculator(accDurationNum, 0.7);
-									final double lowerBurn = _metCalculator(lowerDurationNum, 1.3);
-				
-									final double weightLiftingBurn = (upperBurn + accBurn + lowerBurn) * 0.8;
-									final double sportBurn = _metCalculator(sportDurationNum, 1);
+										// Systemic Load Multipliers
+										final double upperBurn = _metCalculator(upperDurationNum, 1.2);
+										final double accBurn = _metCalculator(accDurationNum, 0.7);
+										final double lowerBurn = _metCalculator(lowerDurationNum, 1.3);
+					
+										final double weightLiftingBurn = (upperBurn + accBurn + lowerBurn) * 0.8;
+										final double sportBurn = _metCalculator(sportDurationNum, 1);
 
-									final double activityBurn = _extractCorrectActivity(weightLiftingBurn, sportBurn);
-									final (:name, :upper, :acc, :lower, :sport) = _extractCorrectDuration(_activityName, upperDurationNum, accDurationNum, lowerDurationNum, sportDurationNum);
+										final double activityBurn = _extractCorrectActivity(weightLiftingBurn, sportBurn);
+										final (:name, :upper, :acc, :lower, :sport) = _extractCorrectDuration(_activityName, upperDurationNum, accDurationNum, lowerDurationNum, sportDurationNum);
 
-									final double cardioBurn = widget.personWeight * trueDistance * (_chosenCardio?.value ?? 0);
+										final double cardioBurn = widget.personWeight * trueDistance * (_chosenCardio?.value ?? 0);
 
-									_calcs.resetControllers();
+										_calcs.resetControllers();
 
-									Navigator.push
-									(
-										context,
-										MaterialPageRoute(builder: (context) => PageSwitcher(nextPage: EPOCPage(personWeight: widget.personWeight, age: widget.age, male: widget.male, bmr: widget.bmr, tdee: widget.tdee, activityBurn: activityBurn, cardioBurn: cardioBurn, additionalCalories: widget.additionalCalories, weeklyPlanner: widget.weeklyPlanner, cardioDistance: trueDistance, protein: _selectedProteinIntensity, fat: _selectedFatIntensity, metFactor: _metFactor ?? 0, cardioFactor: _chosenCardio?.value ?? 0, activityName: name ?? "", sportDuration: sport, upperDuration: upper, accessoryDuration: acc, lowerDuration: lower, cardioName: (_chosenCardio?.label ?? ""), weeklyPlanId: widget.weeklyPlanId, dayId: widget.dayId))) // Takes you to the page that shows all the locations connected to the restaurant
-									);
+										Navigator.push
+										(
+											context,
+											MaterialPageRoute(builder: (context) => PageSwitcher(nextPage: EPOCPage(personWeight: widget.personWeight, age: widget.age, male: widget.male, bmr: widget.bmr, tdee: widget.tdee, activityBurn: activityBurn, cardioBurn: cardioBurn, additionalCalories: widget.additionalCalories, weeklyPlanner: widget.weeklyPlanner, cardioDistance: trueDistance, protein: _selectedProteinIntensity, fat: _selectedFatIntensity, metFactor: _metFactor ?? 0, cardioFactor: _chosenCardio?.value ?? 0, activityName: name ?? "", sportDuration: sport, upperDuration: upper, accessoryDuration: acc, lowerDuration: lower, cardioName: (_chosenCardio?.label ?? ""), weeklyPlanId: widget.weeklyPlanId, dayId: widget.dayId))) // Takes you to the page that shows all the locations connected to the restaurant
+										);
+									}
+									catch(e)
+									{
+										if(mounted)
+										{
+											ErrorHandler.showSnackBar(context, "An error occurred in processing your info");
+											debugPrint("Debug Print: ${e.toString()}");
+										}
+									}
 								},
 								child: const Text("Next", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black))
 							);

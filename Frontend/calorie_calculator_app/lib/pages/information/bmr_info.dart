@@ -1,6 +1,6 @@
-import 'package:calorie_calculator_app/pages/information/information.dart';
-import 'package:calorie_calculator_app/utilities/colours.dart';
-import 'package:calorie_calculator_app/utilities/utilities.dart';
+import 'package:calorie_calculator/pages/information/information.dart';
+import 'package:calorie_calculator/utilities/colours.dart';
+import 'package:calorie_calculator/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 
 class BMRInfo extends Information

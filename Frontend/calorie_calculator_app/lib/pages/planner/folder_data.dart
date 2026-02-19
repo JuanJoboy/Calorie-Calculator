@@ -1,4 +1,4 @@
-import 'package:calorie_calculator_app/database/database.dart';
+import 'package:calorie_calculator/database/database.dart';
 import 'package:flutter/material.dart';
 
 class FolderNotifier extends ChangeNotifier

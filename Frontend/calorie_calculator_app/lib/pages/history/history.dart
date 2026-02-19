@@ -1,8 +1,8 @@
 import 'package:bulleted_list/bulleted_list.dart';
-import 'package:calorie_calculator_app/utilities/colours.dart';
-import 'package:calorie_calculator_app/utilities/utilities.dart';
+import 'package:calorie_calculator/utilities/colours.dart';
+import 'package:calorie_calculator/utilities/utilities.dart';
 import 'package:flutter/material.dart';
-import 'package:calorie_calculator_app/pages/calculator/calculations.dart';
+import 'package:calorie_calculator/pages/calculator/calculations.dart';
 import 'package:provider/provider.dart';
 
 class HistoryPage extends StatefulWidget
@@ -178,8 +178,19 @@ class _HistoryPageState extends State<HistoryPage>
 										(
 											onPressed: () async
 											{
-												Navigator.pop(dialogueContext); // Closes without action
-												await _list.deleteCalc(index);
+												try
+												{
+													Navigator.pop(dialogueContext); // Closes without action
+													await _list.deleteCalc(index);
+												}
+												catch(e)
+												{
+													if(mounted)
+													{
+														ErrorHandler.showSnackBar(context, "An error occurred in deleting your calculation");
+														debugPrint("Debug Print: ${e.toString()}");
+													}
+												}
 											},
 											child: const Text("Yes", style: TextStyle(fontSize: 20)),
 										),

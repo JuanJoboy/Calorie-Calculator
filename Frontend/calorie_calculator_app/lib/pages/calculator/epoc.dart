@@ -1,8 +1,8 @@
-import 'package:calorie_calculator_app/pages/planner/folder_data.dart';
-import 'package:calorie_calculator_app/utilities/colours.dart';
+import 'package:calorie_calculator/pages/planner/folder_data.dart';
+import 'package:calorie_calculator/utilities/colours.dart';
 import 'package:flutter/material.dart';
-import 'package:calorie_calculator_app/pages/calculator/results.dart';
-import 'package:calorie_calculator_app/utilities/utilities.dart';
+import 'package:calorie_calculator/pages/calculator/results.dart';
+import 'package:calorie_calculator/utilities/utilities.dart';
 import 'package:provider/provider.dart';
 
 class EPOCPage extends StatefulWidget
@@ -223,21 +223,32 @@ class _EPOCPageState extends State<EPOCPage>
 
 	Future<void> _calculate(double epocFactor, double epocCalories, String subtitle1) async
 	{
-		// Do all the calculations then post it
-		subtitle1 = subtitle1.split(";").first;
-
-		final DailyEntry existing = _entry.dailyEntries[widget.dayId];
-
-		// Check if the existing entry belongs to the current plan.
-		// If it doesn't match, this is a new plan/entry context, so id must be null.
-		int? validId = (existing.weeklyPlanId == widget.weeklyPlanId) ? existing.id : null;
-
-		await _entry.uploadOrEditDailyEntry(id: validId, weeklyPlanId: widget.weeklyPlanId, dayId: widget.dayId, weight: widget.personWeight, age: widget.age, isMale: widget.male, additionalCalories: widget.additionalCalories, bmr: widget.bmr, tdee: widget.tdee, activityFactor: widget.metFactor, activityName: widget.activityName, activityBurn: widget.activityBurn, sportDuration: widget.sportDuration, upperDuration: widget.upperDuration, accessoriesDuration: widget.accessoryDuration, lowerDuration: widget.lowerDuration, cardioFactor: widget.cardioFactor, cardioName: widget.cardioName, cardioBurn: widget.cardioBurn, cardioDistance: widget.cardioDistance, epocFactor: epocFactor, epocName: subtitle1, epocBurn: epocCalories, proteinIntensity: widget.protein, fatIntake: widget.fat);
-
-		if(mounted)
+		try
 		{
-			Navigator.of(context).pop();
-			Navigator.of(context).pop();
+			// Do all the calculations then post it
+			subtitle1 = subtitle1.split(";").first;
+
+			final DailyEntry existing = _entry.dailyEntries[widget.dayId];
+
+			// Check if the existing entry belongs to the current plan.
+			// If it doesn't match, this is a new plan/entry context, so id must be null.
+			int? validId = (existing.weeklyPlanId == widget.weeklyPlanId) ? existing.id : null;
+
+			await _entry.uploadOrEditDailyEntry(id: validId, weeklyPlanId: widget.weeklyPlanId, dayId: widget.dayId, weight: widget.personWeight, age: widget.age, isMale: widget.male, additionalCalories: widget.additionalCalories, bmr: widget.bmr, tdee: widget.tdee, activityFactor: widget.metFactor, activityName: widget.activityName, activityBurn: widget.activityBurn, sportDuration: widget.sportDuration, upperDuration: widget.upperDuration, accessoriesDuration: widget.accessoryDuration, lowerDuration: widget.lowerDuration, cardioFactor: widget.cardioFactor, cardioName: widget.cardioName, cardioBurn: widget.cardioBurn, cardioDistance: widget.cardioDistance, epocFactor: epocFactor, epocName: subtitle1, epocBurn: epocCalories, proteinIntensity: widget.protein, fatIntake: widget.fat);
+
+			if(mounted)
+			{
+				Navigator.of(context).pop();
+				Navigator.of(context).pop();
+			}
+		}
+		catch(e)
+		{
+			if(mounted)
+			{
+				ErrorHandler.showSnackBar(context, "An error occurred in processing your info");
+				debugPrint("Debug Print: ${e.toString()}");
+			}
 		}
 	}
 }

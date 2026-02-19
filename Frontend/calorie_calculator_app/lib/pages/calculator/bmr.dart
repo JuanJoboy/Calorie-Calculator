@@ -1,14 +1,14 @@
-import 'package:calorie_calculator_app/main.dart';
-import 'package:calorie_calculator_app/pages/planner/folder_data.dart';
-import 'package:calorie_calculator_app/pages/planner/week.dart';
-import 'package:calorie_calculator_app/utilities/colours.dart';
-import 'package:calorie_calculator_app/utilities/formulas.dart';
-import 'package:calorie_calculator_app/utilities/settings.dart';
+import 'package:calorie_calculator/main.dart';
+import 'package:calorie_calculator/pages/planner/folder_data.dart';
+import 'package:calorie_calculator/pages/planner/week.dart';
+import 'package:calorie_calculator/utilities/colours.dart';
+import 'package:calorie_calculator/utilities/formulas.dart';
+import 'package:calorie_calculator/utilities/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:calorie_calculator_app/pages/calculator/burn.dart';
-import 'package:calorie_calculator_app/pages/calculator/calculations.dart';
-import 'package:calorie_calculator_app/utilities/utilities.dart';
+import 'package:calorie_calculator/pages/calculator/burn.dart';
+import 'package:calorie_calculator/pages/calculator/calculations.dart';
+import 'package:calorie_calculator/utilities/utilities.dart';
 import 'package:provider/provider.dart';
 
 class CalculatorPage extends StatefulWidget
@@ -393,7 +393,7 @@ class _BMRPageState extends State<CalculatorPage>
 								case 4: _calcs.updateControllers(feet: value);
 							}
 						},
-						inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))],
+						inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*[.,]?\d{0,2}')),],
 						keyboardType: const TextInputType.numberWithOptions(decimal: true),
 					),
 				),
@@ -636,7 +636,18 @@ class _BMRPageState extends State<CalculatorPage>
 							),
 							onPressed: condition() ? null : _weightAndCaloriesDoNotLineUp() ? null : () async // Async so that the nav.push can be awaited, so that as soon as the user comes back to this page after coming from the results page, the page is rebuilt via setState and the bmr checker runs, allowing the button to be usable. Instead of forcing the user to go to another page, then back here so that the page rebuilds
 							{
-								_processInfo(isNextButton: isNextButton);
+								try
+								{
+									await _processInfo(isNextButton: isNextButton);
+								}
+								catch(e)
+								{
+									if(context.mounted)
+									{
+										ErrorHandler.showSnackBar(context, "An error occurred in processing your info");
+										debugPrint("Debug Print: ${e.toString()}");
+									}
+								}
 							},
 							child: Text(nextText, textAlign: TextAlign.center, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black))
 						);
@@ -648,10 +659,11 @@ class _BMRPageState extends State<CalculatorPage>
 	
 	({double bmr, double ageNum, double tdee, double weightNum}) _calculateBodyInfo()
 	{
-		final double weightInput = double.tryParse(_weight.text.trim()) ?? 0;
-		final double heightInput = double.tryParse(_height.text.trim()) ?? 0;
-		final double feetInput = double.tryParse(_feet.text.trim()) ?? 0;
-		final double ageNum = double.tryParse(_age.text.trim()) ?? 0;
+		// Replaces comma with period before parsing
+		final double weightInput = double.tryParse(_weight.text.trim().replaceAll(',', '.')) ?? 0;
+		final double heightInput = double.tryParse(_height.text.trim().replaceAll(',', '.')) ?? 0;
+		final double feetInput = double.tryParse(_feet.text.trim().replaceAll(',', '.')) ?? 0;
+		final double ageNum = double.tryParse(_age.text.trim().replaceAll(',', '.')) ?? 0;
 
 		final double weightNum = context.read<WeightNotifier>().currentUnit.toBase(weightInput);
 
@@ -675,7 +687,7 @@ class _BMRPageState extends State<CalculatorPage>
 		return (bmr: bmr, ageNum: ageNum, tdee: tdee, weightNum: weightNum);
 	}
 
-	void _processInfo({bool? isNextButton}) async
+	Future<void> _processInfo({bool? isNextButton}) async
 	{
 		if(widget.weeklyPlanner)
 		{

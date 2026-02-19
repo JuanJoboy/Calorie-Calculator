@@ -1,4 +1,4 @@
-# calorie_calculator_app
+# calorie_calculator
 
 A new Flutter project.
 

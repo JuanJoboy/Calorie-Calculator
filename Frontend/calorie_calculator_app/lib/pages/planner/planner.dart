@@ -1,9 +1,9 @@
-import 'package:calorie_calculator_app/pages/calculator/bmr.dart';
-import 'package:calorie_calculator_app/pages/planner/days.dart';
-import 'package:calorie_calculator_app/pages/planner/folder_data.dart';
-import 'package:calorie_calculator_app/utilities/colours.dart';
+import 'package:calorie_calculator/pages/calculator/bmr.dart';
+import 'package:calorie_calculator/pages/planner/days.dart';
+import 'package:calorie_calculator/pages/planner/folder_data.dart';
+import 'package:calorie_calculator/utilities/colours.dart';
 import 'package:flutter/material.dart';
-import 'package:calorie_calculator_app/utilities/utilities.dart';
+import 'package:calorie_calculator/utilities/utilities.dart';
 import 'package:provider/provider.dart';
 
 class PlannerPage extends StatefulWidget
@@ -132,32 +132,65 @@ class _PlannerPageState extends State<PlannerPage>
 				{
 					if(action == 1) // View
 					{
-						if(mounted)
+						try
 						{
-							await Navigator.push
-							(
-								context,
-								MaterialPageRoute(builder: (context) => PageSwitcher(nextPage: DaysPage(weeklyPlanId: id!)))
-							);
+							if(mounted)
+							{
+								await Navigator.push
+								(
+									context,
+									MaterialPageRoute(builder: (context) => PageSwitcher(nextPage: DaysPage(weeklyPlanId: id!)))
+								);
+							}
+						}
+						catch(e)
+						{
+							if(mounted)
+							{
+								ErrorHandler.showSnackBar(context, "An error occurred in viewing your plan");
+								debugPrint("Debug Print: ${e.toString()}");
+							}
 						}
 					}
 					else if(action == 2) // Edit
 					{
-						await Navigator.push
-						(
-							context,
-							MaterialPageRoute(builder: (context) => Scaffold
+						try
+						{
+							await Navigator.push
 							(
-								body: PageSwitcher(nextPage: CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: false, weeklyPlanner: true, weeklyPlanId: id!, isEditing: true))
-							))
-						);
+								context,
+								MaterialPageRoute(builder: (context) => Scaffold
+								(
+									body: PageSwitcher(nextPage: CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: false, weeklyPlanner: true, weeklyPlanId: id!, isEditing: true))
+								))
+							);
+						}
+						catch(e)
+						{
+							if(mounted)
+							{
+								ErrorHandler.showSnackBar(context, "An error occurred in editing your plan");
+								debugPrint("Debug Print: ${e.toString()}");
+							}
+						}
 					}
 					else
 					{
-						setState(() // Delete
+						try
 						{
-							_delete(id!);
-						});
+							setState(() // Delete
+							{
+								_delete(id!);
+							});
+						}
+						catch(e)
+						{
+							if(mounted)
+							{
+								ErrorHandler.showSnackBar(context, "An error occurred in deleting your plan");
+								debugPrint("Debug Print: ${e.toString()}");
+							}
+						}
 					}
 				},
 				child: SizedBox
@@ -239,16 +272,27 @@ class _PlannerPageState extends State<PlannerPage>
 						),
 						onPressed: () async
 						{
-							if(mounted)
+							try
 							{
-								await Navigator.push
-								(
-									context,
-									MaterialPageRoute(builder: (context) => const Scaffold // ChoiceChips in the bmr page need a scaffold at the root, so i need this here
+								if(mounted)
+								{
+									await Navigator.push
 									(
-										body: PageSwitcher(nextPage: CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: false, weeklyPlanner: true, weeklyPlanId: null, isEditing: false)) // Id is null here as the plan is in the process of being made
-									))
-								);
+										context,
+										MaterialPageRoute(builder: (context) => const Scaffold // ChoiceChips in the bmr page need a scaffold at the root, so i need this here
+										(
+											body: PageSwitcher(nextPage: CalculatorPage(title: "TDEE Calculator", isDedicatedBMRPage: false, weeklyPlanner: true, weeklyPlanId: null, isEditing: false)) // Id is null here as the plan is in the process of being made
+										))
+									);
+								}
+							}
+							catch(e)
+							{
+								if(mounted)
+								{
+									ErrorHandler.showSnackBar(context, "An error occurred in creating your plan");
+									debugPrint("Debug Print: ${e.toString()}");
+								}
 							}
 						},
 						child: const Text("Create New Plan", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black))

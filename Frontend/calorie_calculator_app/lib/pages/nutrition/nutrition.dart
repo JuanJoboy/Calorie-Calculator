@@ -1,10 +1,10 @@
-import 'package:calorie_calculator_app/pages/nutrition/diet.dart';
-import 'package:calorie_calculator_app/utilities/colours.dart';
-import 'package:calorie_calculator_app/utilities/formulas.dart';
-import 'package:calorie_calculator_app/utilities/settings.dart';
+import 'package:calorie_calculator/pages/nutrition/diet.dart';
+import 'package:calorie_calculator/utilities/colours.dart';
+import 'package:calorie_calculator/utilities/formulas.dart';
+import 'package:calorie_calculator/utilities/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:calorie_calculator_app/utilities/utilities.dart';
+import 'package:calorie_calculator/utilities/utilities.dart';
 import 'package:provider/provider.dart';
 
 class NutritionPage extends StatefulWidget
@@ -258,7 +258,7 @@ class _NutritionPageState extends State<NutritionPage>
 															case 2: _nutris.updateControllers(tdee: value);
 														}
 													},
-													inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))],
+													inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*[.,]?\d{0,2}')),],
 													keyboardType: const TextInputType.numberWithOptions(decimal: true),
 												),
 											),
@@ -437,11 +437,22 @@ class _NutritionPageState extends State<NutritionPage>
 							),
 							onPressed: _areFieldsEmpty() ? null : _weightAndCaloriesDoNotLineUp() ? null : () async
 							{
-								await Navigator.push
-								(
-									context,
-									MaterialPageRoute(builder: (context) => PageSwitcher(nextPage: DietPage.noActivity(weight: _parseTextFields().$1, tdee: _parseTextFields().$2, proteinIntensity: _selectedProteinIntensity, fatIntake: _selectedFatIntensity, fibre: _chosenGender!.value, caloricCeiling: _parseTextFields().$2,)))
-								);
+								try
+								{
+									await Navigator.push
+									(
+										context,
+										MaterialPageRoute(builder: (context) => PageSwitcher(nextPage: DietPage.noActivity(weight: _parseTextFields().$1, tdee: _parseTextFields().$2, proteinIntensity: _selectedProteinIntensity, fatIntake: _selectedFatIntensity, fibre: _chosenGender!.value, caloricCeiling: _parseTextFields().$2,)))
+									);
+								}
+								catch(e)
+								{
+									if(context.mounted)
+									{
+										ErrorHandler.showSnackBar(context, "An error occurred in processing your info");
+										debugPrint("Debug Print: ${e.toString()}");
+									}
+								}
 							},
 							child: const Text("Calculate Macros", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black))
 						);
@@ -453,8 +464,8 @@ class _NutritionPageState extends State<NutritionPage>
 	
 	(double, int) _parseTextFields()
 	{
-		final double weightNum = double.tryParse(_weight.text.trim()) ?? 0;
-		final int tdeeNum = int.tryParse(_tdee.text.trim()) ?? 0;
+		final double weightNum = double.tryParse(_weight.text.trim().replaceAll(',', '.')) ?? 0;
+		final int tdeeNum = int.tryParse(_tdee.text.trim().replaceAll(',', '.')) ?? 0;
 
 		final double trueWeight = context.read<WeightNotifier>().currentUnit.toBase(weightNum);
 

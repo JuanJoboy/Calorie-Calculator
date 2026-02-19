@@ -1,6 +1,6 @@
 import 'dart:math';
-import 'package:calorie_calculator_app/pages/nutrition/diet.dart';
-import 'package:calorie_calculator_app/utilities/settings.dart';
+import 'package:calorie_calculator/pages/nutrition/diet.dart';
+import 'package:calorie_calculator/utilities/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

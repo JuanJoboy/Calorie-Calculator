@@ -1,8 +1,8 @@
-import 'package:calorie_calculator_app/pages/planner/folder_data.dart';
-import 'package:calorie_calculator_app/utilities/colours.dart';
+import 'package:calorie_calculator/pages/planner/folder_data.dart';
+import 'package:calorie_calculator/utilities/colours.dart';
 import 'package:flutter/material.dart';
-import 'package:calorie_calculator_app/pages/calculator/burn.dart';
-import 'package:calorie_calculator_app/utilities/utilities.dart';
+import 'package:calorie_calculator/pages/calculator/burn.dart';
+import 'package:calorie_calculator/utilities/utilities.dart';
 import 'package:provider/provider.dart';
 
 class WeekPage extends StatefulWidget
@@ -276,19 +276,30 @@ class _WeekPageState extends State<WeekPage>
 		}
 		else
 		{
-			_isSaving = true;
-
-			final String name = _folderName.text.trim() == "" ? "New Weekly Plan" : _folderName.text.trim();
-
-			await _plan.uploadOrEditWeeklyPlan(name, widget.weeklyPlanId);
-
-			if(mounted)
+			try
 			{
-				Navigator.popUntil
-				(
-					context,
-					(route) => route.isFirst
-				);
+				_isSaving = true;
+
+				final String name = _folderName.text.trim() == "" ? "New Weekly Plan" : _folderName.text.trim();
+
+				await _plan.uploadOrEditWeeklyPlan(name, widget.weeklyPlanId);
+
+				if(mounted)
+				{
+					Navigator.popUntil
+					(
+						context,
+						(route) => route.isFirst
+					);
+				}
+			}
+			catch(e)
+			{
+				if(mounted)
+				{
+					ErrorHandler.showSnackBar(context, "An error occurred in saving your plan");
+					debugPrint("Debug Print: ${e.toString()}");
+				}
 			}
 		}
 	}

@@ -1,9 +1,9 @@
-import 'package:calorie_calculator_app/main.dart';
-import 'package:calorie_calculator_app/utilities/colours.dart';
-import 'package:calorie_calculator_app/utilities/formulas.dart';
+import 'package:calorie_calculator/main.dart';
+import 'package:calorie_calculator/utilities/colours.dart';
+import 'package:calorie_calculator/utilities/formulas.dart';
 import 'package:flutter/material.dart';
-import 'package:calorie_calculator_app/pages/calculator/calculations.dart';
-import 'package:calorie_calculator_app/utilities/utilities.dart';
+import 'package:calorie_calculator/pages/calculator/calculations.dart';
+import 'package:calorie_calculator/utilities/utilities.dart';
 import 'package:provider/provider.dart';
 
 class ResultsPage extends StatefulWidget
@@ -226,13 +226,24 @@ class _ResultsPageState extends State<ResultsPage>
 
 	Future<void> _newCalculation(double weight, double bmr, double tdee, double activityBurn, double cardioBurn, double epoc, double total, double age, bool male) async
 	{
-		Calculation calc = Calculation(id: null, date: DateTime.now().toIso8601String(), personWeight: weight, bmr: bmr, tdee: tdee, weightLiftingBurn: activityBurn, cardioBurn: cardioBurn, epoc: epoc, totalBurn: total);
+		try
+		{
+			Calculation calc = Calculation(id: null, date: DateTime.now().toIso8601String(), personWeight: weight, bmr: bmr, tdee: tdee, weightLiftingBurn: activityBurn, cardioBurn: cardioBurn, epoc: epoc, totalBurn: total);
 
-		await _list.uploadCalc(calc);
+			await _list.uploadCalc(calc);
 
-		await _usersNotifier.uploadOrEditTdee(bmr, tdee, weight, age, male);
+			await _usersNotifier.uploadOrEditTdee(bmr, tdee, weight, age, male);
 
-		_resetControllers();
+			_resetControllers();
+		}
+		catch(e)
+		{
+			if(mounted)
+			{
+				ErrorHandler.showSnackBar(context, "An error occurred in saving your calculation");
+				debugPrint("Debug Print: ${e.toString()}");
+			}
+		}
 	}
 
 	void _resetControllers()

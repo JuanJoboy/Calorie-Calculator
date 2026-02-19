@@ -1,9 +1,9 @@
-import 'package:calorie_calculator_app/pages/nutrition/diet.dart';
-import 'package:calorie_calculator_app/pages/planner/folder_data.dart';
-import 'package:calorie_calculator_app/utilities/colours.dart';
-import 'package:calorie_calculator_app/utilities/formulas.dart';
+import 'package:calorie_calculator/pages/nutrition/diet.dart';
+import 'package:calorie_calculator/pages/planner/folder_data.dart';
+import 'package:calorie_calculator/utilities/colours.dart';
+import 'package:calorie_calculator/utilities/formulas.dart';
 import 'package:flutter/material.dart';
-import 'package:calorie_calculator_app/utilities/utilities.dart';
+import 'package:calorie_calculator/utilities/utilities.dart';
 import 'package:provider/provider.dart';
 
 class DaysPage extends StatefulWidget

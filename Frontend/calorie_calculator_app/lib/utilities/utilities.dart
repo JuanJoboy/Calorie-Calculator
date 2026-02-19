@@ -1,4 +1,4 @@
-import 'package:calorie_calculator_app/utilities/colours.dart';
+import 'package:calorie_calculator/utilities/colours.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -169,28 +169,38 @@ class HyperLinker
 		{
 			if(context.mounted)
 			{
-				ScaffoldMessenger.of(context).showSnackBar
-				(
-					SnackBar
-					(
-						content: const Center
-						(
-							child: Text
-							(
-								'''Couldn't open website''',
-								style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black),
-							)
-						),
-						width: 200,
-						backgroundColor: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
-						behavior: SnackBarBehavior.floating,
-						shape: RoundedRectangleBorder
-						(
-							borderRadius: BorderRadius.circular(50),
-						),
-					),
-				);
+				ErrorHandler.showSnackBar(context, '''Couldn't open website''');
 			}
 		}
+	}
+}
+
+class ErrorHandler
+{
+	static void showSnackBar(BuildContext context, String message)
+	{
+  		ScaffoldMessenger.of(context).hideCurrentSnackBar(); // Clears existing snack bars so they don't queue up
+
+		ScaffoldMessenger.of(context).showSnackBar
+		(
+			SnackBar
+			(
+				content: Center
+				(
+					child: Text
+					(
+						message,
+						style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black),
+					)
+				),
+				width: 200,
+				backgroundColor: Theme.of(context).extension<AppColours>()!.tertiaryColour!,
+				behavior: SnackBarBehavior.floating,
+				shape: RoundedRectangleBorder
+				(
+					borderRadius: BorderRadius.circular(50),
+				),
+			),
+		);
 	}
 }

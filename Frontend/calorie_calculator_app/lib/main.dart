@@ -1,14 +1,14 @@
-import "package:calorie_calculator_app/pages/nutrition/nutrition.dart";
-import "package:calorie_calculator_app/pages/planner/folder_data.dart";
-import "package:calorie_calculator_app/pages/planner/planner.dart";
-import "package:calorie_calculator_app/utilities/colours.dart";
-import "package:calorie_calculator_app/utilities/settings.dart";
+import "package:calorie_calculator/pages/nutrition/nutrition.dart";
+import "package:calorie_calculator/pages/planner/folder_data.dart";
+import "package:calorie_calculator/pages/planner/planner.dart";
+import "package:calorie_calculator/utilities/colours.dart";
+import "package:calorie_calculator/utilities/settings.dart";
 import "package:flutter/material.dart";
-import "package:calorie_calculator_app/pages/calculator/bmr.dart";
-import "package:calorie_calculator_app/pages/calculator/calculations.dart";
-import "package:calorie_calculator_app/pages/history/history.dart";
-import "package:calorie_calculator_app/pages/information/information.dart";
-import "package:calorie_calculator_app/utilities/utilities.dart";
+import "package:calorie_calculator/pages/calculator/bmr.dart";
+import "package:calorie_calculator/pages/calculator/calculations.dart";
+import "package:calorie_calculator/pages/history/history.dart";
+import "package:calorie_calculator/pages/information/information.dart";
+import "package:calorie_calculator/utilities/utilities.dart";
 import "package:provider/provider.dart";
 
 void main()

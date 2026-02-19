@@ -1,10 +1,10 @@
 import 'package:bulleted_list/bulleted_list.dart';
-import 'package:calorie_calculator_app/pages/calculator/burn.dart';
-import 'package:calorie_calculator_app/utilities/colours.dart';
-import 'package:calorie_calculator_app/utilities/formulas.dart';
-import 'package:calorie_calculator_app/utilities/settings.dart';
+import 'package:calorie_calculator/pages/calculator/burn.dart';
+import 'package:calorie_calculator/utilities/colours.dart';
+import 'package:calorie_calculator/utilities/formulas.dart';
+import 'package:calorie_calculator/utilities/settings.dart';
 import 'package:flutter/material.dart';
-import 'package:calorie_calculator_app/utilities/utilities.dart';
+import 'package:calorie_calculator/utilities/utilities.dart';
 import 'package:provider/provider.dart';
 
 class DietPage extends StatefulWidget
