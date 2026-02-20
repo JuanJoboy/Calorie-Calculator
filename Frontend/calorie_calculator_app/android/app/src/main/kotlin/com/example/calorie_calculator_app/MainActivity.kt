@@ -1,4 +1,4 @@
-package com.example.calorie_calculator
+package com.prometheus.caloriecalculator
 
 import io.flutter.embedding.android.FlutterActivity
 
