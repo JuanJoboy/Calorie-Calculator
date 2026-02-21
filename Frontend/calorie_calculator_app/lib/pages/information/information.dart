@@ -118,7 +118,7 @@ class _InformationPageState extends State<InformationPage>
 											padding: const EdgeInsets.all(8.0),
 											child: BulletedList
 											(
-												listItems: ['''The caloric data provided are simply mathematical estimations, not clinical measurements.''', '''Individual factors (genetics, body composition, hormonal health, etc) are too variable and are beyond the scope of this calculator.''', '''This means that these figures serve as a guide rather than an absolute value. The same goes with the nutritional information, they're based on the standards for a healthy adult, not an elderly person or a child. So use these results at your own discretion.''', '''For precise nutritional or medical planning, consult a certified professional.'''],
+												listItems: ['''The caloric data provided are simply mathematical estimations, not clinical measurements.''', '''Individual factors (genetics, body composition, hormonal health, etc) are too variable and are beyond the scope of this calculator.''', '''This means that these figures serve as a guide rather than an absolute value. The same goes with the nutritional information, they're based on the standards for a healthy adult (19-50), not an elderly person or a child. So use these results at your own discretion.''', '''For precise nutritional or medical planning, consult a certified professional.'''],
 												style: TextStyle(fontSize: 15, fontWeight: .w700, color: Theme.of(context).extension<AppColours>()!.disclaimer!),
 												bullet: Icon(Icons.warning_amber_rounded, size: 30, color: Theme.of(context).extension<AppColours>()!.disclaimer!, fontWeight: .w500),
 											)

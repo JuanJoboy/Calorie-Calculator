@@ -142,7 +142,7 @@ class _NutritionPageState extends State<NutritionPage>
 									padding: EdgeInsets.symmetric(horizontal: 36.0, vertical: 20),
 									child: Text
 									(
-										"Your current configuration exceeds your Total Calories. Please adjust your inputs.",
+										"Your current configuration exceeds your total calories. Please adjust your inputs.",
 										style: TextStyle(color: Colors.red, fontSize: 20, fontWeight: FontWeight.bold),
 									),
 								) : const SizedBox();

@@ -46,7 +46,16 @@ class _WeekPageState extends State<WeekPage>
 
 		_plan = context.read<WeeklyPlanNotifier>();
 
-		_folderName.text = _folder.name;
+		// Ensures that the name of the folder doesn't show the previous folders name (since I save the fields with a ChangeNotifier, the prev folder name stays)
+		if(widget.isEditing)
+		{
+			int realIndex = _plan.weeklyPlans.indexWhere((plan) => plan.id == widget.weeklyPlanId);
+			_folderName.text = _plan.weeklyPlans[realIndex].folderName;
+		}
+		else
+		{
+			_folderName.text = _folder.name;
+		}
   	}
 
 	@override

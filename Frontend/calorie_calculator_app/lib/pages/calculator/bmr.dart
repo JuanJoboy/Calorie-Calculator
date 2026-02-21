@@ -243,7 +243,7 @@ class _BMRPageState extends State<CalculatorPage>
 									padding: EdgeInsets.symmetric(horizontal: 36.0, vertical: 20),
 									child: Text
 									(
-										"The selected calorie goal is too low to meet essential protein and fat requirements for your body weight.",
+										"Your total calories are too low to meet essential protein and fat requirements for your body weight.",
 										style: TextStyle(color: Colors.red, fontSize: 20, fontWeight: FontWeight.bold),
 									),
 								) : const SizedBox();
