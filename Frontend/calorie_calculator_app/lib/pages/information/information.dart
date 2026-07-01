@@ -36,7 +36,7 @@ class _InformationPageState extends State<InformationPage>
 					[
 						title(),
 
-						disclaimer(),
+						dropdown(context, "Disclaimer", disclaimer()),
 
 						clickMe(),
 
@@ -62,8 +62,6 @@ class _InformationPageState extends State<InformationPage>
 				Text("Concepts and Formulas", style: TextStyle(fontSize: 16, color: Theme.of(context).hintColor, fontWeight: FontWeight.w400)),
 				
 				const SizedBox(height: 20),
-				
-				const Divider(indent: 50, endIndent: 50, height: 40),
 			],
 		);
 	}
@@ -72,7 +70,7 @@ class _InformationPageState extends State<InformationPage>
 	{
 		return Padding
 		(
-			padding: const EdgeInsets.only(top: 20.0),
+			padding: const EdgeInsets.only(top: 0.0),
 			child: LayoutBuilder
 			(
 				builder: (context, constraints)
@@ -96,21 +94,6 @@ class _InformationPageState extends State<InformationPage>
 							(
 								children:
 								[
-									Padding
-									(
-										padding: const EdgeInsets.only(top: 20.0),
-										child: Text
-										(
-											"Disclaimer",
-											style: TextStyle
-											(
-												fontSize: 20,
-												fontWeight: FontWeight.w900,
-												color: Theme.of(context).extension<AppColours>()!.disclaimer!
-											)
-										),
-									),
-						
 									SizedBox
 									(
 										child: Padding
@@ -133,6 +116,53 @@ class _InformationPageState extends State<InformationPage>
 		);
 	}
 
+	Widget dropdown(BuildContext context, String header, Widget content)
+	{
+		return Row
+		(
+			mainAxisAlignment: MainAxisAlignment.center,
+			children:
+			[
+				Expanded
+				(
+					child: Card
+					(
+						elevation: 2,
+						shadowColor: Theme.of(context).extension<AppColours>()!.disclaimer!,
+						color: Theme.of(context).extension<AppColours>()!.backgroundColour!,
+						child: ExpansionTile
+						(
+							trailing: const SizedBox.shrink(),
+							shape: RoundedRectangleBorder
+							(
+								borderRadius: BorderRadius.circular(20)
+							),
+							collapsedShape: RoundedRectangleBorder
+							(
+								borderRadius: BorderRadius.circular(20)
+							),
+							title: Padding
+							(
+								padding: const EdgeInsetsGeometry.only(left: 40),
+								child: Text
+								(
+									textAlign: TextAlign.center,
+									header,
+									style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: Theme.of(context).extension<AppColours>()!.disclaimer!)
+								),
+							),
+							children:
+							[
+								content,
+								const Padding(padding: const EdgeInsets.only(bottom: 50)),
+							],
+						)
+					)
+				),
+			],
+		);
+	}
+
 	Widget clickMe()
 	{
 		return Column
@@ -141,7 +171,6 @@ class _InformationPageState extends State<InformationPage>
 			mainAxisAlignment: MainAxisAlignment.center,
 			children:
 			[
-				const SizedBox(height: 20),
 
 				const Divider(indent: 50, endIndent: 50, height: 40),
 

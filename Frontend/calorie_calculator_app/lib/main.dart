@@ -241,7 +241,7 @@ class _MyHomePageState extends State<MyHomePage>
 					shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
 					child: Container
 					(
-						height: 400,
+						height: 430,
 						width: 300,
 						padding: const EdgeInsets.all(16),
 						child: Column
@@ -263,9 +263,22 @@ class _MyHomePageState extends State<MyHomePage>
 											ListTile(trailing: const HeightSwitch(), title: Text(Utils.whatModeIsIt(context.watch<HeightNotifier>().isBaseMode, Height.inch.name, Height.centimeter.name))),
 											ListTile(trailing: const DistanceSwitch(), title: Text(Utils.whatModeIsIt(context.watch<DistanceNotifier>().isBaseMode, Distance.mile.name, Distance.kilometer.name))),
 											ListTile(trailing: const WaterSwitch(), title: Text(Utils.whatModeIsIt(context.watch<WaterNotifier>().isBaseMode, Water.gallon.name, Water.liter.name))),
+											Text.rich
+											(
+												textAlign: TextAlign.center,
+												style: const TextStyle(fontWeight: FontWeight.bold),
+												TextSpan
+												(
+													children:
+													[
+														HyperLinker.hyperlinkText("Privacy Policy", "https://sites.google.com/view/ichor-labs/home?pli=1", context)
+													]
+												)
+											)
 										],
 									),
 								),
+
 								TextButton
 								(
 									onPressed: () => Navigator.pop(context),
